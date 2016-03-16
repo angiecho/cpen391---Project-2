@@ -11,34 +11,29 @@
 ***
 **  Initialise bluetooth
 *****************************************************************************/
-
 void putCharBluetooth(char c);
-
 char getCharBluetooth();
-
 void Init_Bluetooth(void);
-
 void WaitForReadStat();
 
 /*****************************************************************************
 **   Switch modes
 *****************************************************************************/
 void commandMode(void);
-
 void dataMode(void);
-
+void slaveMode(void);
 void endCommand();
-
 void setName();
 
 /*****************************************************************************
 **   Set name/security pin
 *****************************************************************************/
 void changeName(char *name[]);
-
 void changePassword(char *pw[]);
 
-
-void testBluetooth(void);
+void assignBluetoothCHARLES(void);
+void assignBluetoothCHO(void);
+void assignBluetoothCALEB(void);
+void sendTestData(char word[]);
 
 #endif /* BLUETOOTH_H_ */
