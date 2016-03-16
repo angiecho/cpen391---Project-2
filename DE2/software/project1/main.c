@@ -11,6 +11,7 @@ int main(void) {
 		printf("message from: %c \n", receiver);
 		printf("message to: %c \n", sender);
 		printf("message: %s \n", msg);
+		sendMessage(length, receiver, sender, msg);
 	}
 	printf("\nDONE\n");
 	return 0;

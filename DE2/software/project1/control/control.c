@@ -36,4 +36,6 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	}
 
 	free(msg);
+
+	return true;
 }
