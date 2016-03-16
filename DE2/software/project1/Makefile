@@ -153,6 +153,7 @@ C_SRCS += graphics/fill.c
 C_SRCS += graphics/draw_font.c
 C_SRCS += misc/hashmap.c
 C_SRCS += tests/hashmap_test.c
+C_SRCS += control/control.c
 CXX_SRCS :=
 ASM_SRCS :=
 
