@@ -151,13 +151,8 @@ C_SRCS += bluetooth/bluetooth.c
 C_SRCS += touchscreen/touchscreen.c
 C_SRCS += graphics/fill.c
 C_SRCS += graphics/draw_font.c
-C_SRCS += graphics/menu.c
 C_SRCS += misc/hashmap.c
-C_SRCS += control/control.c
-C_SRCS += control/load_node.c
 C_SRCS += tests/hashmap_test.c
-C_SRCS += control/button.c
-C_SRCS += control/image.c
 CXX_SRCS :=
 ASM_SRCS :=
 

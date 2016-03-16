@@ -43,9 +43,6 @@ void draw_filled_circle(Point centre, int radius, int colour);
 void draw_filled_circle_border(Point centre, int radius, int colour, int borderColour);
 void draw_arc(Point centre, int radius, int colour, double angleStart, double angleEnd);
 
-void draw_path(Point points[], int num_points, int colour);
-void PathLine(int x1, int y1, int x2, int y2, int Colour);
-
 /**************************** Core Functionality *******************************/
 void ProgramPalette(int PaletteNumber, int RGB);
 void WriteAPixel(int x, int y, int Colour);
@@ -60,6 +57,7 @@ void Fill(int _x, int _y, int _FillColour, int _BoundaryColour);
 void draw_font(int x, int y, int colour, int backgroundcolour, int c, int Erase, FontSize size);
 int get_font_width(FontSize size);
 int get_font_height(FontSize size);
+void draw_path(Point points[], int num_points, int colour);
 
 //useless methods
 void LineSW(int x1, int y1, int x2, int y2, int Colour);

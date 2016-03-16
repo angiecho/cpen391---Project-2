@@ -1,5 +1,4 @@
 #include "misc_helpers.h"
-#include "button.h"
 #include <assert.h>
 #include <string.h>
 #include <math.h>
