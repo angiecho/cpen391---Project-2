@@ -5,10 +5,6 @@
 
 int main(void) {
 	Init_Bluetooth();
-	printf("Bluetooth initialized\n");
-//	while (1){
-//		getCharBluetooth();
-//	}
 
 	while(1){
 		unsigned length;

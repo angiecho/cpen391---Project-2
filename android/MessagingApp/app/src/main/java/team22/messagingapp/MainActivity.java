@@ -274,7 +274,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-
         }
 
         //intent.putExtra(EXTRA_MESSAGE, message);
