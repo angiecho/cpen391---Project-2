@@ -51,3 +51,19 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 
 	return true;
 }
+
+bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
+	//TODO determine who to send to
+	char sender_receiver = (sender << 4) | receiver;
+	putCharBluetooth2(sender_receiver);
+	putCharBluetooth2((char)length);
+
+	for (int i = 0; i<length; i++){
+		putCharBluetooth2(msg[i]);
+	}
+	putCharBluetooth2(0);
+
+	free(msg);
+
+	return true;
+}

@@ -13,6 +13,7 @@ int main(void) {
 		printf("message length: %d \n", length);
 		printf("message: %s \n", msg);
 		sendMessage(length, receiver, sender, msg);
+		//sendMessage2(length, receiver, sender, msg);
 	}
 	printf("\nDONE\n");
 	return 0;

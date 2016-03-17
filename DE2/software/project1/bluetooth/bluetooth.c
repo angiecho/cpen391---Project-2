@@ -8,13 +8,24 @@ void putCharBluetooth(char c){
 	Bluetooth_TxData = c & 0xFF;
 }
 
+void putCharBluetooth2(char c){
+	while((Bluetooth_Status2 & 0x02) != 0x02);
+	Bluetooth_TxData2 = c & 0xFF;
+}
+
 char getCharBluetooth(){
 	while (!(Bluetooth_Status & 0x1));
 	return Bluetooth_RxData;
 }
 
+char getCharBluetooth2(){
+	while (!(Bluetooth_Status2 & 0x1));
+	return Bluetooth_RxData2;
+}
+
 void Init_Bluetooth(void){
 	Bluetooth_Control = 0x15;
+	Bluetooth_Control2 = 0x15;
 	Bluetooth_Baud = 0x01;
 }
 
