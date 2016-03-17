@@ -28,12 +28,9 @@ void setName();
 /*****************************************************************************
 **   Set name/security pin
 *****************************************************************************/
-void changeName(char *name[]);
-void changePassword(char *pw[]);
-
-void assignBluetoothCHARLES(void);
-void assignBluetoothCHO(void);
-void assignBluetoothCALEB(void);
-void sendTestData(char word[]);
+void changeName(char name[]);
+void changePassword(char pw[]);
+void assignBluetooth(void);
+void sendTestData(char* word);
 
 #endif /* BLUETOOTH_H_ */

@@ -119,23 +119,6 @@ applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 1624 1448 1810 1464)
-	(text "INPUT" (rect 7 0 35 10)(font "Arial" (font_size 6)))
-	(text "BlueTooth_RxData" (rect 88 0 180 12)(font "Arial" ))
-	(pt 0 8)
-	(drawing
-		(line (pt 76 12)(pt 51 12))
-		(line (pt 76 4)(pt 51 4))
-		(line (pt 47 8)(pt 0 8))
-		(line (pt 76 12)(pt 76 4))
-		(line (pt 51 4)(pt 47 8))
-		(line (pt 51 12)(pt 47 8))
-	)
-	(flipy)
-	(text "VCC" (rect 12 7 32 17)(font "Arial" (font_size 6)))
-)
-(pin
-	(input)
 	(rect 232 376 400 392)
 	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
 	(text "Address[15..0]" (rect 5 0 76 12)(font "Arial" ))
@@ -187,6 +170,23 @@ applicable agreement for further details.
 	(rect 1576 1728 1811 1744)
 	(text "INPUT" (rect 7 0 35 10)(font "Arial" (font_size 6)))
 	(text "TouchScreen_RxData" (rect 88 0 195 12)(font "Arial" ))
+	(pt 0 8)
+	(drawing
+		(line (pt 76 12)(pt 51 12))
+		(line (pt 76 4)(pt 51 4))
+		(line (pt 47 8)(pt 0 8))
+		(line (pt 76 12)(pt 76 4))
+		(line (pt 51 4)(pt 47 8))
+		(line (pt 51 12)(pt 47 8))
+	)
+	(flipy)
+	(text "VCC" (rect 12 7 32 17)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 1824 1464 2036 1480)
+	(text "INPUT" (rect 7 0 35 10)(font "Arial" (font_size 6)))
+	(text "BlueTooth_RxData[1..0]" (rect 88 0 206 12)(font "Arial" ))
 	(pt 0 8)
 	(drawing
 		(line (pt 76 12)(pt 51 12))
@@ -265,22 +265,6 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1632 1408 1817 1424)
-	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
-	(text "BlueTooth_TxData" (rect 90 0 179 12)(font "Arial" ))
-	(pt 0 8)
-	(drawing
-		(line (pt 0 8)(pt 52 8))
-		(line (pt 52 4)(pt 78 4))
-		(line (pt 52 12)(pt 78 12))
-		(line (pt 52 12)(pt 52 4))
-		(line (pt 78 4)(pt 82 8))
-		(line (pt 82 8)(pt 78 12))
-		(line (pt 78 12)(pt 82 8))
-	)
-)
-(pin
-	(output)
 	(rect 1576 1696 1811 1712)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "TouchScreen_TxData" (rect 90 0 195 12)(font "Arial" ))
@@ -295,89 +279,20 @@ applicable agreement for further details.
 		(line (pt 78 12)(pt 82 8))
 	)
 )
-(symbol
-	(rect 536 352 808 528)
-	(text "M68xxIODecoder" (rect 5 0 89 12)(font "Arial" ))
-	(text "inst" (rect 8 160 25 172)(font "Arial" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "Address[15..0]" (rect 0 0 71 12)(font "Arial" ))
-		(text "Address[15..0]" (rect 21 27 92 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32)(line_width 3))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "IOSelect_H" (rect 0 0 56 12)(font "Arial" ))
-		(text "IOSelect_H" (rect 21 43 77 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "ByteSelect_L" (rect 0 0 66 12)(font "Arial" ))
-		(text "ByteSelect_L" (rect 21 59 87 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64))
-	)
-	(port
-		(pt 272 32)
-		(output)
-		(text "RS232_Port_Enable" (rect 0 0 97 12)(font "Arial" ))
-		(text "RS232_Port_Enable" (rect 157 27 254 39)(font "Arial" ))
-		(line (pt 272 32)(pt 256 32))
-	)
-	(port
-		(pt 272 48)
-		(output)
-		(text "RS232_Baud_Enable" (rect 0 0 102 12)(font "Arial" ))
-		(text "RS232_Baud_Enable" (rect 151 43 253 55)(font "Arial" ))
-		(line (pt 272 48)(pt 256 48))
-	)
-	(port
-		(pt 272 64)
-		(output)
-		(text "GPS_Port_Enable" (rect 0 0 87 12)(font "Arial" ))
-		(text "GPS_Port_Enable" (rect 168 59 255 71)(font "Arial" ))
-		(line (pt 272 64)(pt 256 64))
-	)
-	(port
-		(pt 272 80)
-		(output)
-		(text "GPS_Baud_Enable" (rect 0 0 92 12)(font "Arial" ))
-		(text "GPS_Baud_Enable" (rect 162 75 254 87)(font "Arial" ))
-		(line (pt 272 80)(pt 256 80))
-	)
-	(port
-		(pt 272 96)
-		(output)
-		(text "Bluetooth_Port_Enable" (rect 0 0 110 12)(font "Arial" ))
-		(text "Bluetooth_Port_Enable" (rect 144 91 254 103)(font "Arial" ))
-		(line (pt 272 96)(pt 256 96))
-	)
-	(port
-		(pt 272 112)
-		(output)
-		(text "Bluetooth_Baud_Enable" (rect 0 0 115 12)(font "Arial" ))
-		(text "Bluetooth_Baud_Enable" (rect 138 107 253 119)(font "Arial" ))
-		(line (pt 272 112)(pt 256 112))
-	)
-	(port
-		(pt 272 128)
-		(output)
-		(text "TouchScreen_Port_Enable" (rect 0 0 128 12)(font "Arial" ))
-		(text "TouchScreen_Port_Enable" (rect 124 123 252 135)(font "Arial" ))
-		(line (pt 272 128)(pt 256 128))
-	)
-	(port
-		(pt 272 144)
-		(output)
-		(text "TouchScreen_Baud_Enable" (rect 0 0 133 12)(font "Arial" ))
-		(text "TouchScreen_Baud_Enable" (rect 118 139 251 151)(font "Arial" ))
-		(line (pt 272 144)(pt 256 144))
-	)
+(pin
+	(output)
+	(rect 1800 1312 2011 1328)
+	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
+	(text "BlueTooth_TxData[1..0]" (rect 90 0 205 12)(font "Arial" ))
+	(pt 0 8)
 	(drawing
-		(rectangle (rect 16 16 256 160))
+		(line (pt 0 8)(pt 52 8))
+		(line (pt 52 4)(pt 78 4))
+		(line (pt 52 12)(pt 78 12))
+		(line (pt 52 12)(pt 52 4))
+		(line (pt 78 4)(pt 82 8))
+		(line (pt 82 8)(pt 78 12))
+		(line (pt 78 12)(pt 82 8))
 	)
 )
 (symbol
@@ -566,53 +481,6 @@ applicable agreement for further details.
 		(line (pt 13 7)(pt 31 16))
 		(line (pt 13 25)(pt 31 16))
 		(circle (rect 31 12 39 20))
-	)
-)
-(symbol
-	(rect 1488 656 1552 736)
-	(text "AND4" (rect 1 0 25 10)(font "Arial" (font_size 6)))
-	(text "inst5" (rect 3 69 26 81)(font "Arial" ))
-	(port
-		(pt 0 16)
-		(input)
-		(text "IN1" (rect 2 7 19 19)(font "Courier New" (bold))(invisible))
-		(text "IN1" (rect 2 7 19 19)(font "Courier New" (bold))(invisible))
-		(line (pt 0 16)(pt 18 16))
-	)
-	(port
-		(pt 0 32)
-		(input)
-		(text "IN2" (rect 2 23 19 35)(font "Courier New" (bold))(invisible))
-		(text "IN2" (rect 2 23 19 35)(font "Courier New" (bold))(invisible))
-		(line (pt 0 32)(pt 18 32))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "IN3" (rect 2 39 19 51)(font "Courier New" (bold))(invisible))
-		(text "IN3" (rect 2 39 19 51)(font "Courier New" (bold))(invisible))
-		(line (pt 0 48)(pt 18 48))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "IN4" (rect 2 55 19 67)(font "Courier New" (bold))(invisible))
-		(text "IN4" (rect 2 55 19 67)(font "Courier New" (bold))(invisible))
-		(line (pt 0 64)(pt 18 64))
-	)
-	(port
-		(pt 64 40)
-		(output)
-		(text "OUT" (rect 48 31 65 43)(font "Courier New" (bold))(invisible))
-		(text "OUT" (rect 48 31 65 43)(font "Courier New" (bold))(invisible))
-		(line (pt 46 40)(pt 64 40))
-	)
-	(drawing
-		(line (pt 18 28)(pt 34 28))
-		(line (pt 18 52)(pt 18 28))
-		(line (pt 18 67)(pt 18 13))
-		(line (pt 34 53)(pt 18 53))
-		(arc (pt 34 52)(pt 34 28)(rect 22 28 47 53))
 	)
 )
 (symbol
@@ -1172,23 +1040,297 @@ applicable agreement for further details.
 		(rectangle (rect 16 16 168 112))
 	)
 )
-(connector
-	(pt 400 400)
-	(pt 536 400)
+(symbol
+	(rect 488 352 760 528)
+	(text "M68xxIODecoder" (rect 5 0 89 12)(font "Arial" ))
+	(text "inst" (rect 8 160 25 172)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "Address[15..0]" (rect 0 0 71 12)(font "Arial" ))
+		(text "Address[15..0]" (rect 21 27 92 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 3))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "IOSelect_H" (rect 0 0 56 12)(font "Arial" ))
+		(text "IOSelect_H" (rect 21 43 77 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "ByteSelect_L" (rect 0 0 66 12)(font "Arial" ))
+		(text "ByteSelect_L" (rect 21 59 87 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64))
+	)
+	(port
+		(pt 272 32)
+		(output)
+		(text "RS232_Port_Enable" (rect 0 0 97 12)(font "Arial" ))
+		(text "RS232_Port_Enable" (rect 169 27 251 39)(font "Arial" ))
+		(line (pt 272 32)(pt 256 32))
+	)
+	(port
+		(pt 272 48)
+		(output)
+		(text "RS232_Baud_Enable" (rect 0 0 102 12)(font "Arial" ))
+		(text "RS232_Baud_Enable" (rect 165 43 251 55)(font "Arial" ))
+		(line (pt 272 48)(pt 256 48))
+	)
+	(port
+		(pt 272 64)
+		(output)
+		(text "GPS_Port_Enable" (rect 0 0 87 12)(font "Arial" ))
+		(text "GPS_Port_Enable" (rect 178 59 251 71)(font "Arial" ))
+		(line (pt 272 64)(pt 256 64))
+	)
+	(port
+		(pt 272 80)
+		(output)
+		(text "GPS_Baud_Enable" (rect 0 0 92 12)(font "Arial" ))
+		(text "GPS_Baud_Enable" (rect 174 75 251 87)(font "Arial" ))
+		(line (pt 272 80)(pt 256 80))
+	)
+	(port
+		(pt 272 96)
+		(output)
+		(text "Bluetooth_Port_Enable[2..0]" (rect 0 0 136 12)(font "Arial" ))
+		(text "Bluetooth_Port_Enable[2..0]" (rect 136 91 251 103)(font "Arial" ))
+		(line (pt 272 96)(pt 256 96)(line_width 3))
+	)
+	(port
+		(pt 272 112)
+		(output)
+		(text "Bluetooth_Baud_Enable" (rect 0 0 115 12)(font "Arial" ))
+		(text "Bluetooth_Baud_Enable" (rect 154 107 251 119)(font "Arial" ))
+		(line (pt 272 112)(pt 256 112))
+	)
+	(port
+		(pt 272 128)
+		(output)
+		(text "TouchScreen_Port_Enable" (rect 0 0 128 12)(font "Arial" ))
+		(text "TouchScreen_Port_Enable" (rect 143 123 251 135)(font "Arial" ))
+		(line (pt 272 128)(pt 256 128))
+	)
+	(port
+		(pt 272 144)
+		(output)
+		(text "TouchScreen_Baud_Enable" (rect 0 0 133 12)(font "Arial" ))
+		(text "TouchScreen_Baud_Enable" (rect 139 139 251 151)(font "Arial" ))
+		(line (pt 272 144)(pt 256 144))
+	)
+	(drawing
+		(rectangle (rect 16 16 256 160))
+	)
 )
-(connector
-	(pt 400 416)
-	(pt 536 416)
+(symbol
+	(rect 1048 1752 1248 1992)
+	(text "ACIA_6850" (rect 5 0 60 12)(font "Arial" ))
+	(text "inst16" (rect 8 224 37 236)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "Clk" (rect 0 0 16 12)(font "Arial" ))
+		(text "Clk" (rect 21 27 37 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "Reset_H" (rect 0 0 43 12)(font "Arial" ))
+		(text "Reset_H" (rect 21 43 64 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "CS_H" (rect 0 0 29 12)(font "Arial" ))
+		(text "CS_H" (rect 21 59 50 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "Write_L" (rect 0 0 37 12)(font "Arial" ))
+		(text "Write_L" (rect 21 75 58 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "RS" (rect 0 0 15 12)(font "Arial" ))
+		(text "RS" (rect 21 91 36 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "DataIn[7..0]" (rect 0 0 59 12)(font "Arial" ))
+		(text "DataIn[7..0]" (rect 21 107 80 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 3))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "RxClock" (rect 0 0 42 12)(font "Arial" ))
+		(text "RxClock" (rect 21 123 63 135)(font "Arial" ))
+		(line (pt 0 128)(pt 16 128))
+	)
+	(port
+		(pt 0 144)
+		(input)
+		(text "TxClock" (rect 0 0 40 12)(font "Arial" ))
+		(text "TxClock" (rect 21 139 61 151)(font "Arial" ))
+		(line (pt 0 144)(pt 16 144))
+	)
+	(port
+		(pt 0 160)
+		(input)
+		(text "RxData" (rect 0 0 37 12)(font "Arial" ))
+		(text "RxData" (rect 21 155 58 167)(font "Arial" ))
+		(line (pt 0 160)(pt 16 160))
+	)
+	(port
+		(pt 0 176)
+		(input)
+		(text "DCD_L" (rect 0 0 36 12)(font "Arial" ))
+		(text "DCD_L" (rect 21 171 57 183)(font "Arial" ))
+		(line (pt 0 176)(pt 16 176))
+	)
+	(port
+		(pt 0 192)
+		(input)
+		(text "CTS_L" (rect 0 0 33 12)(font "Arial" ))
+		(text "CTS_L" (rect 21 187 54 199)(font "Arial" ))
+		(line (pt 0 192)(pt 16 192))
+	)
+	(port
+		(pt 200 32)
+		(output)
+		(text "IRQ_L" (rect 0 0 31 12)(font "Arial" ))
+		(text "IRQ_L" (rect 153 27 184 39)(font "Arial" ))
+		(line (pt 200 32)(pt 184 32))
+	)
+	(port
+		(pt 200 48)
+		(output)
+		(text "DataOut[7..0]" (rect 0 0 67 12)(font "Arial" ))
+		(text "DataOut[7..0]" (rect 123 43 190 55)(font "Arial" ))
+		(line (pt 200 48)(pt 184 48)(line_width 3))
+	)
+	(port
+		(pt 200 64)
+		(output)
+		(text "TxData" (rect 0 0 35 12)(font "Arial" ))
+		(text "TxData" (rect 150 59 185 71)(font "Arial" ))
+		(line (pt 200 64)(pt 184 64))
+	)
+	(port
+		(pt 200 80)
+		(output)
+		(text "RTS_L" (rect 0 0 33 12)(font "Arial" ))
+		(text "RTS_L" (rect 152 75 185 87)(font "Arial" ))
+		(line (pt 200 80)(pt 184 80))
+	)
+	(drawing
+		(rectangle (rect 16 16 184 224))
+	)
 )
-(connector
-	(pt 400 384)
-	(pt 472 384)
-	(bus)
+(symbol
+	(rect 1496 640 1560 752)
+	(text "AND6" (rect 1 0 25 10)(font "Arial" (font_size 6)))
+	(text "inst15" (rect 3 101 32 113)(font "Arial" ))
+	(port
+		(pt 0 48)
+		(input)
+		(text "IN3" (rect 2 39 19 51)(font "Courier New" (bold))(invisible))
+		(text "IN3" (rect 2 39 19 51)(font "Courier New" (bold))(invisible))
+		(line (pt 0 48)(pt 18 48))
+	)
+	(port
+		(pt 0 16)
+		(input)
+		(text "IN1" (rect 2 7 19 19)(font "Courier New" (bold))(invisible))
+		(text "IN1" (rect 2 7 19 19)(font "Courier New" (bold))(invisible))
+		(line (pt 0 16)(pt 18 16))
+	)
+	(port
+		(pt 0 32)
+		(input)
+		(text "IN2" (rect 2 23 19 35)(font "Courier New" (bold))(invisible))
+		(text "IN2" (rect 2 23 19 35)(font "Courier New" (bold))(invisible))
+		(line (pt 0 32)(pt 18 32))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "IN4" (rect 2 55 19 67)(font "Courier New" (bold))(invisible))
+		(text "IN4" (rect 2 55 19 67)(font "Courier New" (bold))(invisible))
+		(line (pt 0 64)(pt 18 64))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "IN5" (rect 2 71 19 83)(font "Courier New" (bold))(invisible))
+		(text "IN5" (rect 2 71 19 83)(font "Courier New" (bold))(invisible))
+		(line (pt 0 80)(pt 18 80))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "IN6" (rect 2 87 19 99)(font "Courier New" (bold))(invisible))
+		(text "IN6" (rect 2 87 19 99)(font "Courier New" (bold))(invisible))
+		(line (pt 0 96)(pt 18 96))
+	)
+	(port
+		(pt 64 56)
+		(output)
+		(text "OUT" (rect 48 47 65 59)(font "Courier New" (bold))(invisible))
+		(text "OUT" (rect 48 47 65 59)(font "Courier New" (bold))(invisible))
+		(line (pt 46 56)(pt 64 56))
+	)
+	(drawing
+		(line (pt 18 43)(pt 33 43))
+		(line (pt 18 99)(pt 18 13))
+		(line (pt 18 70)(pt 34 70))
+		(arc (pt 34 69)(pt 33 43)(rect 20 43 47 70))
+	)
 )
-(connector
-	(pt 472 384)
-	(pt 536 384)
-	(bus)
+(symbol
+	(rect 1344 752 1376 784)
+	(text "GND" (rect 8 16 29 26)(font "Arial" (font_size 6)))
+	(text "inst17" (rect 3 21 32 33)(font "Arial" )(invisible))
+	(port
+		(pt 16 0)
+		(output)
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(line (pt 16 8)(pt 16 0))
+	)
+	(drawing
+		(line (pt 8 8)(pt 16 16))
+		(line (pt 16 16)(pt 24 8))
+		(line (pt 8 8)(pt 24 8))
+	)
+)
+(symbol
+	(rect 1016 1952 1048 1984)
+	(text "GND" (rect 8 16 29 26)(font "Arial" (font_size 6)))
+	(text "inst18" (rect 3 21 32 33)(font "Arial" )(invisible))
+	(port
+		(pt 16 0)
+		(output)
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(line (pt 16 8)(pt 16 0))
+	)
+	(drawing
+		(line (pt 8 8)(pt 16 16))
+		(line (pt 16 16)(pt 24 8))
+		(line (pt 8 8)(pt 24 8))
+	)
 )
 (connector
 	(pt 472 384)
@@ -1292,10 +1434,6 @@ applicable agreement for further details.
 	(pt 824 1256)
 )
 (connector
-	(pt 824 1256)
-	(pt 824 1544)
-)
-(connector
 	(pt 1040 672)
 	(pt 840 672)
 )
@@ -1336,10 +1474,6 @@ applicable agreement for further details.
 	(pt 840 1240)
 )
 (connector
-	(pt 840 1240)
-	(pt 840 1528)
-)
-(connector
 	(pt 1048 1032)
 	(pt 864 1032)
 	(bus)
@@ -1370,11 +1504,6 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 864 1320)
-	(pt 864 1608)
-	(bus)
-)
-(connector
 	(pt 1048 1000)
 	(pt 792 1000)
 )
@@ -1397,10 +1526,6 @@ applicable agreement for further details.
 (connector
 	(pt 792 1000)
 	(pt 792 1288)
-)
-(connector
-	(pt 792 1288)
-	(pt 792 1576)
 )
 (connector
 	(pt 1048 1016)
@@ -1432,19 +1557,7 @@ applicable agreement for further details.
 	(pt 760 1304)
 )
 (connector
-	(pt 760 1304)
-	(pt 760 1592)
-)
-(connector
 	(pt 1040 704)
-	(pt 880 704)
-)
-(connector
-	(pt 808 384)
-	(pt 880 384)
-)
-(connector
-	(pt 880 384)
 	(pt 880 704)
 )
 (connector
@@ -1452,36 +1565,8 @@ applicable agreement for further details.
 	(pt 896 984)
 )
 (connector
-	(pt 896 416)
-	(pt 896 984)
-)
-(connector
-	(pt 808 416)
-	(pt 896 416)
-)
-(connector
-	(pt 1048 1272)
-	(pt 912 1272)
-)
-(connector
-	(pt 912 448)
-	(pt 912 1272)
-)
-(connector
-	(pt 808 448)
-	(pt 912 448)
-)
-(connector
 	(pt 1048 1560)
 	(pt 928 1560)
-)
-(connector
-	(pt 928 480)
-	(pt 928 1560)
-)
-(connector
-	(pt 808 480)
-	(pt 928 480)
 )
 (connector
 	(pt 1048 1656)
@@ -1560,18 +1645,6 @@ applicable agreement for further details.
 	(pt 1280 984)
 )
 (connector
-	(pt 1288 1272)
-	(pt 1288 1416)
-)
-(connector
-	(pt 1632 1416)
-	(pt 1288 1416)
-)
-(connector
-	(pt 1248 1272)
-	(pt 1288 1272)
-)
-(connector
 	(pt 1312 1560)
 	(pt 1312 1704)
 )
@@ -1603,11 +1676,6 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 1320 1256)
-	(pt 1320 1544)
-	(bus)
-)
-(connector
 	(pt 1248 968)
 	(pt 1320 968)
 	(bus)
@@ -1623,39 +1691,7 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 1600 696)
-	(pt 1552 696)
-)
-(connector
-	(pt 1416 952)
-	(pt 1416 688)
-)
-(connector
-	(pt 1440 1240)
-	(pt 1440 704)
-)
-(connector
-	(pt 1240 672)
-	(pt 1488 672)
-)
-(connector
-	(pt 1416 688)
-	(pt 1488 688)
-)
-(connector
-	(pt 1440 704)
-	(pt 1488 704)
-)
-(connector
 	(pt 1248 1528)
-	(pt 1472 1528)
-)
-(connector
-	(pt 1488 720)
-	(pt 1472 720)
-)
-(connector
-	(pt 1472 720)
 	(pt 1472 1528)
 )
 (connector
@@ -1743,48 +1779,16 @@ applicable agreement for further details.
 	(pt 952 80)
 )
 (connector
-	(pt 808 400)
-	(pt 888 400)
-)
-(connector
 	(pt 1104 200)
 	(pt 888 200)
-)
-(connector
-	(pt 888 200)
-	(pt 888 400)
-)
-(connector
-	(pt 808 432)
-	(pt 920 432)
-)
-(connector
-	(pt 920 432)
-	(pt 920 48)
 )
 (connector
 	(pt 1104 48)
 	(pt 920 48)
 )
 (connector
-	(pt 808 464)
-	(pt 984 464)
-)
-(connector
 	(pt 1104 -104)
 	(pt 984 -104)
-)
-(connector
-	(pt 984 -104)
-	(pt 984 464)
-)
-(connector
-	(pt 808 496)
-	(pt 1016 496)
-)
-(connector
-	(pt 1016 496)
-	(pt 1016 -256)
 )
 (connector
 	(pt 1104 -256)
@@ -1867,24 +1871,12 @@ applicable agreement for further details.
 	(pt 1008 1368)
 )
 (connector
-	(pt 1008 1368)
-	(pt 1008 1456)
-)
-(connector
-	(pt 1624 1456)
-	(pt 1008 1456)
-)
-(connector
 	(pt 976 576)
 	(pt 1360 576)
 )
 (connector
 	(pt 976 576)
 	(pt 976 1336)
-)
-(connector
-	(pt 976 1336)
-	(pt 976 1352)
 )
 (connector
 	(pt 984 592)
@@ -1991,6 +1983,326 @@ applicable agreement for further details.
 	(pt 888 32)
 	(bus)
 )
+(connector
+	(pt 1704 1320)
+	(pt 1568 1320)
+)
+(connector
+	(pt 1568 1320)
+	(pt 1568 1272)
+)
+(connector
+	(pt 1008 1368)
+	(pt 1008 1472)
+)
+(connector
+	(text "BlueTooth_TxData[0]" (rect 1258 1256 1360 1268)(font "Arial" ))
+	(pt 1248 1272)
+	(pt 1568 1272)
+)
+(connector
+	(text "BlueTooth_RxData[0]" (rect 1018 1456 1123 1468)(font "Arial" ))
+	(pt 1696 1472)
+	(pt 1008 1472)
+)
+(connector
+	(pt 400 400)
+	(pt 488 400)
+)
+(connector
+	(pt 400 416)
+	(pt 488 416)
+)
+(connector
+	(pt 880 704)
+	(pt 880 384)
+)
+(connector
+	(pt 896 984)
+	(pt 896 416)
+)
+(connector
+	(pt 928 1560)
+	(pt 928 480)
+)
+(connector
+	(pt 888 200)
+	(pt 888 400)
+)
+(connector
+	(pt 920 48)
+	(pt 920 432)
+)
+(connector
+	(pt 1016 -256)
+	(pt 1016 496)
+)
+(connector
+	(pt 400 384)
+	(pt 472 384)
+	(bus)
+)
+(connector
+	(pt 472 384)
+	(pt 488 384)
+	(bus)
+)
+(connector
+	(pt 760 384)
+	(pt 880 384)
+)
+(connector
+	(pt 760 400)
+	(pt 888 400)
+)
+(connector
+	(pt 760 416)
+	(pt 896 416)
+)
+(connector
+	(pt 760 432)
+	(pt 920 432)
+)
+(connector
+	(pt 760 480)
+	(pt 928 480)
+)
+(connector
+	(pt 760 496)
+	(pt 1016 496)
+)
+(connector
+	(pt 760 464)
+	(pt 984 464)
+)
+(connector
+	(pt 984 -104)
+	(pt 984 464)
+)
+(connector
+	(pt 1248 1800)
+	(pt 1320 1800)
+	(bus)
+)
+(connector
+	(pt 1320 1256)
+	(pt 1320 1544)
+	(bus)
+)
+(connector
+	(pt 1320 1544)
+	(pt 1320 1800)
+	(bus)
+)
+(connector
+	(pt 1600 696)
+	(pt 1560 696)
+)
+(connector
+	(pt 1416 952)
+	(pt 1416 688)
+)
+(connector
+	(pt 1440 1240)
+	(pt 1440 704)
+)
+(connector
+	(pt 1472 1528)
+	(pt 1472 720)
+)
+(connector
+	(pt 1416 688)
+	(pt 1496 688)
+)
+(connector
+	(pt 1240 672)
+	(pt 1496 672)
+)
+(connector
+	(pt 1440 704)
+	(pt 1496 704)
+)
+(connector
+	(pt 1472 720)
+	(pt 1496 720)
+)
+(connector
+	(pt 1248 1784)
+	(pt 1496 1784)
+)
+(connector
+	(pt 1496 1784)
+	(pt 1496 736)
+)
+(connector
+	(pt 1496 656)
+	(pt 1360 656)
+)
+(connector
+	(pt 1360 656)
+	(pt 1360 752)
+)
+(connector
+	(pt 1248 1816)
+	(pt 1768 1816)
+)
+(connector
+	(pt 1704 1320)
+	(pt 1768 1320)
+	(bus)
+)
+(connector
+	(pt 1768 1320)
+	(pt 1800 1320)
+	(bus)
+)
+(connector
+	(text "BlueTooth_TxData[1]" (rect 1752 1719 1764 1821)(font "Arial" )(vertical))
+	(pt 1768 1816)
+	(pt 1768 1320)
+)
+(connector
+	(pt 1048 1880)
+	(pt 976 1880)
+)
+(connector
+	(pt 976 1336)
+	(pt 976 1352)
+)
+(connector
+	(pt 1048 1896)
+	(pt 976 1896)
+)
+(connector
+	(pt 976 1352)
+	(pt 976 1880)
+)
+(connector
+	(pt 976 1880)
+	(pt 976 1896)
+)
+(connector
+	(pt 1048 1944)
+	(pt 1032 1944)
+)
+(connector
+	(pt 1048 1928)
+	(pt 1032 1928)
+)
+(connector
+	(pt 1032 1928)
+	(pt 1032 1944)
+)
+(connector
+	(pt 1032 1944)
+	(pt 1032 1952)
+)
+(connector
+	(pt 1048 1912)
+	(pt 984 1912)
+)
+(connector
+	(pt 984 1912)
+	(pt 984 2008)
+)
+(connector
+	(pt 1736 2008)
+	(pt 1736 1472)
+)
+(connector
+	(pt 1696 1472)
+	(pt 1736 1472)
+	(bus)
+)
+(connector
+	(pt 1736 1472)
+	(pt 1824 1472)
+	(bus)
+)
+(connector
+	(text "BlueTooth_RxData[1]" (rect 994 1992 1099 2004)(font "Arial" ))
+	(pt 1736 2008)
+	(pt 984 2008)
+)
+(connector
+	(pt 1048 1864)
+	(pt 864 1864)
+	(bus)
+)
+(connector
+	(pt 864 1320)
+	(pt 864 1608)
+	(bus)
+)
+(connector
+	(pt 864 1608)
+	(pt 864 1864)
+	(bus)
+)
+(connector
+	(pt 1048 1848)
+	(pt 760 1848)
+)
+(connector
+	(pt 760 1304)
+	(pt 760 1592)
+)
+(connector
+	(pt 760 1592)
+	(pt 760 1848)
+)
+(connector
+	(pt 1048 1832)
+	(pt 792 1832)
+)
+(connector
+	(pt 792 1288)
+	(pt 792 1576)
+)
+(connector
+	(pt 792 1576)
+	(pt 792 1832)
+)
+(connector
+	(pt 1048 1800)
+	(pt 824 1800)
+)
+(connector
+	(pt 824 1256)
+	(pt 824 1544)
+)
+(connector
+	(pt 824 1544)
+	(pt 824 1800)
+)
+(connector
+	(pt 840 1784)
+	(pt 1048 1784)
+)
+(connector
+	(pt 840 1240)
+	(pt 840 1528)
+)
+(connector
+	(pt 840 1528)
+	(pt 840 1784)
+)
+(connector
+	(text "BlueTooth_Port_Enable[2..0]" (rect 760 432 899 444)(font "Arial" ))
+	(pt 760 448)
+	(pt 808 448)
+	(bus)
+)
+(connector
+	(text "BlueTooth_Port_Enable[0]" (rect 530 1256 656 1268)(font "Arial" ))
+	(pt 520 1272)
+	(pt 1048 1272)
+)
+(connector
+	(text "BlueTooth_Port_Enable[1]" (rect 498 1800 624 1812)(font "Arial" ))
+	(pt 1048 1816)
+	(pt 488 1816)
+)
 (junction (pt 472 384))
 (junction (pt 472 736))
 (junction (pt 672 688))
@@ -2034,6 +2346,17 @@ applicable agreement for further details.
 (junction (pt 888 -120))
 (junction (pt 888 184))
 (junction (pt 888 32))
+(junction (pt 1320 1544))
+(junction (pt 1768 1320))
+(junction (pt 976 1352))
+(junction (pt 976 1880))
+(junction (pt 1032 1944))
+(junction (pt 1736 1472))
+(junction (pt 864 1608))
+(junction (pt 760 1592))
+(junction (pt 792 1576))
+(junction (pt 824 1544))
+(junction (pt 840 1528))
 (text "It should be enabled when the CPU writes (or reads) to location hex 8400_0204. Data in bits 2, 1 and 0 of the data bus is used to set the baud rate" (rect 1032 360 1863 374)(font "Arial" (font_size 8)))
 (text "Interrupt request output from serial port(s)" (rect 1608 720 1847 734)(font "Arial" (font_size 8)))
 (text "ByteSelect_L is driven to '0' when CPU accesses EVEN address" (rect 64 448 430 462)(font "Arial" (font_size 8)))
