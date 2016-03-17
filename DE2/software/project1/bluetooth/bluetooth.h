@@ -28,8 +28,8 @@ void setName();
 /*****************************************************************************
 **   Set name/security pin
 *****************************************************************************/
-void changeName(char *name[]);
-void changePassword(char *pw[]);
+void changeName(char name[]);
+void changePassword(char pw[]);
 
 void assignBluetoothCHARLES(void);
 void assignBluetoothCHO(void);
