@@ -149,7 +149,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             try {
+                outputStream.write(0);
+                outputStream.write(message.length());
                 outputStream.write(message.getBytes());
+                outputStream.flush();
             }catch (IOException e){
                 e.printStackTrace();
             }

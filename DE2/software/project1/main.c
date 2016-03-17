@@ -3,7 +3,8 @@
 #include "bluetooth.h"
 
 int main(void) {
-	assignBluetoothCHARLES();
+	Init_Bluetooth();
+
 	while(1){
 		unsigned length;
 		char sender, receiver;

@@ -3,7 +3,6 @@
 #include <assert.h>
 
 char* getMessage(unsigned* length, char* receiver, char* sender){
-	//TODO getCharBluetooth() waits forever. fix this.
 	char sender_receiver = getCharBluetooth();
 	*receiver = sender_receiver & 0x0f;
 	*sender = (sender_receiver>>4) & 0x0f;
@@ -16,7 +15,6 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 	char* msg = malloc(message_length+1);
 
 	for (int i = 0; i < message_length; i++) {
-		//TODO should this be in reverse order?
 		msg[i] = getCharBluetooth();
 	}
 
