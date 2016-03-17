@@ -22,18 +22,32 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 		msg[message_length] = '\0';
 		return msg;
 	} else {
-		*length = 255;
-		char* msg = malloc(256);
+		assert(0);
+	}
+}
 
-		for (int i = 0; i < 256; i++) {
-			msg[i] = getCharBluetooth();
+char* getMessage2(unsigned* length, char* receiver, char* sender){
+	char sender_receiver = getCharBluetooth2();
+	*receiver = sender_receiver & 0x0f;
+	*sender = (sender_receiver>>4) & 0x0f;
+
+	unsigned message_length = (unsigned)getCharBluetooth2();
+
+	//TODO should signal message is continuing instead
+	if(message_length != 0){
+
+		*length = message_length;
+		char* msg = malloc(message_length+1);
+
+		for (int i = 0; i < message_length; i++) {
+			msg[i] = getCharBluetooth2();
 		}
 
-		msg[256] = '\0';
+		msg[message_length] = '\0';
 		return msg;
+	} else {
+		assert(0);
 	}
-
-
 }
 
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
