@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP2C35F672) Path("C:/NIOSII_Systems_DE2_Based/NIOS_II_System_Touch_For381_DE2/output_files/") File("lights_time_limited.sof") MfrSpec(OpMask(1));
+		Device PartName(EP2C35F672) Path("C:/Users/Alex/Desktop/UBC/cpen391/project2/cpen391---Project-2/DE2/output_files/") File("lights_time_limited.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

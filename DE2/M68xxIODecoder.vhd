@@ -13,7 +13,7 @@ entity M68xxIODecoder is
 		RS232_Baud_Enable 		: out std_logic;
 		GPS_Port_Enable 			: out std_logic;
 		GPS_Baud_Enable 			: out std_logic;
-		Bluetooth_Port_Enable 	: out std_logic;
+		Bluetooth_Port_Enable 	: out std_logic_vector(2 downto 0);
 		Bluetooth_Baud_Enable 	: out std_logic;
 		TouchScreen_Port_Enable : out std_logic;
 		TouchScreen_Baud_Enable : out std_logic
@@ -43,7 +43,7 @@ Begin
 		GPS_Port_Enable				<= '0' ;
 		GPS_Baud_Enable 				<= '0' ;
 		
-		Bluetooth_Port_Enable 		<= '0' ;
+		Bluetooth_Port_Enable 		<= "000" ;
 		Bluetooth_Baud_Enable	 	<= '0' ;
 		
 		TouchScreen_Port_Enable 	<= '0' ;
@@ -128,7 +128,7 @@ Begin
 		if(IOSelect_H = '1') then
 			if(Address(15 downto 4) = X"022" and ByteSelect_L = '0') then
 				if (Address(3 downto 0) = X"0" or Address(3 downto 0) = X"2") then
-					Bluetooth_Port_Enable <= '1';
+					Bluetooth_Port_Enable(0) <= '1';
 				end if;
 			
 				if (Address(3 downto 0) = X"4") then
@@ -154,6 +154,34 @@ Begin
 			
 				if (Address(3 downto 0) = X"4") then
 					TouchScreen_Baud_Enable <= '1';
+				end if;
+			end if;
+		end if;
+		
+		
+	-- bluetooth 2	
+		if(IOSelect_H = '1') then
+			if(Address(15 downto 4) = X"024" and ByteSelect_L = '0') then
+				if (Address(3 downto 0) = X"0" or Address(3 downto 0) = X"2") then
+					Bluetooth_Port_Enable(1) <= '1';
+				end if;
+			
+				if (Address(3 downto 0) = X"4") then
+					Bluetooth_Baud_Enable <= '1';
+				end if;
+			end if;
+		end if;
+		
+		
+	-- bluetooth 3
+		if(IOSelect_H = '1') then
+			if(Address(15 downto 4) = X"025" and ByteSelect_L = '0') then
+				if (Address(3 downto 0) = X"0" or Address(3 downto 0) = X"2") then
+					Bluetooth_Port_Enable(2) <= '1';
+				end if;
+			
+				if (Address(3 downto 0) = X"4") then
+					Bluetooth_Baud_Enable <= '1';
 				end if;
 			end if;
 		end if;
