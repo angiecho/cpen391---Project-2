@@ -79,7 +79,7 @@ bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
 	}
 	putCharBluetooth2(0);
 
-	free(msg);
+	//free(msg);
 
 	return true;
 }
