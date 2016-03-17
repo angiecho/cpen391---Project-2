@@ -1,5 +1,6 @@
 package team22.messagingapp;
 
+import android.app.ActionBar;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -141,7 +142,11 @@ public class MainActivity extends AppCompatActivity {
                                             TextView textView = new TextView(getApplicationContext());
                                             textView.setText(data);
                                             textView.setTextColor(0xff000000);
-                                            textView.setBackgroundColor(0xffcccccc);
+                                            textView.setMaxWidth(300);
+                                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+                                            textView.setLayoutParams(params);
+                                            //textView.setBackgroundColor(0xffcccccc);
+                                            textView.setBackgroundResource(R.drawable.bubble_grey);
 
                                             if (linearLayout != null) {
                                                 linearLayout.addView(textView);
@@ -242,14 +247,22 @@ public class MainActivity extends AppCompatActivity {
             int recipient_id = 1; //Hardcoded for now, make a get function...
 
            // messages.execSQL("INSERT INTO messages VALUES ('" + sender_id +"', '" + recipient_id + "', '" + message + "', datetime());");
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
+            LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
             TextView textView = new TextView(this);
             textView.setTextColor(0xffffffff);
-            textView.setBackgroundColor(0xff32cd32);
+            //textView.setBackgroundColor(0xff32cd32);
+            textView.setBackgroundResource(R.drawable.bubble_blue);
             textView.setText(message);
+            textView.setMaxWidth(300);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+            textView.setLayoutParams(params);
             textView.setGravity(Gravity.RIGHT);
-            if (linearLayout != null) {
-                linearLayout.addView(textView);
+
+            LinearLayout linearLayout = new LinearLayout(this);
+            linearLayout.setGravity(Gravity.RIGHT);
+            linearLayout.addView(textView);
+            if (parentLinearLayout != null) {
+                parentLinearLayout.addView(linearLayout);
             }
             final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
             if (scrollView != null) {
