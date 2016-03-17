@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter BA;
     private OutputStream outputStream;
     private InputStream inputStream;
+    private BluetoothSocket socket;
 
     Thread workerThread;
     byte[] readBuffer;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             ParcelUuid[] uuids = device.getUuids();
             System.out.println(uuids[0]);
             try{
-                BluetoothSocket socket = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
+                socket = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
                 try {
                     socket.connect();
                 }catch (IOException e){
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                 System.out.println(b);
                                 if(b == delimiter) {
                                     byte[] encodedBytes = new byte[readBufferPosition];
-                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                    System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
                                     final String data = new String(encodedBytes, "US-ASCII");
                                     System.out.println(data);
                                     readBufferPosition = 0;
@@ -137,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                                             LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
                                             TextView textView = new TextView(getApplicationContext());
                                             textView.setText(data);
+                                            textView.setTextColor(0xff000000);
                                             if (linearLayout != null) {
                                                 linearLayout.addView(textView);
                                             }
@@ -188,6 +190,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop(){
+        super.onStart();
+        try {
+            stopWorker = true;
+            socket.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -227,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
            // messages.execSQL("INSERT INTO messages VALUES ('" + sender_id +"', '" + recipient_id + "', '" + message + "', datetime());");
             LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
             TextView textView = new TextView(this);
+            textView.setTextColor(0xff000000);
             textView.setText(message);
             textView.setGravity(Gravity.RIGHT);
             if (linearLayout != null) {
