@@ -10,19 +10,34 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 
 	unsigned message_length = (unsigned)getCharBluetooth();
 	//TODO should signal message is continuing instead
-	assert(message_length != 0);
+	if(message_length != 0){
 
-	*length = message_length;
-	char* msg = malloc(message_length+1);
+		*length = message_length;
+		char* msg = malloc(message_length+1);
 
-	for (int i = 0; i < message_length; i++) {
-		//TODO should this be in reverse order?
-		msg[i] = getCharBluetooth();
+		for (int i = 0; i < message_length; i++) {
+			//TODO should this be in reverse order?
+			msg[i] = getCharBluetooth();
+		}
+
+		msg[message_length] = '\0';
+		return msg;
 	}
 
-	msg[message_length] = '\0';
+	else {
+		*length = 255;
+		char* msg = malloc(256);
 
-	return msg;
+		for (int i = 0; i < 256; i++) {
+			//TODO should this be in reverse order?
+			msg[i] = getCharBluetooth();
+		}
+
+		msg[256] = '\0';
+		return msg;
+	}
+
+
 }
 
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
