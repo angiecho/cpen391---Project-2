@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 while(!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
                         int bytesAvailable = inputStream.available();
-                        if(bytesAvailable > 0) {
+                        if(bytesAvailable > 2) {
                             byte[] packetBytes = new byte[bytesAvailable];
                             inputStream.read(packetBytes);
                             for(int i=0;i<bytesAvailable;i++) {
@@ -129,45 +129,46 @@ public class MainActivity extends AppCompatActivity {
 
                                 System.out.println(b);
                                 if(b == delimiter) {
-                                    byte[] encodedBytes = new byte[readBufferPosition - 2];
-                                    System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
-                                    System.out.println(data);
-                                    readBufferPosition = 0;
+                                       byte[] encodedBytes = new byte[readBufferPosition - 2];
+                                        System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
+                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        System.out.println(data);
+                                        readBufferPosition = 0;
 
-                                    handler.post(new Runnable() {
-                                        public void run() {
+                                        handler.post(new Runnable() {
+                                            public void run() {
 
-                                            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
-                                            TextView textView = new TextView(getApplicationContext());
-                                            textView.setText(data);
-                                            textView.setTextColor(0xff000000);
-                                            textView.setMaxWidth(300);
-                                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                                            textView.setLayoutParams(params);
-                                            //textView.setBackgroundColor(0xffcccccc);
-                                            textView.setBackgroundResource(R.drawable.bubble_grey);
+                                                LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
+                                                TextView textView = new TextView(getApplicationContext());
+                                                textView.setText(data);
+                                                textView.setTextColor(0xff000000);
+                                                textView.setMaxWidth(300);
+                                                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                                textView.setLayoutParams(params);
+                                                //textView.setBackgroundColor(0xffcccccc);
+                                                textView.setBackgroundResource(R.drawable.bubble_grey);
 
-                                            if (linearLayout != null) {
-                                                linearLayout.addView(textView);
+                                                if (linearLayout != null) {
+                                                    linearLayout.addView(textView);
+                                                }
+
+                                                final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+                                                if (scrollView != null) {
+                                                    scrollView.post(new Runnable() {
+
+                                                        @Override
+                                                        public void run() {
+                                                            scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                                                        }
+                                                    });
+                                                }
+
                                             }
+                                        });
+                                    } else {
+                                        readBuffer[readBufferPosition++] = b;
+                                    }
 
-                                            final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-                                            if (scrollView != null) {
-                                                scrollView.post(new Runnable() {
-
-                                                    @Override
-                                                    public void run() {
-                                                        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                                                    }
-                                                });
-                                            }
-
-                                        }
-                                    });
-                                }else {
-                                    readBuffer[readBufferPosition++] = b;
-                                }
                             }
                         }
                     }catch (IOException e) {

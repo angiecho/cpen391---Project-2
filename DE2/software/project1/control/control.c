@@ -72,6 +72,8 @@ bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
 	putCharBluetooth2(sender_receiver);
 	putCharBluetooth2((char)length);
 
+	printf("Attempting to send %s \n", msg);
+
 	for (int i = 0; i<length; i++){
 		putCharBluetooth2(msg[i]);
 	}

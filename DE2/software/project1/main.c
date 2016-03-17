@@ -4,6 +4,7 @@
 
 int main(void) {
 	Init_Bluetooth();
+	printf("Bluetooth initialized!");
 	while(1){
 		unsigned length;
 		char sender, receiver;
