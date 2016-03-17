@@ -24,11 +24,11 @@ void WaitForReadStat(){
 
 // Set the bluetooth to command mode.
 void commandMode(void){
-	printf("Entering Command Mode\n");
 	usleep(2000000);
-	int i;
+	printf("Entering Command Mode\n");
 	char data[] = "$$$";
-	for (i = 0; i < strlen(data); i++){
+	
+	for(int i = 0; i < strlen(data); i++){
 		putCharBluetooth(data[i]);
 	}
 	usleep(2000000);
@@ -37,32 +37,29 @@ void commandMode(void){
 // Set the bluetooth to data mode.
 void dataMode(void){
 	printf("Entering Data Mode\n");
-	usleep(2000000);
-	char data[] = "---\r\n";
-	int i;
-	for (i = 0; i < strlen(data); i++){
+	char* data = "---\r\n";
+	
+	for(int i = 0; i < strlen(data); i++){
 		putCharBluetooth(data[i]);
 	}
-
-	usleep(2000000);
 }
 
+// Command: Set the bluetooth to be a slave.
 void slaveMode(void){
-	printf("Entering Slave Mode\n");
 	putCharBluetooth('S');
 	putCharBluetooth('M');
 	putCharBluetooth(',');
 	putCharBluetooth('0');
 }
 
-// Prepare to give the device a name.
+// Command: Prepare to give the device a name.
 void setName(){
 	putCharBluetooth('S');
 	putCharBluetooth('N');
 	putCharBluetooth(',');
 }
 
-// Only interact with current remote addr space
+// Command: Only interact with current remote addr space
 void enableBond(){
 	putCharBluetooth('S');
 	putCharBluetooth('X');
@@ -85,74 +82,30 @@ void setPassword(){
 	putCharBluetooth(',');
 }
 
-// Change the device's name
-void changeName(char name[]){
-	printf("Changing name\n");
-	commandMode();
+// Command: Change the device's name.
+void changeName(char* name){
 	setName();
 
     for(int i = 0; i<strlen(name); i++){
         putCharBluetooth(name[i]);
     }
-    usleep(2000000);
-
-	dataMode();
 }
 
-// Change the device's password.
-void changePassword(char pw[]){
-	printf("Changing password\n");
-	commandMode();
+// Command: Change the device's password.
+void changePassword(char* pw){
 	setPassword();
 
     for(int i = 0; i<strlen(pw); i++){
         putCharBluetooth(pw[i]);
     }
-    usleep(2000000);
+}
 
+// Assign the device's with a name and password.
+void assignBluetooth(char* name, char* pw){
+	commandMode();
+	changeName(name);
+	changePassword(password);
 	dataMode();
-}
-
-void assignBluetoothCHARLES(void) {
-	printf("Test Bluetooth\n");
-	Init_Bluetooth();
-	printf("Bluetooth Initialized\n");
-	char name[] = "CHARLES\r\n";
-	char password[] = "0001\r\n";
-
-	changeName(name);
-	changePassword(password);
-	printf("done\n");
-}
-
-void assignBluetoothCHO(void) {
-	printf("Test Bluetooth\n");
-	Init_Bluetooth();
-	printf("Bluetooth Initialized\n");
-	char name[] = "CHO\r\n";
-	char password[] = "0002\r\n";
-
-	changeName(name);
-	changePassword(password);
-	printf("done\n");
-}
-
-void assignBluetoothCALEB(void) {
-	printf("Test Bluetooth\n");
-	Init_Bluetooth();
-	printf("Bluetooth Initialized\n");
-	char name[] = "CALEB\r\n";
-	char password[] = "0003\r\n";
-
-	changeName(name);
-	changePassword(password);
-	printf("done\n");
-}
-
-void sendTestData(char word[]){
-	for (int i = 0; i < strlen(word); i++){
-		putCharBluetooth(word[i]);
-	}
 }
 
 
