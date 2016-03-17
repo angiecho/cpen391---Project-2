@@ -11,7 +11,7 @@ typedef struct contact{
 
 contact* contacts;
 
-contact init contact();
+contact init_contact();
 void init_contacts();
 void destroy_contacts();
 

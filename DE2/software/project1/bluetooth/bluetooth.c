@@ -104,7 +104,7 @@ void changePassword(char* pw){
 void assignBluetooth(char* name, char* pw){
 	commandMode();
 	changeName(name);
-	changePassword(password);
+	changePassword(pw);
 	dataMode();
 }
 

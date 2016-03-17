@@ -45,6 +45,7 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	for (int i = 0; i<length; i++){
 		putCharBluetooth(msg[i]);
 	}
+	putCharBluetooth(0);
 
 	free(msg);
 
