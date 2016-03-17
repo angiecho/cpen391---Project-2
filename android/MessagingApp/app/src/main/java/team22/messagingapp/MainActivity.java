@@ -51,8 +51,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void chooseBluetooth() throws IOException{
-        //In the future, we **REALLY** want to set it up so you can choose which BT to be connected
-        //to
+        //In the future, we **REALLY** want to set it up
+        // so you can choose which BT to be connected to
+        // Currently, we say connect to the first one listed on paired devices...
+        // Which is (quite obviously) quite bad.
         Set<BluetoothDevice> pairedDevices;
         pairedDevices = BA.getBondedDevices();
         ArrayList<String> list = new ArrayList<>();
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 System.out.println(b);
                                 if(b == delimiter) {
-                                    byte[] encodedBytes = new byte[readBufferPosition];
+                                    byte[] encodedBytes = new byte[readBufferPosition - 2];
                                     System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
                                     final String data = new String(encodedBytes, "US-ASCII");
                                     System.out.println(data);
@@ -139,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
                                             TextView textView = new TextView(getApplicationContext());
                                             textView.setText(data);
                                             textView.setTextColor(0xff000000);
+                                            textView.setBackgroundColor(0xffcccccc);
+
                                             if (linearLayout != null) {
                                                 linearLayout.addView(textView);
                                             }
@@ -240,7 +244,8 @@ public class MainActivity extends AppCompatActivity {
            // messages.execSQL("INSERT INTO messages VALUES ('" + sender_id +"', '" + recipient_id + "', '" + message + "', datetime());");
             LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
             TextView textView = new TextView(this);
-            textView.setTextColor(0xff000000);
+            textView.setTextColor(0xffffffff);
+            textView.setBackgroundColor(0xff32cd32);
             textView.setText(message);
             textView.setGravity(Gravity.RIGHT);
             if (linearLayout != null) {
