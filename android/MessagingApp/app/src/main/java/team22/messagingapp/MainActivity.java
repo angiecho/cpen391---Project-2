@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
             textView.setMaxWidth(300);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
             textView.setLayoutParams(params);
-            textView.setGravity(Gravity.RIGHT);
+            textView.setGravity(Gravity.LEFT);
 
             LinearLayout linearLayout = new LinearLayout(this);
             linearLayout.setGravity(Gravity.RIGHT);
