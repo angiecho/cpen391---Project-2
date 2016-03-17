@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Handler;
 import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.database.sqlite.*;
 
 import java.io.IOException;
 //import java.io.InputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
@@ -27,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase messages;
     private BluetoothAdapter BA;
     private OutputStream outputStream;
-   // private InputStream inStream;
+   // private InputStream inputStream;
 
     private void initBluetooth() throws IOException {
         BA = BluetoothAdapter.getDefaultAdapter();
@@ -57,17 +59,23 @@ public class MainActivity extends AppCompatActivity {
             }
             BluetoothDevice[] devices = pairedDevices.toArray(new BluetoothDevice[pairedDevices.size()]);
             BluetoothDevice device = devices[0];
+            System.out.println(device.getName());
             ParcelUuid[] uuids = device.getUuids();
+            System.out.println(uuids[0]);
             try{
                 BluetoothSocket socket = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
                 socket.connect();
-                outputStream = socket.getOutputStream();
+                if (socket.isConnected()) {
+                    outputStream = socket.getOutputStream();
+                    //inputStream = socket.getInputStream();
+                }
+                else {
+                    System.out.println("Could not connect to socket!");
+                }
 
             }catch (IOException e){
                 e.printStackTrace();
             }
-
-           // inStream = socket.getInputStream();
         }
     }
 
@@ -147,11 +155,33 @@ public class MainActivity extends AppCompatActivity {
             //Will need to append some sort of header for the DE2 to parse here
             //As well as (eventually) encrypt the message
 
+            if (outputStream != null) {
+                System.out.println("Attempting to send message!");
+                try {
 
-            try {
-                outputStream.write(message.getBytes());
-            }catch (IOException e){
-                e.printStackTrace();
+                    int messageLength = message.length();
+                    int messagePosition = 0;
+                    System.out.println(messageLength);
+
+                    while(messageLength > 255){
+                        //sender = 0000 receiver = 0000
+                        outputStream.write(1); // Sender/Receiver HARDCODED
+                        outputStream.write(0);
+                        String s = message.substring(messagePosition, messagePosition+255);
+                        messagePosition += 255;
+                        messageLength -= 255;
+                        outputStream.write(s.getBytes("US-ASCII"));
+                    }
+                    outputStream.write(1);  // Sender/Receiver HARDCODED
+                    outputStream.write(messageLength);
+                    String s = message.substring(messagePosition, messagePosition+messageLength);
+                    outputStream.write(s.getBytes("US-ASCII"));
+                    System.out.println("Sent out " + s);
+                    outputStream.flush();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
@@ -167,22 +197,24 @@ public class MainActivity extends AppCompatActivity {
 
     public void receiveMessage(View view){
         String message = getMessage();
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
-        TextView textView = new TextView(this);
-        textView.setText(message);
-        if (linearLayout != null) {
-            linearLayout.addView(textView);
-        }
+        if (message != null) {
+            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
+            TextView textView = new TextView(this);
+            textView.setText(message);
+            if (linearLayout != null) {
+                linearLayout.addView(textView);
+            }
 
-        final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-        if (scrollView != null) {
-            scrollView.post(new Runnable() {
+            final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+            if (scrollView != null) {
+                scrollView.post(new Runnable() {
 
-                @Override
-                public void run() {
-                    scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                }
-            });
+                    @Override
+                    public void run() {
+                        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                    }
+                });
+            }
         }
 
     }
@@ -190,6 +222,35 @@ public class MainActivity extends AppCompatActivity {
     public String getMessage(){
         //This will (eventually) poll the bluetooth to get the message. For now, I'm getting
         //a constant String
-        return "Hi!";
+        return "okay";
+//        final byte delimiter = 10; //This is the ASCII code for a newline character
+//        int readBufferPosition = 0;
+//        byte readBuffer[] = new byte[1024];
+//        if (inputStream != null){
+//            try {
+//                int bytesAvailable = inputStream.available();
+//                if(bytesAvailable > 0) {
+//                    byte[] packetBytes = new byte[bytesAvailable];
+//                    inputStream.read(packetBytes);
+//                    for(int i=0;i<bytesAvailable;i++) {
+//                        byte b = packetBytes[i];
+//                        if(b == delimiter) {
+//                            byte[] encodedBytes = new byte[readBufferPosition];
+//                            System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+//                            return new String(encodedBytes, "US-ASCII");
+//                        }else {
+//                            readBuffer[readBufferPosition++] = b;
+//                        }
+//                    }
+//                }
+//                return "OK DAD";
+//            }catch (IOException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//        }
+//        else {
+//            return "Hi!";
+//        }
     }
 }
