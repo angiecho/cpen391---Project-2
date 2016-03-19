@@ -16,13 +16,13 @@ void init_contacts(){
 	contacts = malloc(sizeof(contact)*N_CONTACTS);
 
 	for(int i = 0; i < N_CONTACTS; i++){
-		contacts[i] = init_contact(contact_names[i], passwords[i], i);
+		contacts[i] = init_contact(contact_names[i], passwords[i], i+1);
 	}
 }
 
 void assign_contacts(){
    for(int i = 0; i < N_CONTACTS; i++){
-   		assignBluetooth(contact[i].name, contacts[i].pw);
+   		assignBluetooth(contact_names[i], passwords[i]);
    }
 }
 

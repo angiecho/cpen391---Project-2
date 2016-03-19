@@ -8,6 +8,7 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 	*sender = (sender_receiver>>4) & 0x0f;
 
 	unsigned message_length = (unsigned)getCharBluetooth();
+
 	//TODO should signal message is continuing instead
 	if(message_length != 0){
 
@@ -20,9 +21,7 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 
 		msg[message_length] = '\0';
 		return msg;
-	}
-
-	else {
+	} else {
 		*length = 255;
 		char* msg = malloc(256);
 
@@ -46,6 +45,7 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	for (int i = 0; i<length; i++){
 		putCharBluetooth(msg[i]);
 	}
+	putCharBluetooth(0);
 
 	free(msg);
 
