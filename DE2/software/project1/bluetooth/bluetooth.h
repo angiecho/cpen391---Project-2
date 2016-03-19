@@ -5,6 +5,12 @@
 #define Bluetooth_Control 		(*(volatile unsigned char *)(0x84000220))
 #define Bluetooth_TxData 		(*(volatile unsigned char *)(0x84000222))
 #define Bluetooth_RxData 		(*(volatile unsigned char *)(0x84000222))
+
+#define Bluetooth_Status2 		(*(volatile unsigned char *)(0x84000226))
+#define Bluetooth_Control2 		(*(volatile unsigned char *)(0x84000226))
+#define Bluetooth_TxData2 		(*(volatile unsigned char *)(0x84000228))
+#define Bluetooth_RxData2 		(*(volatile unsigned char *)(0x84000228))
+
 #define Bluetooth_Baud    		(*(volatile unsigned char *)(0x84000224))
 
 /**************************************************************************
@@ -15,6 +21,9 @@ void putCharBluetooth(char c);
 char getCharBluetooth();
 void Init_Bluetooth(void);
 void WaitForReadStat();
+
+void putCharBluetooth2(char c);
+char getCharBluetooth2();
 
 /*****************************************************************************
 **   Switch modes
