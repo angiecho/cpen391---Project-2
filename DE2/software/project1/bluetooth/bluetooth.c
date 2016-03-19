@@ -15,7 +15,7 @@ void putCharBluetooth(char c){
 
 char getCharBluetooth(){
 	while (!(Bluetooth_Status & 0x1));
-	printf("%c\n", Bluetooth_RxData);
+	//printf("%c", (char)Bluetooth_RxData);
 	return Bluetooth_RxData;
 }
 
