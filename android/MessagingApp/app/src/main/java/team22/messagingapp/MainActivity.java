@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.sqlite.*;
+import android.util.Log;
 
 import java.io.IOException;
 //import java.io.InputStream;
@@ -188,19 +189,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        try{
+       /* try{
             chooseBluetooth();
 
         }catch(IOException e){
             e.printStackTrace();
-        }
+        }*/
 
 
     }
 
     @Override
     protected void onStop(){
-        super.onStart();
+        super.onStop();
         try {
             stopWorker = true;
             socket.close();
@@ -213,18 +214,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
+        //TextView chatName = new TextView(this);
+
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME, PRIMARY KEY(sender, recipient, message_date));");
 
 
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-        try {
+       /* try {
             initBluetooth();
         }catch (IOException e){
             e.printStackTrace();
         }
-
+*/
         //listenMessages();
 
     }
