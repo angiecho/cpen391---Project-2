@@ -214,8 +214,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
-        //TextView chatName = new TextView(this);
+
+        //Set the name of the chat. ie. talking to "Caleb"
+        Bundle chatBundle = getIntent().getExtras();
+        String chatWith = chatBundle.getString("receiver");
+
+        LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
+        TextView chatName = new TextView(this);
+        chatName.setTextColor(0xff000000);
+        chatName.setTextSize(50);
+        chatName.setText(chatWith);
+        chatName.setGravity(Gravity.CENTER_HORIZONTAL);
+        parentLinearLayout.addView(chatName);
+
+        Log.v("Chat With:", chatWith);
 
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME, PRIMARY KEY(sender, recipient, message_date));");

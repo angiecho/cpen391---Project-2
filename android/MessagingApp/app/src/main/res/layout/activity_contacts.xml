@@ -10,7 +10,7 @@
     tools:context="team22.messagingapp.Contacts">
     <Button
         android:id="@+id/caleb"
-        android:tag="caleb"
+        android:tag="Caleb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="CALEB"
@@ -22,7 +22,7 @@
 
     <Button
         android:id="@+id/charles"
-        android:tag="charles"
+        android:tag="Charles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="CHARLES"
@@ -35,7 +35,7 @@
 
     <Button
         android:id="@+id/cho"
-        android:tag="cho"
+        android:tag="Cho"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="CHO"
