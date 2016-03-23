@@ -22,6 +22,8 @@ import android.database.sqlite.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,11 +51,19 @@ public class MainActivity extends AppCompatActivity {
     public class Message {
         public String text;
         public boolean sent;
+        public Date date;
 
-        public Message(String t, boolean s){
+        public Message(String t, boolean s, String d){
             System.out.println("Creating with " + t);
             text = t;
             sent = s;
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                date = dateFormat.parse(d);
+            }catch(ParseException e){
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -154,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                                         //We're... Going to need a system to store the multi messages into one.
                                         int receiver_id = 0x00001111 & readBuffer[0];
                                         int sender_id = (0x11110000 & readBuffer[0]) >>> 4;
-                                        insertMessageToDatabase(sender_id, receiver_id, data);
+                                        final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
                                     //Check receiver here
 
                                         readBufferPosition = 0;
@@ -162,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                                         handler.post(new Runnable() {
                                             public void run() {
 
-                                                insertReceivedMessageToView(data, false);
+                                                insertReceivedMessageToView(data, false, d);
 
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -205,26 +215,29 @@ public class MainActivity extends AppCompatActivity {
         final MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
         if (view != null) {
             view.setOnTopReachedListener(
-                    new MessageScrollView.onTopReachedListener() {
-                        @Override
-                        public void onTopReached() {
-                            int x = loadMoreMessages();
+                new MessageScrollView.onTopReachedListener() {
+                    @Override
+                    public void onTopReached() {
+                        int x = loadMoreMessages();
 
-                            if (x != 0){
-                                final View v = findViewById(x);
-                                if (v != null) {
-                                    new Handler().post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            view.scrollTo(0, v.getTop());
-                                        }
-                                    });
-                                }
-
+                        if (x != 0){
+                            final View v = findViewById(x);
+                            if (v != null) {
+                                new Handler().post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        view.scrollTo(0, v.getTop());
+                                        //This needs to be done **after** because
+                                        //Otherwise, it doesn't know where the new top is
+                                        //because of the change in height
+                                    }
+                                });
                             }
 
                         }
+
                     }
+                }
             );
         }
 
@@ -284,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
             do {
                 try {
                     int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -293,9 +306,9 @@ public class MainActivity extends AppCompatActivity {
 
             for (int y = pastMessages.size() - 1; y >= 0; y--) {
                 if (pastMessages.get(y).sent) {
-                    insertReceivedMessageToView(pastMessages.get(y).text, false);
+                    insertReceivedMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
                 } else {
-                    insertSentMessageToView(pastMessages.get(y).text, false);
+                    insertSentMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
                 }
             }
         }
@@ -330,19 +343,19 @@ public class MainActivity extends AppCompatActivity {
             do {
                 try {
                     int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             while (c.moveToNext());
-            int difference = c.getCount() - messagesShown;
+            int difference = c.getCount() - messagesShown/2;
             for (int y = pastMessages.size()  - difference; y <= pastMessages.size() -1; y++) {
 
                 if (pastMessages.get(y).sent) {
-                   ids.add(insertReceivedMessageToView(pastMessages.get(y).text, true));
+                   ids.add(insertReceivedMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date));
                 } else {
-                    ids.add(insertSentMessageToView(pastMessages.get(y).text, true));
+                    ids.add(insertSentMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date));
                 }
 
             }
@@ -373,9 +386,9 @@ public class MainActivity extends AppCompatActivity {
             int recipient_id = 1; //Hardcoded for now, make a get function...
 
             int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
-            insertMessageToDatabase(sender_id, recipient_id, message);
+            Date d = insertMessageToDatabase(sender_id, recipient_id, message);
 
-            insertSentMessageToView(message, false);
+            insertSentMessageToView(message, false, d);
             final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
             if (scrollView != null) {
                 scrollView.post(new Runnable() {
@@ -429,11 +442,11 @@ public class MainActivity extends AppCompatActivity {
         String message = getMessage();
         if (message != null) {
             insertMessageToDatabase(1, 0, message);
-            insertReceivedMessageToView(message, false);
+            insertReceivedMessageToView(message, false, new Date());
         }
     }
 
-    public void insertMessageToDatabase(int sender_id, int recipient_id, String message) {
+    public Date insertMessageToDatabase(int sender_id, int recipient_id, String message) {
         ContentValues values = new ContentValues();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
@@ -449,9 +462,10 @@ public class MainActivity extends AppCompatActivity {
         else {
             System.out.println("Message did not get inserted to the database...");
         }
+        return date;
     }
 
-    public int insertSentMessageToView(String message, boolean top){
+    public int insertSentMessageToView(String message, boolean top, Date date){
         LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = getSendMessageTextView();
         textView.setText(message);
@@ -461,19 +475,34 @@ public class MainActivity extends AppCompatActivity {
         linearLayout.addView(textView);
         linearLayout.setId(View.generateViewId());
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy hh:mm a");
+        TextView dateView = new TextView(getApplicationContext());
+        dateView.setId(View.generateViewId());
+        dateView.setText(dateFormat.format(date));
+        dateView.setMaxWidth(300);
+
+        LinearLayout linearLayout2 = new LinearLayout(this);
+        linearLayout2.setGravity(Gravity.RIGHT);
+        linearLayout2.addView(dateView);
+        linearLayout2.setId(View.generateViewId());
+
         if (parentLinearLayout != null) {
             if (top){
                 parentLinearLayout.addView(linearLayout, 0);
+                parentLinearLayout.addView(linearLayout2, 1);
+
             }
             else {
                 parentLinearLayout.addView(linearLayout);
+                parentLinearLayout.addView(linearLayout2);
+
             }
         }
         return linearLayout.getId();
     }
 
 
-    public int insertReceivedMessageToView(String message, boolean top){
+    public int insertReceivedMessageToView(String message, boolean top, Date date){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
         textView.setId(View.generateViewId());
@@ -484,12 +513,20 @@ public class MainActivity extends AppCompatActivity {
         textView.setLayoutParams(params);
         textView.setBackgroundResource(R.drawable.bubble_grey);
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
+        TextView dateView = new TextView(getApplicationContext());
+        dateView.setId(View.generateViewId());
+        dateView.setText(dateFormat.format(date));
+        dateView.setMaxWidth(300);
+
         if (linearLayout != null) {
             if (top){
                 linearLayout.addView(textView, 0);
+                linearLayout.addView(dateView, 1);
             }
             else {
                 linearLayout.addView(textView);
+                linearLayout.addView(dateView);
             }
 
         }
