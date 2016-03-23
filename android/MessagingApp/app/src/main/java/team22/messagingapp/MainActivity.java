@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                                         handler.post(new Runnable() {
                                             public void run() {
 
-                                                insertReceivedMessageToView(data);
+                                                insertReceivedMessageToView(data, false);
 
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -199,9 +199,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
         loadHistory();
+        final MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
+        if (view != null) {
+            view.setOnTopReachedListener(
+                    new MessageScrollView.onTopReachedListener() {
+                        @Override
+                        public void onTopReached() {
+                            int x = loadMoreMessages();
+
+                            if (x != 0){
+                                final View v = findViewById(x);
+                                if (v != null) {
+                                    new Handler().post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            view.scrollTo(0, v.getTop());
+                                        }
+                                    });
+                                }
+
+                            }
+
+                        }
+                    }
+            );
+        }
+
 //        try{
 //            chooseBluetooth();
 //
@@ -213,14 +239,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
-        try {
+        /*try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Override
@@ -250,31 +276,84 @@ public class MainActivity extends AppCompatActivity {
 
         String selectionQuery = "recipient =? OR sender =?";
 
-        //Limit of 10 is here because I don't want to load all the messages in the database
-        //since that is potentially... Slow. I'll add an autoscroll to load more messages
-        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "10");
-        if (c.moveToFirst()){
+        //Limit of 15 is here because I don't want to load all the messages in the database
+        //since that is potentially... Slow.
+        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
+        if (c.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
-           do {
-               try{
-                   int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
-                   pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)),  r_id == recipient_id));
-               }catch (Exception e){
-                   e.printStackTrace();
-               }
-           }
-           while(c.moveToNext());
-
-            for (int y = pastMessages.size() - 1; y >= 0; y--){
-                if (pastMessages.get(y).sent){
-                    insertReceivedMessageToView(pastMessages.get(y).text);
+            do {
+                try {
+                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                else{
-                    insertSentMessageToView(pastMessages.get(y).text);
+            }
+            while (c.moveToNext());
+
+            for (int y = pastMessages.size() - 1; y >= 0; y--) {
+                if (pastMessages.get(y).sent) {
+                    insertReceivedMessageToView(pastMessages.get(y).text, false);
+                } else {
+                    insertSentMessageToView(pastMessages.get(y).text, false);
                 }
             }
         }
         c.close();
+
+        //System.out.println(ll.getChildCount());
+    }
+
+    public int loadMoreMessages(){
+        int recipient_id = 1; //make a getter function
+        LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
+        int messagesShown = 0;
+        View v = null;
+        if (ll != null) {
+            messagesShown = ll.getChildCount();
+            v = ll.getChildAt(0);
+            System.out.println("The id is: " + v.getId());
+        }
+
+        int messagesToShowCount = messagesShown + 15;
+        String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+
+        String selectionQuery = "recipient =? OR sender =?";
+
+        //Show 15 more!
+        int height = 0;
+        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
+        ArrayList<Integer> ids = new ArrayList<>();
+        if (c.moveToFirst()) {
+            ArrayList<Message> pastMessages = new ArrayList<>();
+            do {
+                try {
+                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            while (c.moveToNext());
+            int difference = c.getCount() - messagesShown;
+            for (int y = pastMessages.size()  - difference; y <= pastMessages.size() -1; y++) {
+
+                if (pastMessages.get(y).sent) {
+                   ids.add(insertReceivedMessageToView(pastMessages.get(y).text, true));
+                } else {
+                    ids.add(insertSentMessageToView(pastMessages.get(y).text, true));
+                }
+
+            }
+        }
+        if (c.getCount() != messagesShown) {
+            c.close();
+            return v.getId();
+        }
+        c.close();
+        return 0;
+
     }
 
     public void sendMessage(View view) {
@@ -296,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
             int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
             insertMessageToDatabase(sender_id, recipient_id, message);
 
-            insertSentMessageToView(message);
+            insertSentMessageToView(message, false);
             final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
             if (scrollView != null) {
                 scrollView.post(new Runnable() {
@@ -350,11 +429,11 @@ public class MainActivity extends AppCompatActivity {
         String message = getMessage();
         if (message != null) {
             insertMessageToDatabase(1, 0, message);
-            insertReceivedMessageToView(message);
+            insertReceivedMessageToView(message, false);
         }
     }
 
-    public void insertMessageToDatabase(int sender_id, int recipient_id, String message){
+    public void insertMessageToDatabase(int sender_id, int recipient_id, String message) {
         ContentValues values = new ContentValues();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
@@ -372,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void insertSentMessageToView(String message){
+    public int insertSentMessageToView(String message, boolean top){
         LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = getSendMessageTextView();
         textView.setText(message);
@@ -380,14 +459,24 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout linearLayout = new LinearLayout(this);
         linearLayout.setGravity(Gravity.RIGHT);
         linearLayout.addView(textView);
+        linearLayout.setId(View.generateViewId());
+
         if (parentLinearLayout != null) {
-            parentLinearLayout.addView(linearLayout);
+            if (top){
+                parentLinearLayout.addView(linearLayout, 0);
+            }
+            else {
+                parentLinearLayout.addView(linearLayout);
+            }
         }
+        return linearLayout.getId();
     }
 
-    public void insertReceivedMessageToView(String message){
+
+    public int insertReceivedMessageToView(String message, boolean top){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
+        textView.setId(View.generateViewId());
         textView.setText(message);
         textView.setTextColor(0xff000000);
         textView.setMaxWidth(300);
@@ -396,8 +485,15 @@ public class MainActivity extends AppCompatActivity {
         textView.setBackgroundResource(R.drawable.bubble_grey);
 
         if (linearLayout != null) {
-            linearLayout.addView(textView);
+            if (top){
+                linearLayout.addView(textView, 0);
+            }
+            else {
+                linearLayout.addView(textView);
+            }
+
         }
+        return textView.getId();
     }
 
     public TextView getSendMessageTextView(){
@@ -427,4 +523,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return sb.toString();
     }
+
+
 }
