@@ -18,5 +18,23 @@ int main(void) {
 		sendMessage2(length, receiver, sender, msg2);
 	}
 	printf("\nDONE\n");
+
+	/*
+	//TODO: generate random keys and IVs
+    	char* key = "1234567890qwerty";
+    	char* IV = "uiopasdfghjklzxc";
+    	char* message = "01110TESTING TESTING";
+    	char* buffer;
+
+    	buffer = (char*)calloc(1, BUFFER_SIZE);
+    	strncpy(buffer, message, BUFFER_SIZE);
+
+    	printf("Encryption Test Start\n");
+    	printf("message: %s\n", message);
+    	encrypt(buffer, BUFFER_SIZE, IV, key, KEY_SIZE);
+    	printf("encrypted cipher: %s\n", buffer); //print_text(buffer, BUFFER_SIZE);
+    	decrypt(buffer, KEY_SIZE, IV, key, KEY_SIZE);
+    	printf("decrypted message: %s\n", buffer);
 	return 0;
+	*/
 }

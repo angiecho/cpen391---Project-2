@@ -155,6 +155,7 @@ C_SRCS += misc/hashmap.c
 C_SRCS += tests/hashmap_test.c
 C_SRCS += control/control.c
 C_SRCS += contact/contact.c
+C_SRCS += encryption/encryption.c
 CXX_SRCS :=
 ASM_SRCS :=
 
@@ -201,6 +202,7 @@ APP_INCLUDE_DIRS += gps
 APP_INCLUDE_DIRS += pathfinding
 APP_INCLUDE_DIRS += control
 APP_INCLUDE_DIRS += search
+APP_INCLUDE_DIRS += encryption
 
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
