@@ -22,7 +22,7 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 		msg[message_length] = '\0';
 		return msg;
 	} else {
-		assert(0);
+		return NULL;
 	}
 }
 
