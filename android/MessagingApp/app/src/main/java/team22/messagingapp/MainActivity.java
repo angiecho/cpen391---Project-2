@@ -7,8 +7,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.ParcelUuid;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -171,8 +175,22 @@ public class MainActivity extends AppCompatActivity {
 
                                         handler.post(new Runnable() {
                                             public void run() {
-
+                                                //insert check if it's the same user we're getting stuff from
                                                 insertReceivedMessageToView(data, false, d);
+
+                                                //otherwise do this
+                                                //check if volume
+//                                                try {
+//                                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+//                                                    r.play();
+//                                                } catch (Exception e) {
+//                                                    e.printStackTrace();
+//                                                }
+                                                //otherwise
+
+                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                v.vibrate(400);
 
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -325,19 +343,16 @@ public class MainActivity extends AppCompatActivity {
         if (ll != null) {
             messagesShown = ll.getChildCount();
             v = ll.getChildAt(0);
-            System.out.println("The id is: " + v.getId());
         }
 
-        int messagesToShowCount = messagesShown + 15;
+        int messagesToShowCount = messagesShown/2 + 15;
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
         String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
 
         String selectionQuery = "recipient =? OR sender =?";
 
         //Show 15 more!
-        int height = 0;
         Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
-        ArrayList<Integer> ids = new ArrayList<>();
         if (c.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
             do {
@@ -353,9 +368,9 @@ public class MainActivity extends AppCompatActivity {
             for (int y = pastMessages.size()  - difference; y <= pastMessages.size() -1; y++) {
 
                 if (pastMessages.get(y).sent) {
-                   ids.add(insertReceivedMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date));
+                   insertReceivedMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
                 } else {
-                    ids.add(insertSentMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date));
+                    insertSentMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
                 }
 
             }
@@ -366,7 +381,6 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
         return 0;
-
     }
 
     public void sendMessage(View view) {
@@ -399,9 +413,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-            //Add Bluetooth here
-            //Will need to append some sort of header for the DE2 to parse here
-            //As well as (eventually) encrypt the message
 
             if (outputStream != null) {
                 sendMessageBluetooth(message, messageHeader);
@@ -444,6 +455,7 @@ public class MainActivity extends AppCompatActivity {
             insertMessageToDatabase(1, 0, message);
             insertReceivedMessageToView(message, false, new Date());
         }
+
     }
 
     public Date insertMessageToDatabase(int sender_id, int recipient_id, String message) {
@@ -465,6 +477,11 @@ public class MainActivity extends AppCompatActivity {
         return date;
     }
 
+    public String getStringDate(Date date){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
+        return dateFormat.format(date);
+    }
+
     public int insertSentMessageToView(String message, boolean top, Date date){
         LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = getSendMessageTextView();
@@ -475,10 +492,10 @@ public class MainActivity extends AppCompatActivity {
         linearLayout.addView(textView);
         linearLayout.setId(View.generateViewId());
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy hh:mm a");
+
         TextView dateView = new TextView(getApplicationContext());
         dateView.setId(View.generateViewId());
-        dateView.setText(dateFormat.format(date));
+        dateView.setText(getStringDate(date));
         dateView.setMaxWidth(300);
 
         LinearLayout linearLayout2 = new LinearLayout(this);
@@ -490,18 +507,15 @@ public class MainActivity extends AppCompatActivity {
             if (top){
                 parentLinearLayout.addView(linearLayout, 0);
                 parentLinearLayout.addView(linearLayout2, 1);
-
             }
             else {
                 parentLinearLayout.addView(linearLayout);
                 parentLinearLayout.addView(linearLayout2);
-
             }
         }
         return linearLayout.getId();
     }
-
-
+    
     public int insertReceivedMessageToView(String message, boolean top, Date date){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
@@ -513,10 +527,9 @@ public class MainActivity extends AppCompatActivity {
         textView.setLayoutParams(params);
         textView.setBackgroundResource(R.drawable.bubble_grey);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
         TextView dateView = new TextView(getApplicationContext());
         dateView.setId(View.generateViewId());
-        dateView.setText(dateFormat.format(date));
+        dateView.setText(getStringDate(date));
         dateView.setMaxWidth(300);
 
         if (linearLayout != null) {
@@ -527,9 +540,13 @@ public class MainActivity extends AppCompatActivity {
             else {
                 linearLayout.addView(textView);
                 linearLayout.addView(dateView);
+
             }
 
         }
+
+
+
         return textView.getId();
     }
 
