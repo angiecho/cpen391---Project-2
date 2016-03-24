@@ -7,6 +7,7 @@ import android.view.*;
 import android.R.id;
 import android.content.Intent;
 import android.widget.Button;
+import android.widget.Toast;
 
 
 public class Contacts extends AppCompatActivity {
@@ -15,15 +16,16 @@ public class Contacts extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
+        checkUser();
 
+    }
+
+    public void checkUser(){
         Bundle loginBundle = getIntent().getExtras();
-        String user = loginBundle.getString("username");
-        int resID = getResources().getIdentifier(user, "id", getPackageName());
-        Log.v("user is:", user);
-        View userButton = findViewById(resID);
+        int user = loginBundle.getInt("resUser");
+        View userButton = findViewById(user);
         ViewGroup parent = (ViewGroup) userButton.getParent();
         parent.removeView(userButton);
-
     }
 
     public void openChat(View view){

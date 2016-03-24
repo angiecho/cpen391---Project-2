@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class Login extends AppCompatActivity {
     EditText mUser;
@@ -20,12 +21,19 @@ public class Login extends AppCompatActivity {
         mUser = (EditText)findViewById(R.id.username);
         mPin = (EditText)findViewById(R.id.pin);
         String userID = mUser.getText().toString();
-        String userPIN = mPin.getText().toString();
-        mUser.setText("");
-        mPin.setText("");
+        //String userPIN = mPin.getText().toString();
 
-        Intent chatWindow = new Intent (this, Contacts.class);
-        chatWindow.putExtra("username", userID);
-        startActivity(chatWindow);
+        int resID = getResources().getIdentifier(userID, "id", getPackageName());
+        if (resID < 1){
+            Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            mUser.setText("");
+            mPin.setText("");
+
+            Intent chatWindow = new Intent(this, Contacts.class);
+            chatWindow.putExtra("resUser", resID);
+            startActivity(chatWindow);
+        }
     }
 }
