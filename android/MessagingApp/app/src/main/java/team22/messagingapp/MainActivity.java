@@ -202,12 +202,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
-        try {
+        /*try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Override
