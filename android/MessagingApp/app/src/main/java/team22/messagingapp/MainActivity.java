@@ -22,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.sqlite.*;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -259,41 +260,58 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-//        try{
-//            chooseBluetooth();
-//
-//        }catch(IOException e){
-//            e.printStackTrace();
-//        }
+
+        try{
+            chooseBluetooth();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
 
 
     }
 
     @Override
     protected void onStop() {
+
         super.onStop();
-        /*try {
+        try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }*/
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Set the name of the chat. ie. talking to "Caleb"
+        Bundle chatBundle = getIntent().getExtras();
+        String chatWith = chatBundle.getString("receiver");
+
+        LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
+        TextView chatName = new TextView(this);
+        chatName.setTextColor(0xff000000);
+        chatName.setTextSize(50);
+        chatName.setText(chatWith);
+        chatName.setGravity(Gravity.CENTER_HORIZONTAL);
+        parentLinearLayout.addView(chatName);
+
+        Log.v("Chat With:", chatWith);
+
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         //messages.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-       /* try {
+        try {
             initBluetooth();
         }catch (IOException e){
             e.printStackTrace();
-        }*/
+        }
 
     }
 
@@ -332,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
 
-        //System.out.println(ll.getChildCount());
+        listenMessages();
     }
 
     public int loadMoreMessages(){
