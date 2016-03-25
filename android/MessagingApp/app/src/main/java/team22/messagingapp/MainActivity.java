@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
                     socket.connect();
                 }catch (IOException e){
                     e.printStackTrace();
+
+                }
+                if (socket == null){
                     try{
                         socket =(BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
                         socket.connect();
@@ -136,6 +139,10 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    public int getCurrentReceiver(){
+        return 1; //hardcoded for now, but we will get this to be better later
     }
 
     public void listenMessages(){
@@ -166,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                                         System.out.println(data);
 
                                         //We're... Going to need a system to store the multi messages into one.
-                                        int receiver_id = 0x00001111 & readBuffer[0];
+                                        final int receiver_id = 0x00001111 & readBuffer[0];
                                         int sender_id = (0x11110000 & readBuffer[0]) >>> 4;
                                         final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
                                     //Check receiver here
@@ -176,10 +183,12 @@ public class MainActivity extends AppCompatActivity {
                                         handler.post(new Runnable() {
                                             public void run() {
                                                 //insert check if it's the same user we're getting stuff from
-                                                insertReceivedMessageToView(data, false, d);
 
-                                                //otherwise do this
-                                                //check if volume
+                                                if (receiver_id == getCurrentReceiver()) {
+                                                    insertReceivedMessageToView(data, false, d);
+                                                }
+                                                else {
+                                                    //check if volume
 //                                                try {
 //                                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 //                                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -187,10 +196,13 @@ public class MainActivity extends AppCompatActivity {
 //                                                } catch (Exception e) {
 //                                                    e.printStackTrace();
 //                                                }
-                                                //otherwise
+                                                    //otherwise
 
-                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                v.vibrate(400);
+                                                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                    v.vibrate(400);
+                                                }
+                                                //otherwise do this
+
 
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -515,7 +527,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return linearLayout.getId();
     }
-    
+
     public int insertReceivedMessageToView(String message, boolean top, Date date){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
@@ -542,11 +554,7 @@ public class MainActivity extends AppCompatActivity {
                 linearLayout.addView(dateView);
 
             }
-
         }
-
-
-
         return textView.getId();
     }
 
