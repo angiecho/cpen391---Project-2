@@ -7,6 +7,8 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:weightSum="1">
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="70dp"
@@ -14,7 +16,7 @@
         android:id="@+id/chat_name"
         android:orientation="vertical">
     </LinearLayout>
-    <ScrollView
+    <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="0.9"
@@ -31,7 +33,7 @@
             android:orientation="vertical">
 
         </LinearLayout>
-    </ScrollView>
+    </team22.messagingapp.MessageScrollView>
     <LinearLayout
         android:layout_height="0dp"
         android:layout_width="match_parent"

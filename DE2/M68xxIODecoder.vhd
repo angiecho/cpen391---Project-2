@@ -134,6 +134,14 @@ Begin
 				if (Address(3 downto 0) = X"4") then
 					Bluetooth_Baud_Enable <= '1';
 				end if;
+				
+				if (Address(3 downto 0) = X"6" or Address(3 downto 0) = X"8") then
+					Bluetooth_Port_Enable(1) <= '1';
+				end if;
+				
+				if (Address(3 downto 0) = X"A" or Address(3 downto 0) = X"C") then
+					Bluetooth_Port_Enable(2) <= '1';
+				end if;
 			end if;
 		end if;
 		
@@ -154,34 +162,6 @@ Begin
 			
 				if (Address(3 downto 0) = X"4") then
 					TouchScreen_Baud_Enable <= '1';
-				end if;
-			end if;
-		end if;
-		
-		
-	-- bluetooth 2	
-		if(IOSelect_H = '1') then
-			if(Address(15 downto 4) = X"024" and ByteSelect_L = '0') then
-				if (Address(3 downto 0) = X"0" or Address(3 downto 0) = X"2") then
-					Bluetooth_Port_Enable(1) <= '1';
-				end if;
-			
-				if (Address(3 downto 0) = X"4") then
-					Bluetooth_Baud_Enable <= '1';
-				end if;
-			end if;
-		end if;
-		
-		
-	-- bluetooth 3
-		if(IOSelect_H = '1') then
-			if(Address(15 downto 4) = X"025" and ByteSelect_L = '0') then
-				if (Address(3 downto 0) = X"0" or Address(3 downto 0) = X"2") then
-					Bluetooth_Port_Enable(2) <= '1';
-				end if;
-			
-				if (Address(3 downto 0) = X"4") then
-					Bluetooth_Baud_Enable <= '1';
 				end if;
 			end if;
 		end if;

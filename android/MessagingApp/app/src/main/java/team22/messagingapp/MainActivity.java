@@ -1,14 +1,18 @@
 package team22.messagingapp;
 
-import android.app.ActionBar;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.ParcelUuid;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -21,11 +25,14 @@ import android.database.sqlite.*;
 import android.util.Log;
 
 import java.io.IOException;
-//import java.io.InputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,10 +42,35 @@ public class MainActivity extends AppCompatActivity {
     private InputStream inputStream;
     private BluetoothSocket socket;
 
+    private static final String SENDER = "sender";
+    private static final String RECIPIENT = "recipient";
+    private static final String MESSAGE_TEXT = "message_text";
+    private static final String MESSAGE_DATE = "message_date";
+    private static final String DATABASE_NAME = "messages";
+
     Thread workerThread;
     byte[] readBuffer;
     int readBufferPosition;
     volatile boolean stopWorker;
+
+    public class Message {
+        public String text;
+        public boolean sent;
+        public Date date;
+
+        public Message(String t, boolean s, String d){
+            System.out.println("Creating with " + t);
+            text = t;
+            sent = s;
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                date = dateFormat.parse(d);
+            }catch(ParseException e){
+                e.printStackTrace();
+            }
+
+        }
+    }
 
     private void initBluetooth() throws IOException {
         BA = BluetoothAdapter.getDefaultAdapter();
@@ -109,20 +141,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void listenMessages(){
         final Handler handler = new Handler();
-        final byte delimiter = 0; //This is the ASCII code for a newline character
-
+        final byte delimiter = 0; //This is the ASCII code for a \0
 
         workerThread = new Thread(new Runnable() {
             public void run() {
                 readBufferPosition = 0;
                 readBuffer = new byte[1024];
                 stopWorker = false;
-                System.out.println("ayyyy");
+                System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
 
                 while(!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
                         int bytesAvailable = inputStream.available();
-                        if(bytesAvailable > 0) {
+                        if(bytesAvailable > 2) {
                             byte[] packetBytes = new byte[bytesAvailable];
                             inputStream.read(packetBytes);
                             for(int i=0;i<bytesAvailable;i++) {
@@ -130,45 +161,55 @@ public class MainActivity extends AppCompatActivity {
 
                                 System.out.println(b);
                                 if(b == delimiter) {
-                                    byte[] encodedBytes = new byte[readBufferPosition - 2];
-                                    System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
-                                    System.out.println(data);
-                                    readBufferPosition = 0;
+                                       byte[] encodedBytes = new byte[readBufferPosition - 2];
+                                        System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
+                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        System.out.println(data);
 
-                                    handler.post(new Runnable() {
-                                        public void run() {
+                                        //We're... Going to need a system to store the multi messages into one.
+                                        int receiver_id = 0x00001111 & readBuffer[0];
+                                        int sender_id = (0x11110000 & readBuffer[0]) >>> 4;
+                                        final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
+                                    //Check receiver here
 
-                                            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
-                                            TextView textView = new TextView(getApplicationContext());
-                                            textView.setText(data);
-                                            textView.setTextColor(0xff000000);
-                                            textView.setMaxWidth(300);
-                                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-                                            textView.setLayoutParams(params);
-                                            //textView.setBackgroundColor(0xffcccccc);
-                                            textView.setBackgroundResource(R.drawable.bubble_grey);
+                                        readBufferPosition = 0;
 
-                                            if (linearLayout != null) {
-                                                linearLayout.addView(textView);
+                                        handler.post(new Runnable() {
+                                            public void run() {
+                                                //insert check if it's the same user we're getting stuff from
+                                                insertReceivedMessageToView(data, false, d);
+
+                                                //otherwise do this
+                                                //check if volume
+//                                                try {
+//                                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+//                                                    r.play();
+//                                                } catch (Exception e) {
+//                                                    e.printStackTrace();
+//                                                }
+                                                //otherwise
+
+                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                v.vibrate(400);
+
+                                                final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+                                                if (scrollView != null) {
+                                                    scrollView.post(new Runnable() {
+
+                                                        @Override
+                                                        public void run() {
+                                                            scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                                                        }
+                                                    });
+                                                }
+
                                             }
+                                        });
+                                    } else {
+                                        readBuffer[readBufferPosition++] = b;
+                                    }
 
-                                            final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-                                            if (scrollView != null) {
-                                                scrollView.post(new Runnable() {
-
-                                                    @Override
-                                                    public void run() {
-                                                        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                                                    }
-                                                });
-                                            }
-
-                                        }
-                                    });
-                                }else {
-                                    readBuffer[readBufferPosition++] = b;
-                                }
                             }
                         }
                     }catch (IOException e) {
@@ -187,27 +228,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
-       /* try{
+        loadHistory();
+        final MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
+        if (view != null) {
+            view.setOnTopReachedListener(
+                new MessageScrollView.onTopReachedListener() {
+                    @Override
+                    public void onTopReached() {
+                        int x = loadMoreMessages();
+
+                        if (x != 0){
+                            final View v = findViewById(x);
+                            if (v != null) {
+                                new Handler().post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        view.scrollTo(0, v.getTop());
+                                        //This needs to be done **after** because
+                                        //Otherwise, it doesn't know where the new top is
+                                        //because of the change in height
+                                    }
+                                });
+                            }
+
+                        }
+
+                    }
+                }
+            );
+        }
+
+
+        try{
             chooseBluetooth();
 
         }catch(IOException e){
             e.printStackTrace();
-        }*/
+        }
 
 
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
+
         super.onStop();
-        /*try {
+        try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }*/
+        }
     }
 
     @Override
@@ -230,21 +303,103 @@ public class MainActivity extends AppCompatActivity {
         Log.v("Chat With:", chatWith);
 
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
-        messages.execSQL("CREATE TABLE IF NOT EXISTS messages(sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME, PRIMARY KEY(sender, recipient, message_date));");
-
-
+        //messages.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
+        messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-       /* try {
+        try {
             initBluetooth();
         }catch (IOException e){
             e.printStackTrace();
         }
-*/
-        //listenMessages();
 
     }
 
+    public void loadHistory(){
+        //get id of contact accessed
+        System.out.println("Attempting to load message history...");
+        int recipient_id = 1; //Hardcoded for now, make a get function...
+
+        String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+
+        String selectionQuery = "recipient =? OR sender =?";
+
+        //Limit of 15 is here because I don't want to load all the messages in the database
+        //since that is potentially... Slow.
+        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
+        if (c.moveToFirst()) {
+            ArrayList<Message> pastMessages = new ArrayList<>();
+            do {
+                try {
+                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            while (c.moveToNext());
+
+            for (int y = pastMessages.size() - 1; y >= 0; y--) {
+                if (pastMessages.get(y).sent) {
+                    insertReceivedMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
+                } else {
+                    insertSentMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
+                }
+            }
+        }
+        c.close();
+
+        listenMessages();
+    }
+
+    public int loadMoreMessages(){
+        int recipient_id = 1; //make a getter function
+        LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
+        int messagesShown = 0;
+        View v = null;
+        if (ll != null) {
+            messagesShown = ll.getChildCount();
+            v = ll.getChildAt(0);
+        }
+
+        int messagesToShowCount = messagesShown/2 + 15;
+        String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+
+        String selectionQuery = "recipient =? OR sender =?";
+
+        //Show 15 more!
+        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
+        if (c.moveToFirst()) {
+            ArrayList<Message> pastMessages = new ArrayList<>();
+            do {
+                try {
+                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            while (c.moveToNext());
+            int difference = c.getCount() - messagesShown/2;
+            for (int y = pastMessages.size()  - difference; y <= pastMessages.size() -1; y++) {
+
+                if (pastMessages.get(y).sent) {
+                   insertReceivedMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
+                } else {
+                    insertSentMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
+                }
+
+            }
+        }
+        if (c.getCount() != messagesShown) {
+            c.close();
+            return v.getId();
+        }
+        c.close();
+        return 0;
+    }
 
     public void sendMessage(View view) {
         // Do something in response to button
@@ -262,24 +417,10 @@ public class MainActivity extends AppCompatActivity {
             //get recipient id
             int recipient_id = 1; //Hardcoded for now, make a get function...
 
-           // messages.execSQL("INSERT INTO messages VALUES ('" + sender_id +"', '" + recipient_id + "', '" + message + "', datetime());");
-            LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
-            TextView textView = new TextView(this);
-            textView.setTextColor(0xffffffff);
-            //textView.setBackgroundColor(0xff32cd32);
-            textView.setBackgroundResource(R.drawable.bubble_blue);
-            textView.setText(message);
-            textView.setMaxWidth(300);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-            textView.setLayoutParams(params);
-            textView.setGravity(Gravity.LEFT);
+            int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
+            Date d = insertMessageToDatabase(sender_id, recipient_id, message);
 
-            LinearLayout linearLayout = new LinearLayout(this);
-            linearLayout.setGravity(Gravity.RIGHT);
-            linearLayout.addView(textView);
-            if (parentLinearLayout != null) {
-                parentLinearLayout.addView(linearLayout);
-            }
+            insertSentMessageToView(message, false, d);
             final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
             if (scrollView != null) {
                 scrollView.post(new Runnable() {
@@ -290,100 +431,170 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-            //Add Bluetooth here
-            //Will need to append some sort of header for the DE2 to parse here
-            //As well as (eventually) encrypt the message
 
             if (outputStream != null) {
-                System.out.println("Attempting to send message!");
-                try {
-
-                    int messageLength = message.length();
-                    int messagePosition = 0;
-                    System.out.println(messageLength);
-
-                    while(messageLength > 255){
-                        //sender = 0000 receiver = 0000
-                        outputStream.write(1); // Sender/Receiver HARDCODED
-                        outputStream.write(0);
-                        String s = message.substring(messagePosition, messagePosition+255);
-                        messagePosition += 255;
-                        messageLength -= 255;
-                        outputStream.write(s.getBytes("US-ASCII"));
-                    }
-                    outputStream.write(1);  // Sender/Receiver HARDCODED
-                    outputStream.write(messageLength);
-                    String s = message.substring(messagePosition, messagePosition+messageLength);
-                    outputStream.write(s.getBytes("US-ASCII"));
-                    System.out.println("Sent out " + s);
-                    outputStream.flush();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                sendMessageBluetooth(message, messageHeader);
             }
         }
 
-        //intent.putExtra(EXTRA_MESSAGE, message);
-        //startActivity(intent);
+    }
 
+    private void sendMessageBluetooth(String message, int messageHeader){
+        System.out.println("Attempting to send message!");
+        try {
+            int messageLength = message.length();
+            int messagePosition = 0;
+            System.out.println(messageLength);
+
+            while(messageLength > 255){
+                //sender = 0000 receiver = 0000
+                outputStream.write(messageHeader);
+                outputStream.write(0);
+                String s = message.substring(messagePosition, messagePosition+255);
+                messagePosition += 255;
+                messageLength -= 255;
+                outputStream.write(s.getBytes("US-ASCII"));
+            }
+            outputStream.write(messageHeader);
+            outputStream.write(messageLength);
+            String s = message.substring(messagePosition, messagePosition+messageLength);
+            outputStream.write(s.getBytes("US-ASCII"));
+            System.out.println("Sent out " + s);
+            outputStream.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void receiveMessage(View view){
         String message = getMessage();
         if (message != null) {
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
-            TextView textView = new TextView(this);
-            textView.setText(message);
-            if (linearLayout != null) {
+            insertMessageToDatabase(1, 0, message);
+            insertReceivedMessageToView(message, false, new Date());
+        }
+
+    }
+
+    public Date insertMessageToDatabase(int sender_id, int recipient_id, String message) {
+        ContentValues values = new ContentValues();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+
+        values.put(SENDER, sender_id);
+        values.put(RECIPIENT, recipient_id);
+        values.put(MESSAGE_TEXT, message);
+        values.put(MESSAGE_DATE, dateFormat.format(date));
+
+        if (messages.insert(DATABASE_NAME, null, values) > -1){
+            System.out.println("Inserted message to database!");
+        }
+        else {
+            System.out.println("Message did not get inserted to the database...");
+        }
+        return date;
+    }
+
+    public String getStringDate(Date date){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
+        return dateFormat.format(date);
+    }
+
+    public int insertSentMessageToView(String message, boolean top, Date date){
+        LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
+        TextView textView = getSendMessageTextView();
+        textView.setText(message);
+
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setGravity(Gravity.RIGHT);
+        linearLayout.addView(textView);
+        linearLayout.setId(View.generateViewId());
+
+
+        TextView dateView = new TextView(getApplicationContext());
+        dateView.setId(View.generateViewId());
+        dateView.setText(getStringDate(date));
+        dateView.setMaxWidth(300);
+
+        LinearLayout linearLayout2 = new LinearLayout(this);
+        linearLayout2.setGravity(Gravity.RIGHT);
+        linearLayout2.addView(dateView);
+        linearLayout2.setId(View.generateViewId());
+
+        if (parentLinearLayout != null) {
+            if (top){
+                parentLinearLayout.addView(linearLayout, 0);
+                parentLinearLayout.addView(linearLayout2, 1);
+            }
+            else {
+                parentLinearLayout.addView(linearLayout);
+                parentLinearLayout.addView(linearLayout2);
+            }
+        }
+        return linearLayout.getId();
+    }
+    
+    public int insertReceivedMessageToView(String message, boolean top, Date date){
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
+        TextView textView = new TextView(getApplicationContext());
+        textView.setId(View.generateViewId());
+        textView.setText(message);
+        textView.setTextColor(0xff000000);
+        textView.setMaxWidth(300);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        textView.setLayoutParams(params);
+        textView.setBackgroundResource(R.drawable.bubble_grey);
+
+        TextView dateView = new TextView(getApplicationContext());
+        dateView.setId(View.generateViewId());
+        dateView.setText(getStringDate(date));
+        dateView.setMaxWidth(300);
+
+        if (linearLayout != null) {
+            if (top){
+                linearLayout.addView(textView, 0);
+                linearLayout.addView(dateView, 1);
+            }
+            else {
                 linearLayout.addView(textView);
+                linearLayout.addView(dateView);
+
             }
 
-            final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-            if (scrollView != null) {
-                scrollView.post(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                    }
-                });
-            }
         }
 
+
+
+        return textView.getId();
     }
 
+    public TextView getSendMessageTextView(){
+        TextView textView = new TextView(this);
+        textView.setTextColor(0xffffffff);
+        textView.setBackgroundResource(R.drawable.bubble_blue);
+        textView.setMaxWidth(300);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+        textView.setLayoutParams(params);
+        textView.setGravity(Gravity.LEFT);
+        return textView;
+    }
+    //This is a testing function! I use it to return
+    //a randomly generated String
     public String getMessage(){
-        //This will (eventually) poll the bluetooth to get the message. For now, I'm getting
-        //a constant String
-
-//        String s = "send me a message";
-//        outputStream.write(s.getBytes("US-ASCII"));
-//
-//        inputStream.read();
-        return "okay";
-
+        return getRandomString();
     }
-}
 
-//SQL Code... Not sure where to put it, so leaving it as a comment down here for now.
-/*
-        //int sender_id = 0;  //Hardcoded for now, make a get function...
-
-        //get recipient id
-        int recipient_id = 1; //Hardcoded for now, make a get function...
-
-        String selectQuery = "SELECT message_text, message_date FROM messages WHERE (recipient = '" + recipient_id + "' OR sender = '" + recipient_id + "') ORDER BY message_date desc LIMIT 10";
-
-        Cursor c =  messages.rawQuery(selectQuery, new String[] {});
-
-        if (c.moveToFirst()){
-            String[] pastMessages = new String[c.getCount()];
-            int x = 0;
-            while(c.moveToNext()){
-                pastMessages[x] = c.getString(c.getColumnIndex("message_text"));
-                x++;
-            }
+    //More testing functions!
+    public String getRandomString(){
+        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 20; i++) {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
         }
+        return sb.toString();
+    }
 
-        c.close(); */
+
+}
