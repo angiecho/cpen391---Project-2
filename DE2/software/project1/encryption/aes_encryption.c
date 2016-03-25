@@ -24,7 +24,7 @@ void decrypt(char* buffer, char* key, char* IV){
 	mcrypt_module_close(td);
 }
 
-void print_text(char* text, int length){
+void print_cipher(char* text, int length){
 	for(int i = 0; i < length; i++){
 		printf("%c ", text[i]);
 	}
