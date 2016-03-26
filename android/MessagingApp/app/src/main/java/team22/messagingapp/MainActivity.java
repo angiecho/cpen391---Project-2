@@ -1,5 +1,6 @@
 package team22.messagingapp;
 
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -7,17 +8,21 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.ParcelUuid;
 import android.os.Vibrator;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -145,6 +150,26 @@ public class MainActivity extends AppCompatActivity {
         return 1; //hardcoded for now, but we will get this to be better later
     }
 
+    public void showNotification(String message){
+//        Snackbar snack = Snackbar.make(findViewById(R.id.message_holder), message, Snackbar.LENGTH_SHORT);
+//        View v = snack.getView();
+//        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
+//        params.gravity = Gravity.TOP;
+//        v.setLayoutParams(params);
+//        snack.show();
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.icon3)
+                        .setContentTitle("My notification")
+                        .setContentText(message);
+
+        mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        mNotificationManager.notify(1, mBuilder.build());
+    }
+
     public void listenMessages(){
         final Handler handler = new Handler();
         final byte delimiter = 0; //This is the ASCII code for a \0
@@ -189,17 +214,25 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                                 else {
                                                     //check if volume
-//                                                try {
-//                                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//                                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-//                                                    r.play();
-//                                                } catch (Exception e) {
-//                                                    e.printStackTrace();
-//                                                }
+                                                    AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+                                                    if (am.getStreamVolume(AudioManager.STREAM_RING) > 0) {
+                                                        try {
+                                                            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                                                            r.play();
+                                                        } catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
                                                     //otherwise
+                                                    else {
+                                                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                        v.vibrate(100);
+                                                        v.vibrate(100);
+                                                    }
+                                                    showNotification(data);
 
-                                                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                    v.vibrate(400);
+
                                                 }
                                                 //otherwise do this
 
@@ -466,6 +499,7 @@ public class MainActivity extends AppCompatActivity {
         if (message != null) {
             insertMessageToDatabase(1, 0, message);
             insertReceivedMessageToView(message, false, new Date());
+            showNotification(message);
         }
 
     }
