@@ -259,12 +259,12 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-//        try{
-//            chooseBluetooth();
-//
-//        }catch(IOException e){
-//            e.printStackTrace();
-//        }
+        try{
+            chooseBluetooth();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
 
 
     }
@@ -272,12 +272,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        /*try {
+        try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }*/
+        }
     }
 
     @Override
@@ -289,11 +289,11 @@ public class MainActivity extends AppCompatActivity {
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-       /* try {
+        try {
             initBluetooth();
         }catch (IOException e){
             e.printStackTrace();
-        }*/
+        }
 
     }
 

@@ -2,11 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <bluetooth.h>
-<<<<<<< dd837e292857954780715d70d4f89c2e1e48cf71
 #include <touchscreen.h>
-=======
-#include "touchscreen.h"
->>>>>>> initial commit
 
 void putCharBluetooth(char c){
 	while((Bluetooth_Status & 0x02) != 0x02);
@@ -15,10 +11,6 @@ void putCharBluetooth(char c){
 
 void putCharBluetooth2(char c){
 	while((Touchscreen_Status & 0x02) != 0x02);
-<<<<<<< dd837e292857954780715d70d4f89c2e1e48cf71
-	printf("%c ", c);
-=======
->>>>>>> initial commit
 	Touchscreen_TxData = c & 0xFF;
 }
 
@@ -29,21 +21,12 @@ char getCharBluetooth(){
 
 char getCharBluetooth2(){
 	while (!(Touchscreen_Status & 0x1));
-<<<<<<< dd837e292857954780715d70d4f89c2e1e48cf71
-	//printf("%d ", Touchscreen_RxData);
-=======
->>>>>>> initial commit
 	return Touchscreen_RxData;
 }
 
 void Init_Bluetooth(void){
-<<<<<<< dd837e292857954780715d70d4f89c2e1e48cf71
-	Bluetooth_Control = 0x15;
+	Bluetooth_Control = 0x95;
 	Touchscreen_Control = 0x15;
-=======
-	Bluetooth_Control = 0x55;
-	//Touchscreen_Control = 0x95;
->>>>>>> initial commit
 	Bluetooth_Baud = 0x01;
 	Touchscreen_Baud = 0x01;
 }
