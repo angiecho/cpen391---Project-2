@@ -260,7 +260,6 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-
         try{
             chooseBluetooth();
 
