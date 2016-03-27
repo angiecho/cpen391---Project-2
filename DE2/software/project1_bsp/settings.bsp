@@ -2,21 +2,9 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-<<<<<<< Updated upstream
-<<<<<<< dd837e292857954780715d70d4f89c2e1e48cf71
-        <BspGeneratedTimeStamp>17-Mar-2016 2:31:39 AM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1458207099671</BspGeneratedUnixTimeStamp>
-        <BspGeneratedLocation>C:\Users\kwando1313\cpen391---Project-2\DE2\software\project1_bsp</BspGeneratedLocation>
-=======
-        <BspGeneratedTimeStamp>22-Mar-2016 5:23:35 PM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1458692615800</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>27-Mar-2016 1:06:13 AM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1459065973163</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\Alex\Desktop\UBC\cpen391\project2\cpen391---Project-2\DE2\software\project1_bsp</BspGeneratedLocation>
->>>>>>> initial commit
-=======
-        <BspGeneratedTimeStamp>24-Mar-2016 4:14:17 PM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1458861257645</BspGeneratedUnixTimeStamp>
-        <BspGeneratedLocation>C:\Users\Alex\Desktop\UBC\cpen391\project2\cpen391---Project-2\DE2\software\project1_bsp</BspGeneratedLocation>
->>>>>>> Stashed changes
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>..\..\nios_system.sopcinfo</SopcDesignFile>
         <JdiFile>default</JdiFile>
