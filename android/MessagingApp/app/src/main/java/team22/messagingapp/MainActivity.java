@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.sqlite.*;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -146,7 +147,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public int getCurrentSender(){
+        Bundle contactBundle = getIntent().getExtras();
+        String s = contactBundle.getString("senderName");
+        if (s.toLowerCase().contentEquals("caleb")){
+            return 1;
+        }
+        else if (s.toLowerCase().contentEquals("charles")){
+            return 2;
+        }
+        else if (s.toLowerCase().contentEquals("cho")){
+            return 3;
+        }
+        return 1;
+    }
+
     public int getCurrentReceiver(){
+        //Oh gosh we **DEFINITELY** want to change this
+        //Once we get a proper database for the contacts
+        //Set up
+        Bundle contactBundle = getIntent().getExtras();
+        String s = contactBundle.getString("receiver");
+        if (s.toLowerCase().contentEquals("caleb")){
+            return 1;
+        }
+        else if (s.toLowerCase().contentEquals("charles")){
+            return 2;
+        }
+        else if (s.toLowerCase().contentEquals("cho")){
+            return 3;
+        }
         return 1; //hardcoded for now, but we will get this to be better later
     }
 
@@ -304,18 +334,20 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-//        try{
-//            chooseBluetooth();
-//
-//        }catch(IOException e){
-//            e.printStackTrace();
-//        }
+
+        /*try{
+            chooseBluetooth();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }*/
 
 
     }
 
     @Override
     protected void onStop() {
+
         super.onStop();
         /*try {
             stopWorker = true;
@@ -329,12 +361,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Set the name of the chat. ie. talking to "Caleb"
+        Bundle chatBundle = getIntent().getExtras();
+        String chatWith = chatBundle.getString("receiver");
+
+        LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
+        TextView chatName = new TextView(this);
+        chatName.setTextColor(0xff000000);
+        chatName.setTextSize(50);
+        chatName.setText(chatWith);
+        chatName.setGravity(Gravity.CENTER_HORIZONTAL);
+        parentLinearLayout.addView(chatName);
+
+        Log.v("Chat With:", chatWith);
+
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         //messages.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-       /* try {
+        /*try {
             initBluetooth();
         }catch (IOException e){
             e.printStackTrace();
@@ -345,12 +392,13 @@ public class MainActivity extends AppCompatActivity {
     public void loadHistory(){
         //get id of contact accessed
         System.out.println("Attempting to load message history...");
-        int recipient_id = 1; //Hardcoded for now, make a get function...
+        int recipient_id = getCurrentReceiver();
+        int sender_id = getCurrentSender();
 
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
 
-        String selectionQuery = "recipient =? OR sender =?";
+        String selectionQuery = "recipient =? OR sender =? AND recipient =? OR sender =?";
 
         //Limit of 15 is here because I don't want to load all the messages in the database
         //since that is potentially... Slow.
@@ -377,11 +425,13 @@ public class MainActivity extends AppCompatActivity {
         }
         c.close();
 
-        //System.out.println(ll.getChildCount());
+        listenMessages();
     }
 
     public int loadMoreMessages(){
-        int recipient_id = 1; //make a getter function
+        int recipient_id = getCurrentReceiver(); //make a getter function
+        int sender_id = getCurrentSender();
+
         LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
         int messagesShown = 0;
         View v = null;
@@ -392,9 +442,9 @@ public class MainActivity extends AppCompatActivity {
 
         int messagesToShowCount = messagesShown/2 + 15;
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
 
-        String selectionQuery = "recipient =? OR sender =?";
+        String selectionQuery = "recipient =? OR sender =? AND recipient =? OR sender =?";
 
         //Show 15 more!
         Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
@@ -439,10 +489,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (message != null && !message.trim().isEmpty()){
             //get sender id
-            int sender_id = 0;  //Hardcoded for now, make a get function...
+            int sender_id = getCurrentSender();  //Hardcoded for now, make a get function...
 
             //get recipient id
-            int recipient_id = 1; //Hardcoded for now, make a get function...
+            int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
 
             int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
@@ -497,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
     public void receiveMessage(View view){
         String message = getMessage();
         if (message != null) {
-            insertMessageToDatabase(1, 0, message);
+            insertMessageToDatabase(getCurrentReceiver(), getCurrentSender(), message);
             insertReceivedMessageToView(message, false, new Date());
             showNotification(message);
         }
