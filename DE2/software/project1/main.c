@@ -14,6 +14,7 @@ int main(void) {
 		printf("message length: %d \n", length);
 		printf("message: %s \n", msg);
 		sendMessage(length, receiver, sender, msg);
+		printf("sent message %s", msg);
 		//char* msg2 = getMessage(&length, &receiver, &sender);
 		//sendMessage2(length, receiver, sender, msg2);
 	}

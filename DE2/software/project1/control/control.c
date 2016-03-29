@@ -53,6 +53,7 @@ char* getMessage2(unsigned* length, char* receiver, char* sender){
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	//TODO determine who to send to
 	char sender_receiver = (sender << 4) | receiver;
+	printf("%d\n", sender_receiver);
 	putCharBluetooth(sender_receiver);
 	putCharBluetooth((char)length);
 
