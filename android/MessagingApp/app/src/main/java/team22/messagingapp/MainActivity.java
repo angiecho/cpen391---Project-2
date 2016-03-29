@@ -274,15 +274,6 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-
-        try{
-            chooseBluetooth();
-
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
-
     }
 
     @Override
