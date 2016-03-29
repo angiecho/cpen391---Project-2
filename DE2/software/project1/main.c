@@ -1,22 +1,14 @@
 #include <stdio.h>
+#include "menu.h"
+#include "graphics.h"
+#include "touchscreen.h"
 #include "control.h"
-#include "bluetooth.h"
+#include "load_node.h"
+#include "search.h"
+#include "gps.h"
 
 int main(void) {
-	Init_Bluetooth();
-	printf("Bluetooth initialized!");
-	while(1){
-		unsigned length;
-		char sender, receiver;
-		char* msg = getMessage2(&length, &receiver, &sender);
-		printf("message from: %d \n", receiver);
-		printf("message to: %d \n", sender);
-		printf("message length: %d \n", length);
-		printf("message: %s \n", msg);
-		sendMessage(length, receiver, sender, msg);
-		char* msg2 = getMessage(&length, &receiver, &sender);
-		sendMessage2(length, receiver, sender, msg2);
-	}
-	printf("\nDONE\n");
+	init_control();
+	s_listen();
 	return 0;
 }

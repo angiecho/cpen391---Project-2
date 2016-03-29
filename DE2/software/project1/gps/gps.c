@@ -147,21 +147,16 @@ void test_read_gps(void){
 		old_button = button_value;
 	}
 }
-void read_gps(void) {
+void read_gps(long* lat, long* lon) {
 
 	gps_data* data = get_gps_data();
-
-
-	double lati;
-	double longi;
+	double templat, templon;
 	//convert the latitude and longitude data to completely be in degrees
-	minutes_to_degrees (data->lati, data->longi, &lati, &longi);
+	minutes_to_degrees (data->lati, data->longi, &templat, &templon);
+	*lat = (int) (templat * GPS_TO_GRAPH_MULTIPLIER);
+	*lon = (int) (templon * GPS_TO_GRAPH_MULTIPLIER);
+	printf ("templat: %f\ntemplon: %f\n", templat, templon);
 
-	int latitude;
-	int longitude;
-
-	degrees_to_graph (lati, longi, &latitude, &longitude);
-	printf ("Lati: %lf, Longi: %lf\n", lati, longi);
 }
 
 void get_current_coordinates(int* longitude, int* latitude){
@@ -307,14 +302,8 @@ gps_data* init_gps_data (void){
 // latitude of everything on ubc is 49.xxxxxx, longitude is -123.xxxxxx
 // therefore, we only care about the 6 digits after the decimal for both
 void degrees_to_graph(double lati, double longi, int *latitude, int * longitude){
-	double tempLong;
-	double tempLat;
-
-	tempLong = longi - 123;
-	tempLat = lati - 49;
-
-	*longitude = (int) (tempLong * GPS_TO_GRAPH_MULTIPLIER);
-	*latitude = (int) (tempLat * GPS_TO_GRAPH_MULTIPLIER);
+	*longitude = (int) (longi * GPS_TO_GRAPH_MULTIPLIER);
+	*latitude = (int) (lati * GPS_TO_GRAPH_MULTIPLIER);
 }
 
 void minutes_to_degrees (char* latitude, char* longitude, double *lati, double *longi){
@@ -344,5 +333,4 @@ void minutes_to_degrees (char* latitude, char* longitude, double *lati, double *
 
 	*lati = degLat + (minsLat / 60);	//get complete data in degrees
 	*longi = degLong + (minsLong / 60);
-
 }

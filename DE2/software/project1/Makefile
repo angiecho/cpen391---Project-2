@@ -147,16 +147,29 @@ C_SRCS += graphics/graphics.c
 C_SRCS += gps/gps.c
 C_SRCS += misc/misc_helpers.c
 C_SRCS += misc/rs232/rs232.c
-C_SRCS += bluetooth/bluetooth.c
 C_SRCS += touchscreen/touchscreen.c
 C_SRCS += graphics/fill.c
 C_SRCS += graphics/draw_font.c
+C_SRCS += pathfinding/graph.c
+C_SRCS += graphics/menu.c
+C_SRCS += pathfinding/a_star.c
 C_SRCS += misc/hashmap.c
-C_SRCS += tests/hashmap_test.c
+C_SRCS += misc/b_tree.c
 C_SRCS += control/control.c
-C_SRCS += contact/contact.c
+C_SRCS += control/load_node.c
+C_SRCS += tests/hashmap_test.c
+C_SRCS += tests/graph_test.c
+C_SRCS += control/button.c
+C_SRCS += search/search.c
+C_SRCS += control/image.c
+C_SRCS += tests/btree_test.c
+C_SRCS += tests/general_tests.c
+C_SRCS += bluetooth/bluetooth.c
+C_SRCS += aes/aes.c
 CXX_SRCS :=
 ASM_SRCS :=
+
+
 
 
 # Path to root of object file tree.
@@ -201,6 +214,7 @@ APP_INCLUDE_DIRS += gps
 APP_INCLUDE_DIRS += pathfinding
 APP_INCLUDE_DIRS += control
 APP_INCLUDE_DIRS += search
+APP_INCLUDE_DIRS += aes
 
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
