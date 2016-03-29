@@ -11,11 +11,10 @@
  * input on the touchscreen.
  */
 void get_key(char* key){
-
 	for (int i = 0; i < strlen(key); i++){
 		putCharBluetooth(key[i]);
 	}
-	printf ("got key: %s", key);
+	printf ("got key: %s\n", key);
 }
 
 /* gen_iv will generate a 16 char IV based on the
@@ -23,12 +22,12 @@ void get_key(char* key){
  */
 void gen_iv(void){
 
-	char iv[16];
-	//iv[15] = 0; lags here
+	char iv[17];
+	iv[16] = '\0';
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
-	for (int i = 0; i < 16; i++){
+	for (int i = 0; i < strlen(iv); i++){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
 		printf("%c, ", iv[i]);
