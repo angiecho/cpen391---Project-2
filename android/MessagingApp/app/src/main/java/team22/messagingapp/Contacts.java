@@ -32,6 +32,7 @@ public class Contacts extends AppCompatActivity {
         String chatWith = view.getTag().toString();
         Intent chatWindow = new Intent (this, MainActivity.class);
         chatWindow.putExtra("receiver", chatWith);
+        chatWindow.putExtra("senderName", getIntent().getExtras().getString("username"));
         startActivity(chatWindow);
     }
 

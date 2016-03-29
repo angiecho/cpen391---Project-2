@@ -1,5 +1,6 @@
 package team22.messagingapp;
 
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -7,17 +8,21 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.ParcelUuid;
 import android.os.Vibrator;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -72,126 +77,131 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initBluetooth() throws IOException {
-        BA = BluetoothAdapter.getDefaultAdapter();
-        if (BA == null){
-            finish();
+    public int getCurrentSender(){
+        Bundle contactBundle = getIntent().getExtras();
+        String s = contactBundle.getString("senderName");
+        if (s.toLowerCase().contentEquals("caleb")){
+            return 1;
         }
-        if (!BA.isEnabled()) {
-            Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOn, 0);
+        else if (s.toLowerCase().contentEquals("charles")){
+            return 2;
         }
-
+        else if (s.toLowerCase().contentEquals("cho")){
+            return 3;
+        }
+        return 1;
     }
 
-    private void chooseBluetooth() throws IOException{
-        //In the future, we **REALLY** want to set it up
-        // so you can choose which BT to be connected to
-        // Currently, we say connect to the first one listed on paired devices...
-        // Which is (quite obviously) quite bad.
-        Set<BluetoothDevice> pairedDevices;
-        pairedDevices = BA.getBondedDevices();
-        ArrayList<String> list = new ArrayList<>();
-
-        for(BluetoothDevice bt : pairedDevices) {
-            list.add(bt.getName());
+    public int getCurrentReceiver(){
+        //Oh gosh we **DEFINITELY** want to change this
+        //Once we get a proper database for the contacts
+        //Set up
+        Bundle contactBundle = getIntent().getExtras();
+        String s = contactBundle.getString("receiver");
+        if (s.toLowerCase().contentEquals("caleb")){
+            return 1;
         }
-        if (pairedDevices.size() > 0) {
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
-            for (int x = 0; x < list.size(); x++) {
-                TextView textView = new TextView(this);
-                textView.setText(list.get(x));
-                textView.setGravity(Gravity.CENTER);
-                if (linearLayout != null) {
-                    linearLayout.addView(textView);
-                }
-            }
-            BluetoothDevice[] devices = pairedDevices.toArray(new BluetoothDevice[pairedDevices.size()]);
-            BluetoothDevice device = devices[0];
-            System.out.println(device.getName());
-            ParcelUuid[] uuids = device.getUuids();
-            System.out.println(uuids[0]);
-            try{
-                socket = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
-                try {
-                    socket.connect();
-                }catch (IOException e){
-                    e.printStackTrace();
-                    try{
-                        socket =(BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
-                        socket.connect();
-                    }catch(Exception e2){
-                        e2.printStackTrace();
-                    }
-                }
-                if (socket.isConnected()) {
-                    outputStream = socket.getOutputStream();
-                    inputStream = socket.getInputStream();
-                    listenMessages();
-                }
-                else {
-                    System.out.println("Could not connect to socket!");
-                }
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
+        else if (s.toLowerCase().contentEquals("charles")){
+            return 2;
         }
+        else if (s.toLowerCase().contentEquals("cho")){
+            return 3;
+        }
+        return 1; //hardcoded for now, but we will get this to be better later
+    }
+
+    public void showNotification(String message){
+//        Snackbar snack = Snackbar.make(findViewById(R.id.message_holder), message, Snackbar.LENGTH_SHORT);
+//        View v = snack.getView();
+//        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
+//        params.gravity = Gravity.TOP;
+//        v.setLayoutParams(params);
+//        snack.show();
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.icon3)
+                        .setContentTitle("My notification")
+                        .setContentText(message);
+
+        mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        mNotificationManager.notify(1, mBuilder.build());
     }
 
     public void listenMessages(){
         final Handler handler = new Handler();
         final byte delimiter = 0; //This is the ASCII code for a \0
 
-        workerThread = new Thread(new Runnable() {
-            public void run() {
-                readBufferPosition = 0;
-                readBuffer = new byte[1024];
-                stopWorker = false;
-                System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
 
-                while(!Thread.currentThread().isInterrupted() && !stopWorker) {
-                    try {
-                        int bytesAvailable = inputStream.available();
-                        if(bytesAvailable > 2) {
-                            byte[] packetBytes = new byte[bytesAvailable];
-                            inputStream.read(packetBytes);
-                            for(int i=0;i<bytesAvailable;i++) {
-                                byte b = packetBytes[i];
+        if (workerThread == null) {
+            workerThread = new Thread(new Runnable() {
+                public void run() {
+                    readBufferPosition = 0;
+                    readBuffer = new byte[1024];
+                    stopWorker = false;
+                    System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
 
-                                System.out.println(b);
-                                if(b == delimiter) {
-                                       byte[] encodedBytes = new byte[readBufferPosition - 2];
+                    while (!Thread.currentThread().isInterrupted() && !stopWorker) {
+                        try {
+                            int bytesAvailable = inputStream.available();
+                            if (bytesAvailable > 2) {
+                                byte[] packetBytes = new byte[bytesAvailable];
+                                inputStream.read(packetBytes);
+                                for (int i = 0; i < bytesAvailable; i++) {
+                                    byte b = packetBytes[i];
+
+                                    System.out.println(b);
+                                    if (b == delimiter && readBufferPosition > 2) {
+                                        byte[] encodedBytes = new byte[readBufferPosition - 2];
                                         System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
                                         final String data = new String(encodedBytes, "US-ASCII");
                                         System.out.println(data);
 
+                                        System.out.println("S/R is " + readBuffer[0]);
+
                                         //We're... Going to need a system to store the multi messages into one.
-                                        int receiver_id = 0x00001111 & readBuffer[0];
-                                        int sender_id = (0x11110000 & readBuffer[0]) >>> 4;
+                                        final int receiver_id = 0b00001111 & readBuffer[0];
+                                        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
+
+                                        System.out.println("Receiver ID is: " + receiver_id);
+                                        System.out.println("Sender ID is: " + sender_id);
                                         final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
-                                    //Check receiver here
+                                        //Check receiver here
 
                                         readBufferPosition = 0;
 
                                         handler.post(new Runnable() {
                                             public void run() {
                                                 //insert check if it's the same user we're getting stuff from
-                                                insertReceivedMessageToView(data, false, d);
 
+                                                if (sender_id == getCurrentReceiver()) {
+                                                    insertReceivedMessageToView(data, false, d);
+                                                } else {
+                                                    //check if volume
+                                                    AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+                                                    if (am.getStreamVolume(AudioManager.STREAM_RING) > 0) {
+                                                        try {
+                                                            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                                                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                                                            r.play();
+                                                        } catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                    //otherwise
+                                                    else {
+                                                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                        v.vibrate(100);
+                                                        v.vibrate(100);
+                                                    }
+                                                    showNotification(data);
+
+
+                                                }
                                                 //otherwise do this
-                                                //check if volume
-//                                                try {
-//                                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//                                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-//                                                    r.play();
-//                                                } catch (Exception e) {
-//                                                    e.printStackTrace();
-//                                                }
-                                                //otherwise
 
-                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                v.vibrate(400);
 
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -210,21 +220,25 @@ public class MainActivity extends AppCompatActivity {
                                         readBuffer[readBufferPosition++] = b;
                                     }
 
+                                }
                             }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            stopWorker = true;
+                            break;
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                            stopWorker = true;
+                            break;
                         }
-                    }catch (IOException e) {
-                        e.printStackTrace();
-                        stopWorker = true;
-                        break;
-                    }catch (NullPointerException e){
-                        e.printStackTrace();
-                        stopWorker = true;
-                        break;
                     }
                 }
-            }
-        });
-        workerThread.start();
+            });
+            workerThread.start();
+        }
+        else {
+            stopWorker = false;
+        }
     }
 
     @Override
@@ -261,12 +275,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        try{
+        /*try{
             chooseBluetooth();
 
         }catch(IOException e){
             e.printStackTrace();
-        }
+        }*/
 
 
     }
@@ -275,14 +289,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
 
         super.onStop();
-        try {
+        workerThread.interrupt();
+        //workerThread.stop();
+        /*try {
             stopWorker = true;
             socket.close();
         }catch (IOException e){
             e.printStackTrace();
-        }
+        }*/
     }
 
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+//        try{
+//            socket.close();
+//        }catch (IOException e){
+//            e.printStackTrace();
+//        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -305,25 +331,36 @@ public class MainActivity extends AppCompatActivity {
         messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         //messages.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
         messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
+        socket = ((MessagingApplication) getApplication()).getSocket();
+
+        if (!socket.isConnected()){
+            try {
+                socket.connect();
+                outputStream = socket.getOutputStream();
+                inputStream = socket.getInputStream();
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            outputStream = ((MessagingApplication) getApplication()).getOutputStream();
+            inputStream = ((MessagingApplication) getApplication()).getInputStream();
+        }
 
         //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-        try {
-            initBluetooth();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
 
     }
 
     public void loadHistory(){
         //get id of contact accessed
         System.out.println("Attempting to load message history...");
-        int recipient_id = 1; //Hardcoded for now, make a get function...
+        int recipient_id = getCurrentReceiver();
+        int sender_id = getCurrentSender();
 
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
 
-        String selectionQuery = "recipient =? OR sender =?";
+        String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
 
         //Limit of 15 is here because I don't want to load all the messages in the database
         //since that is potentially... Slow.
@@ -354,7 +391,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public int loadMoreMessages(){
-        int recipient_id = 1; //make a getter function
+        int recipient_id = getCurrentReceiver(); //make a getter function
+        int sender_id = getCurrentSender();
+
         LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
         int messagesShown = 0;
         View v = null;
@@ -365,9 +404,9 @@ public class MainActivity extends AppCompatActivity {
 
         int messagesToShowCount = messagesShown/2 + 15;
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id)};
+        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
 
-        String selectionQuery = "recipient =? OR sender =?";
+        String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
 
         //Show 15 more!
         Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
@@ -412,10 +451,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (message != null && !message.trim().isEmpty()){
             //get sender id
-            int sender_id = 0;  //Hardcoded for now, make a get function...
+            int sender_id = getCurrentSender();  //Hardcoded for now, make a get function...
 
             //get recipient id
-            int recipient_id = 1; //Hardcoded for now, make a get function...
+            int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
 
             int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
@@ -470,8 +509,9 @@ public class MainActivity extends AppCompatActivity {
     public void receiveMessage(View view){
         String message = getMessage();
         if (message != null) {
-            insertMessageToDatabase(1, 0, message);
+            insertMessageToDatabase(getCurrentReceiver(), getCurrentSender(), message);
             insertReceivedMessageToView(message, false, new Date());
+            showNotification(message);
         }
 
     }
@@ -533,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return linearLayout.getId();
     }
-    
+
     public int insertReceivedMessageToView(String message, boolean top, Date date){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
@@ -560,11 +600,7 @@ public class MainActivity extends AppCompatActivity {
                 linearLayout.addView(dateView);
 
             }
-
         }
-
-
-
         return textView.getId();
     }
 
