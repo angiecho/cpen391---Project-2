@@ -38,6 +38,7 @@ class AESEncryption {
     }
 
     /*
+       PRECOND: Bluetooth set up
        Set key and IV based on gps/touchscreen data and do something with the touchscreen while we're at it.
     */
     public static String get_gps() throws Exception{

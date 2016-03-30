@@ -412,12 +412,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (message != null && !message.trim().isEmpty()){
             //get sender id
-            int sender_id = 0;  //Hardcoded for now, make a get function...
+            int sender_id = 0;  //TODO: Hardcoded for now, make a get function...
 
             //get recipient id
-            int recipient_id = 1; //Hardcoded for now, make a get function...
+            int recipient_id = 1; //TODO: Hardcoded for now, make a get function...
 
-            int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
+            int messageHeader = 16*sender_id + recipient_id; //16* = bit shift left 4
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
 
             insertSentMessageToView(message, false, d);
@@ -447,7 +447,6 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(messageLength);
 
             while(messageLength > 255){
-                //sender = 0000 receiver = 0000
                 outputStream.write(messageHeader);
                 outputStream.write(0);
                 String s = message.substring(messagePosition, messagePosition+255);
