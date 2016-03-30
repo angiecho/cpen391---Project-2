@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include "menu.h"
+#include "graphics.h"
+#include "touchscreen.h"
 #include "control.h"
 #include "bluetooth.h"
 #include "sys/alt_irq.h"
