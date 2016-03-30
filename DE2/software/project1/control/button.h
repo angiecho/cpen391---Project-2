@@ -73,17 +73,7 @@ void do_dir();
 void do_zoom();
 void do_about();
 void do_pop();
-void do_sel(char key);
-void do_west();
-void do_east();
-void do_north();
-void do_up();
-void do_south();
-void do_down();
-void do_road();
 void flicker(Button b);
-void toggle(Button b);
-bool road_mode();
 
 bool road_only;
 int end_node;

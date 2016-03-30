@@ -26,7 +26,6 @@ void init_control(){
 	Init_Bluetooth();
 	init_touch();
 	init_keyboard();
-	do_pop();
 }
 
 void init_globals(){

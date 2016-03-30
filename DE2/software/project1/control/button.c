@@ -102,6 +102,7 @@ void init_kb_button(char key, int id){
 }
 
 
+
 void init_keyboard(){
 	keyboard = malloc(sizeof(Button)*N_KEYS);
 
@@ -204,20 +205,6 @@ Button* get_kb_button(Point p){
 	return NULL;
 }
 
-// Display info of the next node touched
-void do_info(){
-	draw_information_box("SELECT A MAP POINT TO OBTAIN ITS INFORMATION.");
-	char* info = get_node_info(full_map_graph);
-	if (info == NULL) {
-		about_screen();
-		INFO_BUTT.prs_p(INFO_BUTT);
-		return;
-	}
-	free(info);
-	info_screen(info);
-	INFO_BUTT.prs_p(INFO_BUTT);
-}
-
 // Ask for a start and end node and find the best directions
 void do_dir(){
 	int start_node = get_start_node();
@@ -231,7 +218,7 @@ void do_dir(){
 	end_node = get_node(full_map_graph);
 	if (end_node == -1){
 		DIR_BUTT.prs_p(DIR_BUTT);
-		about_screen();
+		//about_screen();
 		return;
 	}
 	if (road_only && !vertex_had_road_edge(full_map_graph, end_node)){
@@ -278,83 +265,9 @@ void do_zoom(){
 
 	curr_image_pos = sel;
 	draw_full_image();
-	about_screen();
+	//about_screen();
 	ZOOM_BUTT.prs_p(ZOOM_BUTT);
 	re_draw_path();
-}
-
-// Display app about
-void do_about(void* nothing){
-	about_screen();
-}
-
-// Translate the map left
-void do_west(){
-	if (zoom_level == ZOOM_IN){
-		move_img (LEFT);
-		re_draw_path();
-	}
-}
-
-// Translate the map east
-void do_east(){
-	if (zoom_level == ZOOM_IN){
-		move_img (RIGHT);
-		re_draw_path();
-	}
-}
-
-// Translate the map north
-void do_north(){
-	if (zoom_level == ZOOM_IN){
-		move_img (UP);
-		re_draw_path();
-	}
-}
-
-// Translate the map south
-void do_south(){
-	if (zoom_level == ZOOM_IN){
-		move_img (DOWN);
-		re_draw_path();
-	}
-}
-
-void do_sel(char key){
-	if (key == NORTH_BUTT.key){
-		do_up();
-	}
-	else if(key == SOUTH_BUTT.key){
-		do_down();
-	}
-}
-
-// Select the search match entry above the current selected
-void do_up(){
-	if(qs_length() < SEARCH_THRESHHOLD){
-		return;
-	}
-	if(sel > 1){
-		sel--;
-	}
-	else{
-		sel = MN_COUNT;
-	}
-	match_screen(sel, MN_COUNT);
-}
-
-// Select the search match entry below the current selected
-void do_down(){
-	if(qs_length() < SEARCH_THRESHHOLD){
-		return;
-	}
-	if(sel < MN_COUNT){
-		sel++;
-	}
-	else{
-		sel = 1;
-	}
-	match_screen(sel, MN_COUNT);
 }
 
 // Pop up the keyboard
@@ -367,36 +280,11 @@ void do_pop(){
 // Draws the character on the search bar and updates the search matcher
 void do_key(char key){
 	add_letter(key);
-
-	/* Ignore the matcher if the string query length is below the threshhold to provide matchings
-	   Update and delete matches when we add letters */
-	if(qs_length() < SEARCH_THRESHHOLD){
-		draw_information_box("ENTER YOUR SEARCH!");
-	}
-	if(qs_length() > SEARCH_THRESHHOLD && MN_COUNT > 0){
-		del_matches();
-	}
-	if(qs_length() == SEARCH_THRESHHOLD){
-		add_matches();
-	}
 }
 
 // Deletes the front of the search bar and updates the search matcher
 void do_del(){
 	del_letter();
-
-	/* Ignore the matcher if the string query is below the threshhold
-	   Update and add matches when we delete letters  */
-	if(qs_length() < SEARCH_THRESHHOLD){
-		draw_information_box("ENTER YOUR SEARCH!");
-	}
-	if(qs_length() >= SEARCH_THRESHHOLD){
-		add_matches();
-	}
-}
-
-void do_road(){
-	road_only = !road_only;
 }
 
 /* On valid search, find the path to the selected entry from current location. Re-draw the map.
@@ -416,22 +304,6 @@ void do_enter(){
 // Leave search mode and redraw the map
 void do_back(){
 	reset_query();
-	destroy_matches();
-	draw_full_image();
-	about_screen();
-}
-
-void toggle(Button b){
-	if(*(b.pressed) == false){
-		*(b.pressed) = true;
-		highlight(b);
-		usleep(TOGGLE_DELAY);
-	}
-	else{
-		*(b.pressed) = false;
-		unhighlight(b);
-		usleep(TOGGLE_DELAY);
-	}
 }
 
 void flicker(Button b){

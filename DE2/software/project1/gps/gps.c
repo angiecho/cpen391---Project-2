@@ -156,10 +156,10 @@ void read_gps(long* lat, long* lon) {
 	*lat = (int) (templat * GPS_TO_GRAPH_MULTIPLIER);
 	*lon = (int) (templon * GPS_TO_GRAPH_MULTIPLIER);
 
-	/*	//Use for fake data
-	*lat = 49261801;
-	*lon = 1232499655;
-	*/
+	//Use for fake data
+//	*lat = 49261801;
+//	*lon = 1232499655;
+
 }
 
 void get_current_coordinates(int* longitude, int* latitude){

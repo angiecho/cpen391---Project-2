@@ -6,6 +6,7 @@
 #include "search.h"
 #include "bluetooth.h"
 #include "aes.h"
+#include "menu.h"
 
 /* get_key will receive a 16 byte key from user
  * input on the touchscreen.
@@ -58,7 +59,8 @@ void rcv_message(void){
 	while (!keyreq){
 		keyreq = getCommand();
 	}
-	s_listen();
+	draw_information_box("Requesting Key!");
+	do_pop();
 }
 
 //send key and send message+header to receiver

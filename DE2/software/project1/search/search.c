@@ -58,64 +58,6 @@ bool is_matched(char* name){
 	return matches;
 }
 
-// Get all the names that match with the query string
-void add_matches(){
-	sel = 1;
-	graph* graph = full_map_graph;
-	name_list* nl = get_names(graph);
-
-	matched_names.head = NULL;
-	name_list* m_nl;
-	name_list* curr;
-
-	while(nl != NULL){
-		if(is_matched(nl->name)){
-			m_nl = malloc(sizeof(name_list));
-			m_nl->name = nl->name;
-			m_nl->next = NULL;
-
-			if(matched_names.head == NULL){
-				matched_names.head = m_nl;
-			}
-			else{
-				curr->next = m_nl;
-			}
-			curr = m_nl;
-		}
-		nl = nl->next;
-	}
-	match_screen(sel, MN_COUNT);
-}
-
-void del_matches(){
-	sel = 1;
-	name_list* curr = matched_names.head;
-	name_list* prev;
-	name_list* temp;
-
-	// Updates the head to be the first match in matched list
-	while(curr != NULL && !(is_matched(curr->name)) ){
-		temp = curr->next;
-		free(curr);
-		curr = temp;
-	}
-	matched_names.head = curr;
-	prev = curr;
-	curr = curr->next;
-
-	while(curr != NULL){
-		if(!is_matched(curr->name)){
-			prev->next = curr->next;
-			free(curr);
-		}
-		else{
-			prev = prev->next;
-		}
-		curr = prev->next;
-	}
-	match_screen(sel, MN_COUNT);
-}
-
 void destroy_matches(){
 	name_list* nl = matched_names.head;
 	name_list* temp;
