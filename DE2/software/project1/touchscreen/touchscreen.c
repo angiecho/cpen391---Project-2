@@ -54,7 +54,6 @@ void init_touch(void){
 int ScreenTouched(void){
 	// return TRUE if any data received from 6850 connected to touchscreen
 	// or FALSE otherwise
-
 	return ((getChar_touch() & 0x81) == 0x81); // some value received //0x81 = 10000001 = pen down command
 }
 

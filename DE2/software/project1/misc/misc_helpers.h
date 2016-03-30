@@ -47,4 +47,8 @@ int sign(int a);
 
 bool str_begins(char* str, char* begins);
 
+void itoa(int n, char s[]);
+void reverse(char s[]);
+
+
 #endif /* MISC_HELPERS_H_ */

@@ -41,11 +41,15 @@ public class MainActivity extends AppCompatActivity {
     private InputStream inputStream;
     private BluetoothSocket socket;
 
+    private String key;
+    private String iv;
+
     private static final String SENDER = "sender";
     private static final String RECIPIENT = "recipient";
     private static final String MESSAGE_TEXT = "message_text";
     private static final String MESSAGE_DATE = "message_date";
     private static final String DATABASE_NAME = "messages";
+    private static final String FORMAT = "US-ASCII";
 
     Thread workerThread;
     byte[] readBuffer;
@@ -162,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                                     if (b == delimiter && readBufferPosition > 1) {
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
-                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        final String data = new String(encodedBytes, FORMAT);
                                         System.out.println(data);
 
                                         System.out.println("S/R is " + readBuffer[0]);
@@ -223,17 +227,17 @@ public class MainActivity extends AppCompatActivity {
                                         readBuffer[readBufferPosition++] = b;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        key = new String(encodedBytes, FORMAT);
                                         System.out.println("The current length is " + readBufferPosition);
-                                        System.out.println("Key is : " + data);
+                                        System.out.println("Key is : " + key);
                                         readBufferPosition = 0;
                                     }else if(b == 3 && readBufferPosition > 1) {
                                         readBuffer[readBufferPosition++] = b;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        iv  = new String(encodedBytes, FORMAT);
                                         System.out.println("The current length is " + readBufferPosition);
-                                        System.out.println("IV is: " + data);
+                                        System.out.println("IV is: " + iv);
                                         readBufferPosition = 0;
                                     } else {
                                         readBuffer[readBufferPosition++] = b;
@@ -444,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
             //get recipient id
             int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
 
-            int messageHeader = 16 * sender_id + recipient_id; //16* = bit shift left 4
+            int messageHeader = 16*sender_id + recipient_id; //16* = bit shift left 4
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
 
             insertSentMessageToView(message, false, d);
@@ -462,6 +466,20 @@ public class MainActivity extends AppCompatActivity {
             if (outputStream != null) {
                 try {
                     outputStream.write(1);
+                    while (key == null && iv == null);
+                    try {
+
+                        byte[] cipher = AESEncryption.encrypt(message, key, iv);
+
+                        System.out.print("cipher:  ");
+                        AESEncryption.print_cipher(cipher, cipher.length);
+                        key = null;
+                        iv = null;
+
+
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
                 }catch (IOException e){
                     e.printStackTrace();
                 }
@@ -479,15 +497,13 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(messageLength);
             outputStream.write(messageHeader);
             while(messageLength > 255){
-                //sender = 0000 receiver = 0000
-
-                String s = message.substring(messagePosition, messagePosition+255);
+                String string = message.substring(messagePosition, messagePosition+255);
                 messagePosition += 255;
                 messageLength -= 255;
-                outputStream.write(s.getBytes("US-ASCII"));
+                outputStream.write(string.getBytes(FORMAT));
             }
             String s = message.substring(messagePosition, messagePosition+messageLength);
-            outputStream.write(s.getBytes("US-ASCII"));
+            outputStream.write(s.getBytes(FORMAT));
             System.out.println("Sent out " + s);
             outputStream.flush();
 
@@ -501,7 +517,8 @@ public class MainActivity extends AppCompatActivity {
         if (message != null) {
             insertMessageToDatabase(getCurrentReceiver(), getCurrentSender(), message);
             insertReceivedMessageToView(message, false, new Date());
-            showNotification(message);
+            String author = getSenderName(getCurrentReceiver());
+            showNotification(message, author);
         }
 
     }

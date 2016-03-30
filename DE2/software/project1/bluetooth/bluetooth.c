@@ -11,7 +11,6 @@ void putCharBluetooth(char c){
 
 void putCharBluetooth2(char c){
 	while((Touchscreen_Status & 0x02) != 0x02);
-	printf("%c ", c);
 	Touchscreen_TxData = c & 0xFF;
 }
 
@@ -22,12 +21,11 @@ char getCharBluetooth(){
 
 char getCharBluetooth2(){
 	while (!(Touchscreen_Status & 0x1));
-	//printf("%d ", Touchscreen_RxData);
 	return Touchscreen_RxData;
 }
 
 void Init_Bluetooth(void){
-	Bluetooth_Control = 0x15;
+	Bluetooth_Control = 0x95;
 	Touchscreen_Control = 0x15;
 	Bluetooth_Baud = 0x01;
 	Touchscreen_Baud = 0x01;
