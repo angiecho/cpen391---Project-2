@@ -17,7 +17,6 @@ public class Contacts extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
         checkUser();
-
     }
 
     public void checkUser(){
