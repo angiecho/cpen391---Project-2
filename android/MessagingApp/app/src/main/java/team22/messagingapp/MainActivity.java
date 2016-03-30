@@ -61,20 +61,20 @@ public class MainActivity extends AppCompatActivity {
         public boolean sent;
         public Date date;
 
-        public Message(String t, boolean s, String d){
-            System.out.println("Creating with " + t);
-            text = t;
-            sent = s;
+        public Message(String text, boolean sent, String date){
+            System.out.println("Creating with " + text);
+            this.text = text;
+            this.sent = sent;
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
-                date = dateFormat.parse(d);
+                this.date = dateFormat.parse(date);
             }catch(ParseException e){
                 e.printStackTrace();
             }
 
         }
     }
-
+    //Doesn't matter will get changed
     public int getCurrentSender(){
         Bundle contactBundle = getIntent().getExtras();
         String s = contactBundle.getString("senderName");
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         return 1;
     }
 
+    //Doesn't matter will get changed
     public String getSenderName(int id){
         if (id == 1){
             return "Caleb";
@@ -103,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         return "???";
     }
 
+    //Doesn't matter will get changed
     public int getCurrentReceiver(){
         //Oh gosh we **DEFINITELY** want to change this
         //Once we get a proper database for the contacts
@@ -122,12 +124,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showNotification(String message, String author){
-//        Snackbar snack = Snackbar.make(findViewById(R.id.message_holder), message, Snackbar.LENGTH_SHORT);
-//        View v = snack.getView();
-//        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
-//        params.gravity = Gravity.TOP;
-//        v.setLayoutParams(params);
-//        snack.show();
+
+        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        if (am.getStreamVolume(AudioManager.STREAM_RING) > 0) {
+            try {
+                Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                r.play();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        //otherwise
+        else {
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(100);
+            v.vibrate(100);
+        }
+
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.icon3)
@@ -140,10 +154,24 @@ public class MainActivity extends AppCompatActivity {
         mNotificationManager.notify(1, mBuilder.build());
     }
 
+    public void scrollDown(){
+        final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+        if (scrollView != null) {
+            scrollView.post(new Runnable() {
+
+                @Override
+                public void run() {
+                    scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                }
+            });
+        }
+    }
+
     public void listenMessages(){
         final Handler handler = new Handler();
         final byte delimiter = 0; //This is the ASCII code for a \0
-
+        final byte keyDelimiter = 2;
+        final byte ivDelimiter = 3;
 
         if (workerThread == null) {
             workerThread = new Thread(new Runnable() {
@@ -161,14 +189,32 @@ public class MainActivity extends AppCompatActivity {
                                 inputStream.read(packetBytes);
                                 for (int i = 0; i < bytesAvailable; i++) {
                                     byte b = packetBytes[i];
-
                                     System.out.println(b);
                                     if (b == delimiter && readBufferPosition > 1) {
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
-                                        final String data = new String(encodedBytes, FORMAT);
-                                        System.out.println(data);
 
+                                        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
+                                        byte[][] byteChunks = new byte[chunkNumber][16];
+                                        int start = 0;
+                                        for(int j = 0; j < chunkNumber; j++) {
+                                            if(start + 16 > encodedBytes.length) {
+                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
+                                            } else {
+                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
+                                            }
+                                            start += 16;
+                                        }
+                                        String[] decodedByteChunks = new String[chunkNumber];
+                                        for (int j = 0; j < byteChunks.length; j++){
+                                            try {
+                                                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
+                                            }catch(Exception e){
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        final String data = decodedByteChunks.toString();
+                                        System.out.println(data);
                                         System.out.println("S/R is " + readBuffer[0]);
 
                                         final int receiver_id = 0b00001111 & readBuffer[0];
@@ -177,10 +223,7 @@ public class MainActivity extends AppCompatActivity {
                                         System.out.println("Receiver ID is: " + receiver_id);
                                         System.out.println("Sender ID is: " + sender_id);
                                         final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
-                                        //Check receiver here
-
                                         readBufferPosition = 0;
-
                                         handler.post(new Runnable() {
                                             public void run() {
                                                 //insert check if it's the same user we're getting stuff from
@@ -189,54 +232,24 @@ public class MainActivity extends AppCompatActivity {
                                                     insertReceivedMessageToView(data, false, d);
                                                 } else {
                                                     //check if volume
-                                                    AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-                                                    if (am.getStreamVolume(AudioManager.STREAM_RING) > 0) {
-                                                        try {
-                                                            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                                                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                                                            r.play();
-                                                        } catch (Exception e) {
-                                                            e.printStackTrace();
-                                                        }
-                                                    }
-                                                    //otherwise
-                                                    else {
-                                                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                        v.vibrate(100);
-                                                        v.vibrate(100);
-                                                    }
                                                     String author = getSenderName(sender_id);
                                                     showNotification(data, author);
-
-
                                                 }
-                                                final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-                                                if (scrollView != null) {
-                                                    scrollView.post(new Runnable() {
-
-                                                        @Override
-                                                        public void run() {
-                                                            scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                                                        }
-                                                    });
-                                                }
-
+                                                scrollDown();
                                             }
                                         });
-                                    } else if(b == 2 && readBufferPosition > 1) {
+                                    } else if(b == keyDelimiter && readBufferPosition > 1) {
                                         readBuffer[readBufferPosition++] = b;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                                         key = new String(encodedBytes, FORMAT);
-                                        System.out.println("The current length is " + readBufferPosition);
                                         System.out.println("Key is : " + key);
                                         readBufferPosition = 0;
-                                    }else if(b == 3 && readBufferPosition > 1) {
+                                    }else if(b == ivDelimiter && readBufferPosition > 1) {
                                         readBuffer[readBufferPosition++] = b;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                                         iv  = new String(encodedBytes, FORMAT);
-                                        System.out.println("The current length is " + readBufferPosition);
                                         System.out.println("IV is: " + iv);
                                         readBufferPosition = 0;
                                     } else {
@@ -383,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public int loadMoreMessages(){
-        int recipient_id = getCurrentReceiver(); //make a getter function
+        int recipient_id = getCurrentReceiver();
         int sender_id = getCurrentSender();
 
         LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
@@ -442,72 +455,43 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (message != null && !message.trim().isEmpty()){
-            //get sender id
             int sender_id = getCurrentSender();  //Hardcoded for now, make a get function...
-
-            //get recipient id
             int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
-
             int messageHeader = 16*sender_id + recipient_id; //16* = bit shift left 4
+
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
-
             insertSentMessageToView(message, false, d);
-            final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
-            if (scrollView != null) {
-                scrollView.post(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                    }
-                });
-            }
+            scrollDown();
 
             if (outputStream != null) {
-                try {
-                    outputStream.write(1);
-                    while (key == null && iv == null);
-                    try {
-
-                        byte[] cipher = AESEncryption.encrypt(message, key, iv);
-
-                        System.out.print("cipher:  ");
-                        AESEncryption.print_cipher(cipher, cipher.length);
-                        key = null;
-                        iv = null;
-
-
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                }catch (IOException e){
-                    e.printStackTrace();
-                }
-                //sendMessageBluetooth(message, messageHeader);
+                sendMessageBluetooth(message, messageHeader);
             }
         }
-
     }
 
     private void sendMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
-            int messageLength = message.length();
-            int messagePosition = 0;
-            System.out.println(messageLength);
+            outputStream.write(1); //This is a way to say "Give me key/iv!"
+            while (key == null && iv == null);
             outputStream.write(messageHeader);
-            while(messageLength > 255){
-                String string = message.substring(messagePosition, messagePosition+255);
-                messagePosition += 255;
-                messageLength -= 255;
-                outputStream.write(string.getBytes(FORMAT));
+            try {
+                ArrayList<String> stringChunks = new ArrayList<>();
+                for (int start = 0; start < message.length(); start += 16) {
+                    stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
+                }
+                for (int start = 0; start < stringChunks.size(); start++){
+                    String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                    byte [] cipher = AESEncryption.encrypt(paddedMessage, key, iv);
+                    outputStream.write(cipher);
+                }
+                outputStream.write(0);
+                key = null;
+                iv = null;
+            } catch(Exception e) {
+                e.printStackTrace();
             }
-            String s = message.substring(messagePosition, messagePosition+messageLength);
-            outputStream.write(s.getBytes(FORMAT));
-            System.out.println("Sent out " + s);
-            outputStream.flush();
-
-        } catch (IOException e) {
+        }catch (IOException e){
             e.printStackTrace();
         }
     }
