@@ -27,6 +27,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.Long;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -50,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String MESSAGE_DATE = "message_date";
     private static final String DATABASE_NAME = "messages";
     private static final String FORMAT = "US-ASCII";
+    private static final Long BLACK = 0xffffffff;
+    private static final Long BLUE = 0xff000000;
+    private static final Integer WIDTH = 300;
+    private static final Integer TEXT_SIZE = 50;
 
     Thread workerThread;
     byte[] readBuffer;
@@ -61,20 +66,21 @@ public class MainActivity extends AppCompatActivity {
         public boolean sent;
         public Date date;
 
-        public Message(String t, boolean s, String d){
-            System.out.println("Creating with " + t);
-            text = t;
-            sent = s;
+        public Message(String text, boolean sent){
+            System.out.println("Creating with " + text);
+            this.text = text;
+            this.sent = sent;
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 date = dateFormat.parse(d);
             }catch(ParseException e){
                 e.printStackTrace();
             }
-
         }
     }
 
+    // TODO: Store user's in database and retrieve user ID upon login
+    // Returns the android user's ID.
     public int getCurrentSender(){
         Bundle contactBundle = getIntent().getExtras();
         String s = contactBundle.getString("senderName");
@@ -90,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
         return 1;
     }
 
+    // TODO: Change according to above TODO
+    // Returns the name mapped by the android user ID
     public String getSenderName(int id){
         if (id == 1){
             return "Caleb";
@@ -103,10 +111,9 @@ public class MainActivity extends AppCompatActivity {
         return "???";
     }
 
+    // TODO Change according to above TODO
+    // Returns the message receiver's ID.
     public int getCurrentReceiver(){
-        //Oh gosh we **DEFINITELY** want to change this
-        //Once we get a proper database for the contacts
-        //Set up
         Bundle contactBundle = getIntent().getExtras();
         String s = contactBundle.getString("receiver");
         if (s.toLowerCase().contentEquals("caleb")){
@@ -118,15 +125,15 @@ public class MainActivity extends AppCompatActivity {
         else if (s.toLowerCase().contentEquals("cho")){
             return 3;
         }
-        return 1; //hardcoded for now, but we will get this to be better later
+        return 1;
     }
 
     public void showNotification(String message, String author){
 //        Snackbar snack = Snackbar.make(findViewById(R.id.message_holder), message, Snackbar.LENGTH_SHORT);
-//        View v = snack.getView();
+//        View view = snack.getView();
 //        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
 //        params.gravity = Gravity.TOP;
-//        v.setLayoutParams(params);
+//        view.setLayoutParams(params);
 //        snack.show();
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
@@ -140,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         mNotificationManager.notify(1, mBuilder.build());
     }
 
+    // Worker thread conts listens for bluetooth data.
     public void listenMessages(){
         final Handler handler = new Handler();
         final byte delimiter = 0; //This is the ASCII code for a \0
@@ -149,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             workerThread = new Thread(new Runnable() {
                 public void run() {
                     readBufferPosition = 0;
-                    readBuffer = new byte[1024]; //1024 bytes SHOULD be enough....
+                    readBuffer = new byte[4096]; //4096 bytes SHOULD be enough....
                     stopWorker = false;
                     System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
 
@@ -160,10 +168,10 @@ public class MainActivity extends AppCompatActivity {
                                 byte[] packetBytes = new byte[bytesAvailable];
                                 inputStream.read(packetBytes);
                                 for (int i = 0; i < bytesAvailable; i++) {
-                                    byte b = packetBytes[i];
+                                    byte bite = packetBytes[i];
 
-                                    System.out.println(b);
-                                    if (b == delimiter && readBufferPosition > 1) {
+                                    System.out.println(bite);
+                                    if (bite == delimiter && readBufferPosition > 1) {
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
                                         final String data = new String(encodedBytes, FORMAT);
@@ -176,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
                                         System.out.println("Receiver ID is: " + receiver_id);
                                         System.out.println("Sender ID is: " + sender_id);
-                                        final Date d = insertMessageToDatabase(sender_id, receiver_id, data);
+                                        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
                                         //Check receiver here
 
                                         readBufferPosition = 0;
@@ -186,29 +194,27 @@ public class MainActivity extends AppCompatActivity {
                                                 //insert check if it's the same user we're getting stuff from
 
                                                 if (sender_id == getCurrentReceiver()) {
-                                                    insertReceivedMessageToView(data, false, d);
+                                                    insertReceivedMessageToView(data, false, date);
                                                 } else {
                                                     //check if volume
-                                                    AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
-                                                    if (am.getStreamVolume(AudioManager.STREAM_RING) > 0) {
+                                                    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+                                                    if (audioManager.getStreamVolume(AudioManager.STREAM_RING) > 0) {
                                                         try {
                                                             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                                                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                                                            r.play();
+                                                            Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                                                            ringtone.play();
                                                         } catch (Exception e) {
                                                             e.printStackTrace();
                                                         }
                                                     }
                                                     //otherwise
                                                     else {
-                                                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                        v.vibrate(100);
-                                                        v.vibrate(100);
+                                                        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                        vibrator.vibrate(100);
+                                                        vibrator.vibrate(100);
                                                     }
                                                     String author = getSenderName(sender_id);
                                                     showNotification(data, author);
-
-
                                                 }
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
@@ -223,24 +229,24 @@ public class MainActivity extends AppCompatActivity {
 
                                             }
                                         });
-                                    } else if(b == 2 && readBufferPosition > 1) {
-                                        readBuffer[readBufferPosition++] = b;
+                                    } else if(bite == 2 && readBufferPosition > 1) {
+                                        readBuffer[readBufferPosition++] = bite;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                                         key = new String(encodedBytes, FORMAT);
                                         System.out.println("The current length is " + readBufferPosition);
                                         System.out.println("Key is : " + key);
                                         readBufferPosition = 0;
-                                    }else if(b == 3 && readBufferPosition > 1) {
-                                        readBuffer[readBufferPosition++] = b;
+                                    }else if(bite == 3 && readBufferPosition > 1) {
+                                        readBuffer[readBufferPosition++] = bite;
                                         byte[] encodedBytes = new byte[readBufferPosition - 1];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                        iv  = new String(encodedBytes, FORMAT);
+                                        iv = new String(encodedBytes, FORMAT);
                                         System.out.println("The current length is " + readBufferPosition);
                                         System.out.println("IV is: " + iv);
                                         readBufferPosition = 0;
                                     } else {
-                                        readBuffer[readBufferPosition++] = b;
+                                        readBuffer[readBufferPosition++] = bite;
                                     }
 
                                 }
@@ -276,21 +282,19 @@ public class MainActivity extends AppCompatActivity {
                     public void onTopReached() {
                         int x = loadMoreMessages();
                         if (x != 0){
-                            final View v = findViewById(x);
-                            if (v != null) {
+                            final View view2 = findViewById(x);
+                            if (view2 != null) {
                                 new Handler().post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        view.scrollTo(0, v.getTop());
+                                        view.scrollTo(0, view2.getTop());
                                         //This needs to be done **after** because
                                         //Otherwise, it doesn't know where the new top is
                                         //because of the change in height
                                     }
                                 });
                             }
-
                         }
-
                     }
                 }
             );
@@ -299,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-
         super.onStop();
         workerThread.interrupt();
     }
@@ -315,8 +318,8 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
         TextView chatName = new TextView(this);
-        chatName.setTextColor(0xff000000);
-        chatName.setTextSize(50);
+        chatName.setTextColor(BLUE);
+        chatName.setTextSize(TEXT_SIZE);
         chatName.setText(chatWith);
         chatName.setGravity(Gravity.CENTER_HORIZONTAL);
         parentLinearLayout.addView(chatName);
@@ -341,7 +344,6 @@ public class MainActivity extends AppCompatActivity {
             outputStream = ((MessagingApplication) getApplication()).getOutputStream();
             inputStream = ((MessagingApplication) getApplication()).getInputStream();
         }
-
     }
 
     public void loadHistory(){
@@ -357,41 +359,41 @@ public class MainActivity extends AppCompatActivity {
 
         //Limit of 15 is here because I don't want to load all the messages in the database
         //since that is potentially... Slow.
-        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
-        if (c.moveToFirst()) {
+        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
+        if (cursor.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
             do {
                 try {
-                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
+                    int r_id = cursor.getInt(cursor.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(cursor.getString(cursor.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, cursor.getString(cursor.getColumnIndex(MESSAGE_DATE))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            while (c.moveToNext());
+            while (cursor.moveToNext());
 
-            for (int y = pastMessages.size() - 1; y >= 0; y--) {
-                if (pastMessages.get(y).sent) {
-                    insertReceivedMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
+            for (int j = pastMessages.size() - 1; j >= 0; j--) {
+                if (pastMessages.get(j).sent) {
+                    insertReceivedMessageToView(pastMessages.get(j).text, false, pastMessages.get(j).date);
                 } else {
-                    insertSentMessageToView(pastMessages.get(y).text, false, pastMessages.get(y).date);
+                    insertSentMessageToView(pastMessages.get(j).text, false, pastMessages.get(j).date);
                 }
             }
         }
-        c.close();
+        cursor.close();
         listenMessages();
     }
 
     public int loadMoreMessages(){
-        int recipient_id = getCurrentReceiver(); //make a getter function
+        int recipient_id = getCurrentReceiver();
         int sender_id = getCurrentSender();
 
-        LinearLayout ll = (LinearLayout) findViewById(R.id.message_holder);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         int messagesShown = 0;
-        View v = null;
-        if (ll != null) {
-            messagesShown = ll.getChildCount();
-            v = ll.getChildAt(0);
+        View view = null;
+        if (linearLayout != null) {
+            messagesShown = linearLayout.getChildCount();
+            view = linearLayout.getChildAt(0);
         }
 
         int messagesToShowCount = messagesShown/2 + 15;
@@ -401,37 +403,37 @@ public class MainActivity extends AppCompatActivity {
         String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
 
         //Show 15 more!
-        Cursor c = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
-        if (c.moveToFirst()) {
+        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
+        if (cursor.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
             do {
                 try {
-                    int r_id = c.getInt(c.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(c.getString(c.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, c.getString(c.getColumnIndex(MESSAGE_DATE))));
+                    int r_id = cursor.getInt(cursor.getColumnIndexOrThrow(SENDER));
+                    pastMessages.add(new Message(cursor.getString(cursor.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, cursor.getString(cursor.getColumnIndex(MESSAGE_DATE))));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            while (c.moveToNext());
-            int difference = c.getCount() - messagesShown/2;
-            for (int y = pastMessages.size()  - difference; y <= pastMessages.size() -1; y++) {
+            while (cursor.moveToNext());
+            int difference = cursor.getCount() - messagesShown/2;
 
-                if (pastMessages.get(y).sent) {
-                   insertReceivedMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
+            for (int j = pastMessages.size() - difference; j <= pastMessages.size()-1; j++) {
+                if (pastMessages.get(j).sent) {
+                   insertReceivedMessageToView(pastMessages.get(j).text, true, pastMessages.get(j).date);
                 } else {
-                    insertSentMessageToView(pastMessages.get(y).text, true, pastMessages.get(y).date);
+                    insertSentMessageToView(pastMessages.get(j).text, true, pastMessages.get(j).date);
                 }
-
             }
         }
-        if (c.getCount() != messagesShown) {
-            c.close();
-            return v.getId();
+        if (cursor.getCount() != messagesShown) {
+            cursor.close();
+            return view.getId();
         }
-        c.close();
+        cursor.close();
         return 0;
     }
 
+    // Sends an encrypted message and header to the bluetooth
     public void sendMessage(View view) {
         // Do something in response to button
         EditText editText = (EditText) findViewById(R.id.edit_message);
@@ -442,16 +444,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (message != null && !message.trim().isEmpty()){
-            //get sender id
-            int sender_id = getCurrentSender();  //Hardcoded for now, make a get function...
+            int sender_id = getCurrentSender();
+            int recipient_id = getCurrentReceiver();
+            int messageHeader = 16*sender_id + recipient_id; //16*. = bit shift left 4
 
-            //get recipient id
-            int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
+            Date date = insertMessageToDatabase(sender_id, recipient_id, message);
 
-            int messageHeader = 16*sender_id + recipient_id; //16* = bit shift left 4
-            Date d = insertMessageToDatabase(sender_id, recipient_id, message);
-
-            insertSentMessageToView(message, false, d);
+            insertSentMessageToView(message, false, date);
             final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
             if (scrollView != null) {
                 scrollView.post(new Runnable() {
@@ -466,17 +465,16 @@ public class MainActivity extends AppCompatActivity {
             if (outputStream != null) {
                 try {
                     outputStream.write(1);
+                    // Poll GPS and TS data to be used for encryption.
                     while (key == null && iv == null);
                     try {
-
                         byte[] cipher = AESEncryption.encrypt(message, key, iv);
 
                         System.out.print("cipher:  ");
                         AESEncryption.print_cipher(cipher, cipher.length);
+
                         key = null;
                         iv = null;
-
-
                     } catch(Exception e) {
                         e.printStackTrace();
                     }
@@ -489,6 +487,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Helper fcn for sending message bytes to bluetooth.
     private void sendMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
@@ -512,6 +511,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Display received message, store it in the DB, and get a notification.
     public void receiveMessage(View view){
         String message = getMessage();
         if (message != null) {
@@ -520,9 +520,9 @@ public class MainActivity extends AppCompatActivity {
             String author = getSenderName(getCurrentReceiver());
             showNotification(message, author);
         }
-
     }
 
+    // Store message and sender/receiver ID's, and returns the current date to the DB.
     public Date insertMessageToDatabase(int sender_id, int recipient_id, String message) {
         ContentValues values = new ContentValues();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -542,11 +542,13 @@ public class MainActivity extends AppCompatActivity {
         return date;
     }
 
+    // Returns the given date as a string.
     public String getStringDate(Date date){
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy h:mm a");
         return dateFormat.format(date);
     }
 
+    // Display sent message and returns the id of the text view.
     public int insertSentMessageToView(String message, boolean top, Date date){
         LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = getSendMessageTextView();
@@ -557,11 +559,10 @@ public class MainActivity extends AppCompatActivity {
         linearLayout.addView(textView);
         linearLayout.setId(View.generateViewId());
 
-
         TextView dateView = new TextView(getApplicationContext());
         dateView.setId(View.generateViewId());
         dateView.setText(getStringDate(date));
-        dateView.setMaxWidth(300);
+        dateView.setMaxWidth(WIDTH);
 
         LinearLayout linearLayout2 = new LinearLayout(this);
         linearLayout2.setGravity(Gravity.RIGHT);
@@ -581,13 +582,14 @@ public class MainActivity extends AppCompatActivity {
         return linearLayout.getId();
     }
 
+    // Display received message and returns the id of the text view.
     public int insertReceivedMessageToView(String message, boolean top, Date date){
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.message_holder);
         TextView textView = new TextView(getApplicationContext());
         textView.setId(View.generateViewId());
         textView.setText(message);
-        textView.setTextColor(0xff000000);
-        textView.setMaxWidth(300);
+        textView.setTextColor(BLUE);
+        textView.setMaxWidth(WIDTH);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         textView.setLayoutParams(params);
         textView.setBackgroundResource(R.drawable.bubble_grey);
@@ -595,7 +597,7 @@ public class MainActivity extends AppCompatActivity {
         TextView dateView = new TextView(getApplicationContext());
         dateView.setId(View.generateViewId());
         dateView.setText(getStringDate(date));
-        dateView.setMaxWidth(300);
+        dateView.setMaxWidth(WIDTH);
 
         if (linearLayout != null) {
             if (top){
@@ -605,38 +607,39 @@ public class MainActivity extends AppCompatActivity {
             else {
                 linearLayout.addView(textView);
                 linearLayout.addView(dateView);
-
             }
         }
         return textView.getId();
     }
 
+    // Returns the send text view with black text
     public TextView getSendMessageTextView(){
         TextView textView = new TextView(this);
-        textView.setTextColor(0xffffffff);
+        textView.setTextColor(BLACK);
         textView.setBackgroundResource(R.drawable.bubble_blue);
-        textView.setMaxWidth(300);
+        textView.setMaxWidth(WIDTH);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
         textView.setLayoutParams(params);
         textView.setGravity(Gravity.LEFT);
         return textView;
     }
-    //This is a testing function! I use it to return
-    //a randomly generated String
+
+    // TODO: Want to get encrypted message and header from bluetooth in input stream and decrypt it.
+    // This is a testing function! I use it to return a randomly generated String
     public String getMessage(){
         return getRandomString();
     }
 
-    //More testing functions!
+    // Testing function to generate random string of length 20
     public String getRandomString(){
         char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-        StringBuilder sb = new StringBuilder();
+        StringBuilder stringbuilder = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < 20; i++) {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
+            char character = chars[random.nextInt(chars.length)];
+            stringbuilder.append(character);
         }
-        return sb.toString();
+        return stringbuilder.toString();
     }
 
 
