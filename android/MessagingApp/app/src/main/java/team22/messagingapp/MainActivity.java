@@ -2,27 +2,22 @@ package team22.messagingapp;
 
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.ParcelUuid;
 import android.os.Vibrator;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -38,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase messages;
@@ -92,6 +86,19 @@ public class MainActivity extends AppCompatActivity {
         return 1;
     }
 
+    public String getSenderName(int id){
+        if (id == 1){
+            return "Caleb";
+        }
+        else if (id == 2){
+            return "Charles";
+        }
+        else if (id == 3){
+            return "Cho";
+        }
+        return "???";
+    }
+
     public int getCurrentReceiver(){
         //Oh gosh we **DEFINITELY** want to change this
         //Once we get a proper database for the contacts
@@ -110,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         return 1; //hardcoded for now, but we will get this to be better later
     }
 
-    public void showNotification(String message){
+    public void showNotification(String message, String author){
 //        Snackbar snack = Snackbar.make(findViewById(R.id.message_holder), message, Snackbar.LENGTH_SHORT);
 //        View v = snack.getView();
 //        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
@@ -120,13 +127,12 @@ public class MainActivity extends AppCompatActivity {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.icon3)
-                        .setContentTitle("My notification")
+                        .setContentTitle(author)
                         .setContentText(message);
 
         mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-// mId allows you to update the notification later on.
         mNotificationManager.notify(1, mBuilder.build());
     }
 
@@ -139,29 +145,28 @@ public class MainActivity extends AppCompatActivity {
             workerThread = new Thread(new Runnable() {
                 public void run() {
                     readBufferPosition = 0;
-                    readBuffer = new byte[1024];
+                    readBuffer = new byte[1024]; //1024 bytes SHOULD be enough....
                     stopWorker = false;
                     System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
 
                     while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                         try {
                             int bytesAvailable = inputStream.available();
-                            if (bytesAvailable > 2) {
+                            if (bytesAvailable > 1) {
                                 byte[] packetBytes = new byte[bytesAvailable];
                                 inputStream.read(packetBytes);
                                 for (int i = 0; i < bytesAvailable; i++) {
                                     byte b = packetBytes[i];
 
                                     System.out.println(b);
-                                    if (b == delimiter && readBufferPosition > 2) {
-                                        byte[] encodedBytes = new byte[readBufferPosition - 2];
-                                        System.arraycopy(readBuffer, 2, encodedBytes, 0, encodedBytes.length);
+                                    if (b == delimiter && readBufferPosition > 1) {
+                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
                                         final String data = new String(encodedBytes, "US-ASCII");
                                         System.out.println(data);
 
                                         System.out.println("S/R is " + readBuffer[0]);
 
-                                        //We're... Going to need a system to store the multi messages into one.
                                         final int receiver_id = 0b00001111 & readBuffer[0];
                                         final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
 
@@ -196,13 +201,11 @@ public class MainActivity extends AppCompatActivity {
                                                         v.vibrate(100);
                                                         v.vibrate(100);
                                                     }
-                                                    showNotification(data);
+                                                    String author = getSenderName(sender_id);
+                                                    showNotification(data, author);
 
 
                                                 }
-                                                //otherwise do this
-
-
                                                 final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
                                                 if (scrollView != null) {
                                                     scrollView.post(new Runnable() {
@@ -216,6 +219,22 @@ public class MainActivity extends AppCompatActivity {
 
                                             }
                                         });
+                                    } else if(b == 2 && readBufferPosition > 1) {
+                                        readBuffer[readBufferPosition++] = b;
+                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        System.out.println("The current length is " + readBufferPosition);
+                                        System.out.println("Key is : " + data);
+                                        readBufferPosition = 0;
+                                    }else if(b == 3 && readBufferPosition > 1) {
+                                        readBuffer[readBufferPosition++] = b;
+                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                        final String data = new String(encodedBytes, "US-ASCII");
+                                        System.out.println("The current length is " + readBufferPosition);
+                                        System.out.println("IV is: " + data);
+                                        readBufferPosition = 0;
                                     } else {
                                         readBuffer[readBufferPosition++] = b;
                                     }
@@ -252,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onTopReached() {
                         int x = loadMoreMessages();
-
                         if (x != 0){
                             final View v = findViewById(x);
                             if (v != null) {
@@ -273,16 +291,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             );
         }
-
-
-        /*try{
-            chooseBluetooth();
-
-        }catch(IOException e){
-            e.printStackTrace();
-        }*/
-
-
     }
 
     @Override
@@ -290,25 +298,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onStop();
         workerThread.interrupt();
-        //workerThread.stop();
-        /*try {
-            stopWorker = true;
-            socket.close();
-        }catch (IOException e){
-            e.printStackTrace();
-        }*/
     }
 
-
-    @Override
-    protected void onDestroy(){
-        super.onDestroy();
-//        try{
-//            socket.close();
-//        }catch (IOException e){
-//            e.printStackTrace();
-//        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -347,8 +338,6 @@ public class MainActivity extends AppCompatActivity {
             inputStream = ((MessagingApplication) getApplication()).getInputStream();
         }
 
-        //Code for Bluetooth... Bluetooth won't work on emulator, so comment it out if on emu
-
     }
 
     public void loadHistory(){
@@ -386,7 +375,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         c.close();
-
         listenMessages();
     }
 
@@ -472,7 +460,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (outputStream != null) {
-                sendMessageBluetooth(message, messageHeader);
+                try {
+                    outputStream.write(1);
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+                //sendMessageBluetooth(message, messageHeader);
             }
         }
 
@@ -484,18 +477,15 @@ public class MainActivity extends AppCompatActivity {
             int messageLength = message.length();
             int messagePosition = 0;
             System.out.println(messageLength);
-
+            outputStream.write(messageHeader);
             while(messageLength > 255){
                 //sender = 0000 receiver = 0000
-                outputStream.write(messageHeader);
-                outputStream.write(0);
+
                 String s = message.substring(messagePosition, messagePosition+255);
                 messagePosition += 255;
                 messageLength -= 255;
                 outputStream.write(s.getBytes("US-ASCII"));
             }
-            outputStream.write(messageHeader);
-            outputStream.write(messageLength);
             String s = message.substring(messagePosition, messagePosition+messageLength);
             outputStream.write(s.getBytes("US-ASCII"));
             System.out.println("Sent out " + s);
