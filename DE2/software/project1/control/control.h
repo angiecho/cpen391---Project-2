@@ -14,6 +14,4 @@ int get_node(graph* graph);
 char* get_node_info(graph* graph);
 int get_valid_vertex(graph* graph, Point p);
 
-void load_from_sd();
-
 #endif /* CONTROL_H_ */

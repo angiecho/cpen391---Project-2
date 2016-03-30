@@ -1,14 +1,12 @@
 #include <stdio.h>
-#include "menu.h"
-#include "graphics.h"
-#include "touchscreen.h"
 #include "control.h"
-#include "load_node.h"
-#include "search.h"
-#include "gps.h"
+#include "aes.h"
 
 int main(void) {
 	init_control();
-	s_listen();
+	while (1){
+		rcv_message();
+		send_message();	//not implemented
+	}
 	return 0;
 }

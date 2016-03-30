@@ -14,6 +14,7 @@ void get_key(char* key){
 	for (int i = 0; i < strlen(key); i++){
 		putCharBluetooth(key[i]);
 	}
+	putCharBluetooth(2);
 	printf ("got key: %s\n", key);
 }
 
@@ -22,8 +23,8 @@ void get_key(char* key){
  */
 void gen_iv(void){
 
-	char iv[17];
-	iv[16] = '\0';
+	char iv[18];
+	iv[17] = '\0';
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
@@ -33,6 +34,7 @@ void gen_iv(void){
 		printf("%c, ", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
+	putCharBluetooth(3);
 	printf ("got iv: %s", iv);
 
 }
@@ -50,4 +52,16 @@ int getASCII(long long c){
 	return ascii;
 }
 
+//send key and receive message+header from sender
+void rcv_message(void){
+	bool keyreq = false;
+	while (!keyreq){
+		keyreq = getCommand();
+	}
+	s_listen();
+}
 
+//send key and send message+header to receiver
+void send_message(void){
+
+}

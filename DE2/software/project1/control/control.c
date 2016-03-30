@@ -19,7 +19,7 @@ extern bool road_only;
 extern int end_node;
 extern path_points* points;
 
-// Initialise and load up graphics on touchscreen
+// Initialise components and popup the keyboard
 void init_control(){
 	init_globals();
 	Init_GPS();
@@ -176,20 +176,11 @@ void kb_listen(){
 
 		// We are done with the keyboard upon valid search input
 		else if(butt->id == ENTER_BUTT.id){
-			if(butt->ent_p(*butt)){
-				POP_BUTT.prs_p(POP_BUTT);
-			}
+			if(butt->ent_p(*butt)){}
 		}
 
 		else if(butt->id == DEL_BUTT.id){
 			butt->p();
 		}
 	}
-}
-
-void load_from_sd(){
-	load_zoom_in_image("zoomin.bmp");
-	load_zoom_out_image("zoomout.bmp");
-	draw_full_image();
-	load_graph("nodes.txt");
 }

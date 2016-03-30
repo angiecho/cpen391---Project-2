@@ -148,17 +148,18 @@ void test_read_gps(void){
 	}
 }
 void read_gps(long* lat, long* lon) {
-/*
+
 	gps_data* data = get_gps_data();
 	double templat, templon;
 	//convert the latitude and longitude data to completely be in degrees
 	minutes_to_degrees (data->lati, data->longi, &templat, &templon);
 	*lat = (int) (templat * GPS_TO_GRAPH_MULTIPLIER);
 	*lon = (int) (templon * GPS_TO_GRAPH_MULTIPLIER);
-*/
+
+	/*	//Use for fake data
 	*lat = 49261801;
 	*lon = 1232499655;
-
+	*/
 }
 
 void get_current_coordinates(int* longitude, int* latitude){

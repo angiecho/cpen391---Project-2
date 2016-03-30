@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef BLUETOOTH_H_
 #define BLUETOOTH_H_
 
@@ -41,5 +43,7 @@ void changeName(char name[]);
 void changePassword(char pw[]);
 void assignBluetooth(char* name, char* pw);
 void sendTestData(char* word);
+
+bool getCommand(void);
 
 #endif /* BLUETOOTH_H_ */
