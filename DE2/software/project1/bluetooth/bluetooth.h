@@ -17,13 +17,10 @@
 ***
 **  Initialise bluetooth
 *****************************************************************************/
-void putCharBluetooth(char c);
-char getCharBluetooth();
+void putCharBluetooth(char c, char id);
+char getCharBluetooth(char id);
 void Init_Bluetooth(void);
 void WaitForReadStat();
-
-void putCharBluetooth2(char c);
-char getCharBluetooth2();
 
 /*****************************************************************************
 **   Switch modes

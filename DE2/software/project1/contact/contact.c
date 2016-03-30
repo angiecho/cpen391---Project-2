@@ -11,21 +11,21 @@ contact init_contact(char* name, char* pw, int id){
     c.id = id;
     return c;
 }
-
-void init_contacts(){
-	contacts = malloc(sizeof(contact)*N_CONTACTS);
-
-	for(int i = 0; i < N_CONTACTS; i++){
-		contacts[i] = init_contact(contact_names[i], passwords[i], i+1);
-	}
-}
-
-void assign_contacts(){
-   for(int i = 0; i < N_CONTACTS; i++){
-   		assignBluetooth(contact_names[i], passwords[i]);
-   }
-}
-
-destroy_contacts(){
-    free(contacts);
-}
+//
+//void init_contacts(){
+//	contacts = malloc(sizeof(contact)*N_CONTACTS);
+//
+//	for(int i = 0; i < N_CONTACTS; i++){
+//		contacts[i] = init_contact(contact_names[i], passwords[i], i+1);
+//	}
+//}
+//
+//void assign_contacts(){
+//   for(int i = 0; i < N_CONTACTS; i++){
+//   		assignBluetooth(contact_names[i], passwords[i]);
+//   }
+//}
+//
+//destroy_contacts(){
+//    free(contacts);
+//}
