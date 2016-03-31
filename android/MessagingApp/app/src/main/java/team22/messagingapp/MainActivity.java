@@ -472,7 +472,7 @@ public class MainActivity extends AppCompatActivity {
     private void sendMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
-            outputStream.write(1); //This is a way to say "Give me key/iv!"
+            outputStream.write(5); //This is a way to say "Give me key/iv!"
             while (key == null && iv == null);
             outputStream.write(messageHeader);
             try {
