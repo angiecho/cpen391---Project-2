@@ -78,6 +78,7 @@ void flicker(Button b);
 bool road_only;
 int end_node;
 path_points* points;
+bool key_sent;
 
 //helper function
 int get_start_node();

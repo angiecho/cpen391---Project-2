@@ -294,10 +294,12 @@ void do_enter(){
 	if (key_len != 16){
 		printf("Please enter a 16 character key.\n");
 		printf("You entered: %d", key_len);
+		key_sent = false;
 	}
 	else {
 		get_key(query_string);
 		gen_iv();
+		key_sent = true;
 	}
 }
 

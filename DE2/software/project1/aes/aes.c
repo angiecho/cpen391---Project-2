@@ -15,7 +15,7 @@ void get_key(char* key){
 	for (int i = 0; i < strlen(key); i++){
 		putCharBluetooth(key[i]);
 	}
-	putCharBluetooth(2);
+	putCharBluetooth(STX);
 	printf ("got key: %s\n", key);
 }
 
@@ -35,8 +35,8 @@ void gen_iv(void){
 		printf("%c, ", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
-	putCharBluetooth(3);
-	printf ("got iv: %s", iv);
+	putCharBluetooth(ETX);
+	printf ("got iv: %s\n", iv);
 
 }
 
@@ -51,19 +51,4 @@ int getASCII(long long c){
 		i++;
 	}
 	return ascii;
-}
-
-//send key and receive message+header from sender
-void rcv_message(void){
-	bool keyreq = false;
-	while (!keyreq){
-		keyreq = getCommand();
-	}
-	draw_information_box("Requesting Key!");
-	do_pop();
-}
-
-//send key and send message+header to receiver
-void send_message(void){
-
 }

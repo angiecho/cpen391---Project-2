@@ -44,6 +44,4 @@ void changePassword(char pw[]);
 void assignBluetooth(char* name, char* pw);
 void sendTestData(char* word);
 
-bool getCommand(void);
-
 #endif /* BLUETOOTH_H_ */
