@@ -3,7 +3,7 @@
 
 #include "graph.h"
 #include "misc_helpers.h"
-
+#include <stdbool.h>
 
 void init_globals();
 void init_control();
