@@ -6,9 +6,7 @@
 #include "touchscreen.h"
 #include <assert.h>
 
-volatile char sender, receiver;
-
-void get_sender_receiver(void){
+void get_sender_receiver(char* sender, char* receiver){
 	char sender_receiver;
 	if (Bluetooth_Status & 0x1) {
 		sender_receiver = getCharBluetooth(1);
@@ -18,14 +16,14 @@ void get_sender_receiver(void){
 		assert(0);
 	}
 
-	receiver = sender_receiver & 0x0f;
-	sender = (sender_receiver>>4) & 0x0f;
+	*receiver = sender_receiver & 0x0f;
+	*sender = (sender_receiver>>4) & 0x0f;
 }
 
 void interruptHandler(void){
 	alt_irq_disable(TO_EXTERNAL_BUS_BRIDGE_0_IRQ);
-
-	get_sender_receiver();
+	char sender, receiver;
+	get_sender_receiver(&sender, &receiver);
 	unsigned length = (unsigned)getCharBluetooth(sender);
 	assert(length != 0);
 	volatile char* msg = malloc(length+1);
@@ -34,7 +32,8 @@ void interruptHandler(void){
 		msg[i] = getCharBluetooth(sender);
 	}
 	msg[length] = '\0';
-	echoMessage(length, receiver, sender, msg);
+
+	sendMessage(length, sender, receiver, msg);
 
 	alt_irq_enable(TO_EXTERNAL_BUS_BRIDGE_0_IRQ);
 }

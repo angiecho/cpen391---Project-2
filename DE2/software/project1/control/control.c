@@ -27,8 +27,8 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 }
 
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
-	printf("message from: %d \n", receiver);
-	printf("message to: %d \n", sender);
+	printf("message from: %d \n", sender);
+	printf("message to: %d \n", receiver);
 	printf("message length: %d \n", length);
 	printf("message: %s \n", msg);
 	//TODO determine who to send to
@@ -41,27 +41,6 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 		putCharBluetooth(msg[i], receiver);
 	}
 	putCharBluetooth(0, receiver);
-
-	free(msg);
-
-	return true;
-}
-
-bool echoMessage(unsigned length, char receiver, char sender, char* msg){
-	printf("message from: %d \n", receiver);
-	printf("message to: %d \n", sender);
-	printf("message length: %d \n", length);
-	printf("message: %s \n", msg);
-	//TODO determine who to send to
-
-	char sender_receiver = (receiver << 4) | sender;
-	putCharBluetooth(sender_receiver, sender);
-	putCharBluetooth((char)length, sender);
-
-	for (int i = 0; i<length; i++){
-		putCharBluetooth(msg[i], sender);
-	}
-	putCharBluetooth(0, sender);
 
 	free(msg);
 

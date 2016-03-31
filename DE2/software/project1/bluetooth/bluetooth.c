@@ -21,10 +21,10 @@ void putChar2(char c){
 }
 
 void putCharBluetooth(char c, char id){
-	if (id == 1) {
-		return putChar1(c);
-	} else if (id == 2) {
-		return putChar2(c);
+	if (id == 2) {
+		putChar1(c);
+	} else if (id == 1) {
+		putChar2(c);
 	} else {
 		assert(0);
 	}
