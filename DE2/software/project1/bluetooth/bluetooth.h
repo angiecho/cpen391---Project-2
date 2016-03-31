@@ -1,6 +1,8 @@
 #ifndef BLUETOOTH_H_
 #define BLUETOOTH_H_
 
+#include <stdbool.h>
+
 #define Bluetooth_Status 		(*(volatile unsigned char *)(0x84000220))
 #define Bluetooth_Control 		(*(volatile unsigned char *)(0x84000220))
 #define Bluetooth_TxData 		(*(volatile unsigned char *)(0x84000222))
@@ -41,5 +43,7 @@ void changeName(char name[]);
 void changePassword(char pw[]);
 void assignBluetooth(char* name, char* pw);
 void sendTestData(char* word);
+
+bool getCommand(void);
 
 #endif /* BLUETOOTH_H_ */
