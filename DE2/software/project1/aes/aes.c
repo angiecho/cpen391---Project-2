@@ -11,8 +11,8 @@
 /* get_key will receive a 16 byte key from user
  * input on the touchscreen.
  */
-void get_key(char* key){
-	for (int i = 0; i < strlen(key); i++){
+void get_key(){
+	for (int i = 0; i < 16; i++){
 		putCharBluetooth(key[i]);
 	}
 	putCharBluetooth(STX);
@@ -23,9 +23,8 @@ void get_key(char* key){
  * GPS coordinates for longitude and latitude.
  */
 void gen_iv(void){
-
-	char iv[18];
-	iv[17] = '\0';
+	char iv[17];
+	iv[16] = '\0';
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
@@ -36,7 +35,9 @@ void gen_iv(void){
 		putCharBluetooth(iv[i]);
 	}
 	putCharBluetooth(ETX);
-	printf ("got iv: %s\n", iv);
+	IV = malloc (sizeof(char) * strlen(iv)+1);
+	strcpy(IV,iv);
+	printf ("got iv: %s\n", IV);
 
 }
 

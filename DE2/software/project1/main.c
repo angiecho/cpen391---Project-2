@@ -23,20 +23,24 @@ char bt = 0;
 void get_sender_receiver(char ids){
 	receiver = ids & 0x0f;
 	sender = (ids>>4) & 0x0f;
+	printf("Receiver is: %c", receiver);
+	printf("Sender is: %c", sender);
+
 }
 
 void interruptHandler(void){
 	switch(stage){
 
 	case start:
+		printf("*start*\n");
 		bt = getCharBluetooth();
 		printf("%c\n", bt);
 		if (bt == ENQ){
 			printf ("got ENQ\n");
 			//do_pop();
-			get_key("hjdkslfkelfjdkiu");
+			key = "abcdefghijklmnop";
+			get_key();
 			gen_iv();
-
 			stage = get_header;
 		}
 		break;
@@ -46,31 +50,30 @@ void interruptHandler(void){
 		printf("%c\n", bt);
 		if (bt == STX){
 			printf("got STX\n");
+			msg_index = 0;
+			msg = malloc(MAX_LENGTH+1);
 			stage = rx_message;
-			break;
 		}
-		get_sender_receiver(bt);
+		else
+			get_sender_receiver(bt);
 		break;
 
 	case rx_message:
 		bt = getCharBluetooth();
-		printf("%c\n", bt);
+		printf("%c", bt);
 		if (bt==ETX){
-			printf("got ETX\n");
+			printf("\n");
 			msg[msg_index] = '\0';
 			stage = tx_message;
-			break;
 		}
-		msg = malloc(MAX_LENGTH);
-		msg_index = 0;
-		msg[msg_index] = bt;
-		msg_index++;
+		else {
+			msg[msg_index] = bt;
+			msg_index++;
+		}
 		break;
 
 	case tx_message:
-		printf("Sending Message\n");
 		sendMessage(msg_index+1, receiver, sender, msg);
-		printf("Sent Message\n");
 		stage = start;
 		break;
 	}
@@ -86,10 +89,10 @@ int main(void) {
 	while(1){
 		interruptHandler();
 	}
-	//alt_irq_register(TO_EXTERNAL_BUS_BRIDGE_0_IRQ, NULL, (void *)interruptHandler);
-	//printf ("interrupt enabled\n");
-
-	while(1);
+//	alt_irq_register(TO_EXTERNAL_BUS_BRIDGE_0_IRQ, NULL, (void *)interruptHandler);
+//	printf ("interrupt enabled\n");
+//
+//	while(1);
 
 	printf("\nDONE\n");
 	return 0;

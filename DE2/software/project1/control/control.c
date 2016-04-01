@@ -11,6 +11,7 @@
 #include "misc_helpers.h"
 #include "button.h"
 #include "bluetooth.h"
+#include "aes.h"
 
 const static Point NULL_CORNER = {-1,-1};
 extern Point curr_image_pos, prev_zoomed_in_min_corner, prev_zoomed_in_max_corner, prev_zoomed_out_min_corner, prev_zoomed_out_max_corner;
@@ -238,16 +239,30 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	printf("message to: %d \n", sender);
 	printf("message length: %d \n", length);
 	printf("message: %s \n", msg);
+	printf("key is: %s\n", key);
+	printf("IV is: %s\n", IV);
 	//TODO determine who to send to
+
+	for (int i = 0; i<strlen(key); i++){
+		putCharBluetooth(key[i]);
+	}
+	putCharBluetooth(STX);
+
+	for (int i = 0; i<strlen(IV); i++){
+		putCharBluetooth(IV[i]);
+	}
+	putCharBluetooth(ETX);
 
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
 	putCharBluetooth((char)length);
 
 	for (int i = 0; i<length; i++){
+		printf("%c", msg[i]);
 		putCharBluetooth(msg[i]);
 	}
-	putCharBluetooth(EOT);
+	printf("\n");
+	putCharBluetooth('/0');
 
 	free(msg);
 
@@ -256,18 +271,27 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 
 bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
 	//TODO determine who to send to
+
+	for (int i = 0; i<strlen(key); i++){
+		putCharBluetooth2(key[i]);
+	}
+	putCharBluetooth2(STX);
+
+	for (int i = 0; i<strlen(IV); i++){
+		putCharBluetooth2(IV[i]);
+	}
+	putCharBluetooth2(ETX);
+
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth2(sender_receiver);
 	putCharBluetooth2((char)length);
 
-	printf("Attempting to send %s \n", msg);
-
 	for (int i = 0; i<length; i++){
 		putCharBluetooth2(msg[i]);
 	}
-	putCharBluetooth2(0);
+	putCharBluetooth2('/0');
 
-	//free(msg);
+	free(msg);
 
 	return true;
 }
