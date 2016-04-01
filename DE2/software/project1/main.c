@@ -33,6 +33,7 @@ void interruptHandler(void){
 	}
 	msg[length] = '\0';
 
+	//TODO switch these
 	sendMessage(length, sender, receiver, msg);
 
 	alt_irq_enable(TO_EXTERNAL_BUS_BRIDGE_0_IRQ);
