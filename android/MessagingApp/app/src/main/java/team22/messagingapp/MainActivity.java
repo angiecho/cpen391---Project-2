@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
     private InputStream inputStream;
     private BluetoothSocket socket;
 
-    private String key;
-    private String iv;
+    private static volatile String key;
+    private static volatile String iv;
 
     private static final String SENDER = "sender";
     private static final String RECIPIENT = "recipient";
@@ -51,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String MESSAGE_DATE = "message_date";
     private static final String DATABASE_NAME = "messages";
     private static final String FORMAT = "US-ASCII";
-    private static final Long BLACK = 0xffffffff;
-    private static final Long BLUE = 0xff000000;
+    private static final int BLACK = 0xffffffff;
+    private static final int BLUE = 0xff000000;
     private static final Integer WIDTH = 300;
     private static final Integer TEXT_SIZE = 50;
 
@@ -195,12 +195,17 @@ public class MainActivity extends AppCompatActivity {
                                 for (int i = 0; i < bytesAvailable; i++) {
 
                                     byte bite = packetBytes[i];
-                                    System.out.println(bite);
+                                    System.out.print(bite + " ");
                                     if (bite == delimiter && readBufferPosition > 1) {
-                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        byte[] encodedBytes = new byte[readBufferPosition];
                                         System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
 
+                                        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
+
+                                        System.out.println("We have " + encodedBytes.length + " bytes!");
+
                                         int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
+                                        System.out.println("We have " + chunkNumber + " chunks!");
                                         byte[][] byteChunks = new byte[chunkNumber][16];
                                         int start = 0;
                                         for(int j = 0; j < chunkNumber; j++) {
@@ -212,14 +217,23 @@ public class MainActivity extends AppCompatActivity {
                                             start += 16;
                                         }
                                         String[] decodedByteChunks = new String[chunkNumber];
+                                        System.out.println("Key: " + key);
+                                        System.out.println("IV: " + iv);
+
                                         for (int j = 0; j < byteChunks.length; j++){
                                             try {
                                                 decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
+                                                System.out.println("Decoded byte: " + decodedByteChunks[j]);
                                             }catch(Exception e){
                                                 e.printStackTrace();
                                             }
                                         }
-                                        final String data = decodedByteChunks.toString();
+
+                                        StringBuilder builder = new StringBuilder();
+                                        for(String s : decodedByteChunks) {
+                                            builder.append(s);
+                                        }
+                                        final String data = builder.toString();
                                         System.out.println(data);
                                         System.out.println("S/R is " + readBuffer[0]);
 
@@ -249,20 +263,28 @@ public class MainActivity extends AppCompatActivity {
                                         });
 
                                     } else if(bite == keyDelimiter && readBufferPosition > 1) {
-                                        readBuffer[readBufferPosition++] = bite;
-                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        //readBuffer[readBufferPosition++] = bite;
+                                        byte[] encodedBytes = new byte[readBufferPosition];
+                                        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
                                         key = new String(encodedBytes, FORMAT);
+                                        for (int j = 0; j < encodedBytes.length; j++){
+                                            System.out.println(encodedBytes[j]);
+                                        }
                                         System.out.println("Key is : " + key);
                                         readBufferPosition = 0;
 
                                     }else if(bite == ivDelimiter && readBufferPosition > 1) {
-                                        readBuffer[readBufferPosition++] = bite;
-                                        byte[] encodedBytes = new byte[readBufferPosition - 1];
+                                        //readBuffer[readBufferPosition++] = bite;
+                                        byte[] encodedBytes = new byte[readBufferPosition];
                                         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                                         iv  = new String(encodedBytes, FORMAT);
+                                        System.out.println("");
                                         System.out.println("IV is: " + iv);
                                         readBufferPosition = 0;
+                                    } else if (bite == delimiter){
+                                        System.out.println("WHEEE");
                                     } else {
                                         readBuffer[readBufferPosition++] = bite;
                                     }
@@ -481,21 +503,35 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Attempting to send message!");
         try {
             outputStream.write(5); //This is a way to say "Give me key/iv!"
-            while (key == null && iv == null);
+
+            System.out.println("Waiting for TS and GPS");
+            while (key == null || iv == null);
+            System.out.println("Key:" + key);
+            System.out.println("IV:" + iv);
+            outputStream.write(2);
             outputStream.write(messageHeader);
             try {
                 ArrayList<String> stringChunks = new ArrayList<>();
+                System.out.println("Beginning encryption...");
                 for (int start = 0; start < message.length(); start += 16) {
                     stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
                 }
+                System.out.println("Continuing encryption...");
+                System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
                 for (int start = 0; start < stringChunks.size(); start++){
                     String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                    System.out.println("padded message: " + paddedMessage);
                     byte [] cipher = AESEncryption.encrypt(paddedMessage, key, iv);
+                    AESEncryption.print_cipher(cipher, cipher.length);
                     outputStream.write(cipher);
                 }
+                System.out.println("Finished sending encrypted!");
+
                 outputStream.write(0);
                 key = null;
                 iv = null;
+                outputStream.write(3);
+
             } catch(Exception e) {
                 e.printStackTrace();
             }

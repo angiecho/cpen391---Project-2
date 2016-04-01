@@ -5,18 +5,25 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 
 class AESEncryption {
-    static String text = "TESTINGWITH16BTS"; // 16 byte blocks
+    static String text = "TESTINGWITH16BTS"; // 16 byte block
     static String key; // 16 bytes
     static String iv; // 16 bytes
     public static final String FORMAT = "US-ASCII";
 
+    // requires 16 bytes key and iv
     public static byte[] encrypt(String text, String key, String iv) throws Exception {
+        System.out.println("Key:" + key + ", IV:" + iv);
         SecretKeySpec keyspec = new SecretKeySpec(key.getBytes(FORMAT), "AES");
         IvParameterSpec ivspec = new IvParameterSpec(iv.getBytes(FORMAT));
 
         Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, keyspec, ivspec);
-        return cipher.doFinal(text.getBytes(FORMAT));
+        System.out.println("Cipher initialized to encrypt");
+
+        byte[] ciphr = cipher.doFinal(text.getBytes(FORMAT));
+        print_cipher(ciphr, ciphr.length);
+
+        return ciphr;
     }
 
     public static String decrypt(byte[] text, String key, String iv) throws Exception{
@@ -33,7 +40,7 @@ class AESEncryption {
      */
     public static void print_cipher(byte[] cipher ,int length){
         for(int i = 0; i < length; i++){
-            System.out.print(new Integer(cipher[i]));
+            System.out.print((int) (cipher[i]) + " ");
         }
         System.out.println("");
     }
