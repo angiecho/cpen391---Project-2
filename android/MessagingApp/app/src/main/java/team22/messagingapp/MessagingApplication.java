@@ -1,58 +1,42 @@
 package team22.messagingapp;
 
 import android.app.Application;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
+import android.bluetooth.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
-/**
- * Created by kwando1313 on 3/28/16.
- */
 public class MessagingApplication extends Application {
-    BluetoothAdapter BA;
-    BluetoothDevice device;
-    BluetoothSocket socket;
-    InputStream inputStream;
-    OutputStream outputStream;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice device;
+    private BluetoothSocket socket;
+    private InputStream inputStream;
+    private OutputStream outputStream;
 
     public boolean checkBluetoothAllowed(){
-        BA = BluetoothAdapter.getDefaultAdapter();
-        if (BA == null){
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null){
             return false;
         }
         return true;
     }
 
     public boolean checkBluetoothEnabled(){
-        if (!BA.isEnabled()) {
-            return false;
-        }
-        return true;
+        return bluetoothAdapter.isEnabled();
     }
 
-    public boolean checkBluetoothDevice(){
-        if (device == null){
-            return false;
-        }
-        return true;
+    public boolean checkBluetoothDeviceExists(){
+        return (device != null);
     }
 
-    public void setBluetoothInformation(BluetoothDevice d, BluetoothSocket s){
-        device = d;
-        socket = s;
-        try{
+    public void setBluetoothInformation(BluetoothDevice device, BluetoothSocket socket){
+        this.device = device;
+        this.socket = socket;
+        try {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
-        }catch(IOException e){
+        } catch(IOException e){
             e.printStackTrace();
-            System.out.println("NONONONONOONO");
-            //This shouldn't ever happen, but... Just in case...
         }
-
     }
 
     public OutputStream getOutputStream(){

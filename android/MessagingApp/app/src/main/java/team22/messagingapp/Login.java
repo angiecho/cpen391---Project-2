@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -29,7 +28,7 @@ public class Login extends AppCompatActivity {
                 Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(turnOn, 0);
             }
-            if (!((MessagingApplication) getApplication()).checkBluetoothDevice()){
+            if (!((MessagingApplication) getApplication()).checkBluetoothDeviceExists()){
                 System.out.println("HELLO!");
                 selectBluetoothDevice();
             }
