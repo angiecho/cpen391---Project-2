@@ -10,7 +10,8 @@ typedef enum {
 	start,
 	get_header,
 	rx_message,
-	tx_message
+	tx_message,
+	init
 } Stage;
 
 volatile Stage stage;
@@ -37,10 +38,10 @@ void interruptHandler(void){
 		printf("%c\n", bt);
 		if (bt == ENQ){
 			printf ("got ENQ\n");
-			//do_pop();
+			do_pop();
 			key = "abcdefghijklmnop";
-			get_key();
-			gen_iv();
+			//get_key(); //Use when you don't want to use the touchscreen. Comment out do_pop
+			//gen_iv();
 			stage = get_header;
 		}
 		break;
@@ -50,8 +51,7 @@ void interruptHandler(void){
 		printf("%c\n", bt);
 		if (bt == STX){
 			printf("got STX\n");
-			msg_index = 0;
-			msg = malloc(MAX_LENGTH+1);
+
 			stage = rx_message;
 		}
 		else
@@ -74,6 +74,13 @@ void interruptHandler(void){
 
 	case tx_message:
 		sendMessage(msg_index+1, receiver, sender, msg);
+		stage = init;
+		break;
+	case init:
+		msg_index = 0;
+		msg = malloc(MAX_LENGTH+1);
+		receiver = 0;
+		sender = 0;
 		stage = start;
 		break;
 	}
@@ -84,7 +91,7 @@ int main(void) {
 	init_control();
 	printf("Bluetooth initialized!");
 
-	stage = start;
+	stage = init;
 
 	while(1){
 		interruptHandler();
