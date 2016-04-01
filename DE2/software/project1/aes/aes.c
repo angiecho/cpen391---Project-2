@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "gps.h"
 #include "misc_helpers.h"
@@ -16,7 +17,7 @@ void get_key(){
 		putCharBluetooth(key[i]);
 	}
 	putCharBluetooth(STX);
-	printf ("got key: %s\n", key);
+	printf ("Key: %s\n", key);
 }
 
 /* gen_iv will generate a 16 char IV based on the
@@ -28,17 +29,17 @@ void gen_iv(void){
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
+	printf("IV: ");
 	for (int i = 0; i < strlen(iv); i++){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
-		printf("%c, ", iv[i]);
+		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
+	printf("\n");
 	putCharBluetooth(ETX);
-	IV = malloc (sizeof(char) * strlen(iv)+1);
+	IV = malloc(sizeof(char) * strlen(iv));
 	strcpy(IV,iv);
-	printf ("got iv: %s\n", IV);
-
 }
 
 /* getASCII will use an integer value to generate an ASCII value
