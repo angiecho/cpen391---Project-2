@@ -20,33 +20,24 @@ public class MessagingApplication extends Application {
     OutputStream outputStream;
 
     public boolean checkBluetoothAllowed(){
-        BA = BluetoothAdapter.getDefaultAdapter();
-        if (BA == null){
-            return false;
-        }
-        return true;
+        this.BA = BluetoothAdapter.getDefaultAdapter();
+        return (this.BA != null);
     }
 
     public boolean checkBluetoothEnabled(){
-        if (!BA.isEnabled()) {
-            return false;
-        }
-        return true;
+        return (!this.BA.isEnabled());
     }
 
     public boolean checkBluetoothDevice(){
-        if (device == null){
-            return false;
-        }
-        return true;
+        return (this.device!=null);
     }
 
-    public void setBluetoothInformation(BluetoothDevice d, BluetoothSocket s){
-        device = d;
-        socket = s;
+    public void setBluetoothInformation(BluetoothDevice device, BluetoothSocket socket){
+        this.device = device;
+        this.socket = socket;
         try{
-            inputStream = socket.getInputStream();
-            outputStream = socket.getOutputStream();
+            this.inputStream = socket.getInputStream();
+            this.outputStream = socket.getOutputStream();
         }catch(IOException e){
             e.printStackTrace();
             System.out.println("NONONONONOONO");

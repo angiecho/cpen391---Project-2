@@ -27,7 +27,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.Long;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,11 +54,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLUE = 0xff000000;
     private static final Integer WIDTH = 300;
     private static final Integer TEXT_SIZE = 50;
+    private final int IV_KEY_REQUEST = 5;
+    private final int MESSAGE_START = 2;
+    private final int MESSAGE_END = 3;
+    private final int NULL_CHARACTER = 0;
 
-    Thread workerThread;
-    byte[] readBuffer;
-    int readBufferPosition;
-    volatile boolean stopWorker;
+    private Thread workerThread;
+    private byte[] readBuffer;
+    private int readBufferPosition;
+    private volatile boolean stopWorker;
 
     public class Message {
         public String text;
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         else if (string.toLowerCase().contentEquals("cho")){
             return 3;
         }
-        return 1;
+        return -1;
     }
 
     // TODO: Change according to above TODO
@@ -125,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         else if (string.toLowerCase().contentEquals("cho")){
             return 3;
         }
-        return 1;
+        return -1;
     }
 
     public void showNotification(String message, String author){
@@ -197,70 +200,8 @@ public class MainActivity extends AppCompatActivity {
                                     byte bite = packetBytes[i];
                                     System.out.print(bite + " ");
                                     if (bite == delimiter && readBufferPosition > 1) {
-                                        byte[] encodedBytes = new byte[readBufferPosition];
-                                        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
-
-                                        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
-
-                                        System.out.println("We have " + encodedBytes.length + " bytes!");
-
-                                        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
-                                        System.out.println("We have " + chunkNumber + " chunks!");
-                                        byte[][] byteChunks = new byte[chunkNumber][16];
-                                        int start = 0;
-                                        for(int j = 0; j < chunkNumber; j++) {
-                                            if(start + 16 > encodedBytes.length) {
-                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
-                                            } else {
-                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
-                                            }
-                                            start += 16;
-                                        }
-                                        String[] decodedByteChunks = new String[chunkNumber];
-                                        System.out.println("Key: " + key);
-                                        System.out.println("IV: " + iv);
-
-                                        for (int j = 0; j < byteChunks.length; j++){
-                                            try {
-                                                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
-                                                System.out.println("Decoded byte: " + decodedByteChunks[j]);
-                                            }catch(Exception e){
-                                                e.printStackTrace();
-                                            }
-                                        }
-
-                                        StringBuilder builder = new StringBuilder();
-                                        for(String s : decodedByteChunks) {
-                                            builder.append(s);
-                                        }
-                                        final String data = builder.toString();
-                                        System.out.println(data);
-                                        System.out.println("S/R is " + readBuffer[0]);
-
-                                        final int receiver_id = 0b00001111 & readBuffer[0];
-                                        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
-
-                                        System.out.println("Receiver ID is: " + receiver_id);
-                                        System.out.println("Sender ID is: " + sender_id);
-
-                                        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
-
-                                        readBufferPosition = 0;
-                                        handler.post(new Runnable() {
-                                            public void run() {
-                                                //insert check if it's the same user we're getting stuff from
-
-                                                if (sender_id == getCurrentReceiver()) {
-                                                    insertReceivedMessageToView(data, false, date);
-                                                } else {
-                                                    //check if volume
-
-                                                    String author = getSenderName(sender_id);
-                                                    showNotification(data, author);
-                                                }
-                                                scrollDown();
-                                            }
-                                        });
+                                        handleNonEncryptedMessages(handler);
+                                        //handleEncryptedMessages(handler);
 
                                     } else if(bite == keyDelimiter && readBufferPosition > 1) {
                                         //readBuffer[readBufferPosition++] = bite;
@@ -291,11 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            stopWorker = true;
-                            break;
-                        } catch (NullPointerException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                             stopWorker = true;
                             break;
@@ -309,18 +246,107 @@ public class MainActivity extends AppCompatActivity {
             stopWorker = false;
         }
     }
+    private void handleNonEncryptedMessages(Handler handler) throws Exception {
+        byte[] encodedBytes = new byte[readBufferPosition - 1];
+        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
+        final String data = new String(encodedBytes, "US-ASCII");
+        System.out.println(data);
+
+        System.out.println("S/R is " + readBuffer[0]);
+
+        //We're... Going to need a system to store the multi messages into one.
+        final int receiver_id = 0b00001111 & readBuffer[0];
+        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
+
+        System.out.println("Receiver ID is: " + receiver_id);
+        System.out.println("Sender ID is: " + sender_id);
+        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
+        //Check receiver here
+
+        readBufferPosition = 0;
+
+        handler.post(new Runnable() {
+            public void run() {
+                if (sender_id == getCurrentReceiver()) {
+                    insertReceivedMessageToView(data, false, date);
+                    scrollDown();
+                } else {
+                    String author = getSenderName(sender_id);
+                    showNotification(data, author);
+                }
+            }
+        });
+    }
+    private void handleEncryptedMessages(Handler handler) throws Exception {
+        byte[] encodedBytes = new byte[readBufferPosition];
+        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
+
+        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
+
+        System.out.println("We have " + encodedBytes.length + " bytes!");
+
+        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
+        System.out.println("We have " + chunkNumber + " chunks!");
+        byte[][] byteChunks = new byte[chunkNumber][16];
+        int start = 0;
+        for(int j = 0; j < chunkNumber; j++) {
+            if(start + 16 > encodedBytes.length) {
+                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
+            } else {
+                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
+            }
+            start += 16;
+        }
+        String[] decodedByteChunks = new String[chunkNumber];
+        System.out.println("Key: " + key);
+        System.out.println("IV: " + iv);
+
+        for (int j = 0; j < byteChunks.length; j++){
+            decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
+            System.out.println("Decoded byte: " + decodedByteChunks[j]);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for(String s : decodedByteChunks) {
+            builder.append(s);
+        }
+        final String data = builder.toString();
+        System.out.println(data);
+        System.out.println("S/R is " + readBuffer[0]);
+
+        final int receiver_id = 0b00001111 & readBuffer[0];
+        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
+
+        System.out.println("Receiver ID is: " + receiver_id);
+        System.out.println("Sender ID is: " + sender_id);
+
+        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
+
+        readBufferPosition = 0;
+        handler.post(new Runnable() {
+            public void run() {
+                if (sender_id == getCurrentReceiver()) {
+                    insertReceivedMessageToView(data, false, date);
+                    scrollDown();
+                } else {
+                    String author = getSenderName(sender_id);
+                    showNotification(data, author);
+                }
+            }
+        });
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
-        loadHistory();
+        loadMessages();
         final MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
         if (view != null) {
             view.setOnTopReachedListener(
                 new MessageScrollView.onTopReachedListener() {
                     @Override
                     public void onTopReached() {
-                        int x = loadMoreMessages();
+                        int x = loadMessages();
                         if (x != 0){
                             final View view2 = findViewById(x);
                             if (view2 != null) {
@@ -339,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             );
         }
+        listenMessages();
+
     }
 
     @Override
@@ -386,45 +414,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void loadHistory(){
-        //get id of contact accessed
-        System.out.println("Attempting to load message history...");
-        int recipient_id = getCurrentReceiver();
-        int sender_id = getCurrentSender();
-
-        String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
-
-        String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
-
-        //Limit of 15 is here because I don't want to load all the messages in the database
-        //since that is potentially... Slow.
-        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
-        if (cursor.moveToFirst()) {
-            ArrayList<Message> pastMessages = new ArrayList<>();
-            do {
-                try {
-                    int r_id = cursor.getInt(cursor.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(cursor.getString(cursor.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, cursor.getString(cursor.getColumnIndex(MESSAGE_DATE))));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            while (cursor.moveToNext());
-
-            for (int j = pastMessages.size() - 1; j >= 0; j--) {
-                if (pastMessages.get(j).sent) {
-                    insertReceivedMessageToView(pastMessages.get(j).text, false, pastMessages.get(j).date);
-                } else {
-                    insertSentMessageToView(pastMessages.get(j).text, false, pastMessages.get(j).date);
-                }
-            }
-        }
-        cursor.close();
-        listenMessages();
-    }
-
-    public int loadMoreMessages(){
+    public int loadMessages(){
         int recipient_id = getCurrentReceiver();
         int sender_id = getCurrentSender();
 
@@ -493,49 +483,73 @@ public class MainActivity extends AppCompatActivity {
             scrollDown();
 
             if (outputStream != null) {
-                sendMessageBluetooth(message, messageHeader);
+                sendNonEncryptedMessageBluetooth(message, messageHeader);
+                //sendEncryptedMessageBluetooth(message, messageHeader);
             }
         }
     }
 
-    // Helper fcn for sending message bytes to bluetooth.
-    private void sendMessageBluetooth(String message, int messageHeader){
+    //Helper function to send the messgage before encryption
+    private void sendNonEncryptedMessageBluetooth(String message, int messageHeader){
+        try {
+            int messageLength = message.length();
+            int messagePosition = 0;
+            System.out.println(messageLength);
+            outputStream.write(messageHeader);
+
+            while(messageLength > 255){
+                //sender = 0000 receiver = 0000
+                String s = message.substring(messagePosition, messagePosition+255);
+                messagePosition += 255;
+                messageLength -= 255;
+                outputStream.write(s.getBytes("US-ASCII"));
+            }
+            String s = message.substring(messagePosition, messagePosition+messageLength);
+            outputStream.write(s.getBytes("US-ASCII"));
+            System.out.println("Sent out " + s);
+            outputStream.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Helper fcn for sending encrypted message bytes to bluetooth.
+    private void sendEncryptedMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
-            outputStream.write(5); //This is a way to say "Give me key/iv!"
+            outputStream.write(IV_KEY_REQUEST); //This is a way to say "Give me key/iv!"
 
             System.out.println("Waiting for TS and GPS");
             while (key == null || iv == null);
             System.out.println("Key:" + key);
             System.out.println("IV:" + iv);
-            outputStream.write(2);
+            outputStream.write(MESSAGE_START);
             outputStream.write(messageHeader);
-            try {
-                ArrayList<String> stringChunks = new ArrayList<>();
-                System.out.println("Beginning encryption...");
-                for (int start = 0; start < message.length(); start += 16) {
-                    stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
-                }
-                System.out.println("Continuing encryption...");
-                System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
-                for (int start = 0; start < stringChunks.size(); start++){
-                    String paddedMessage = String.format("%1$16s", stringChunks.get(start));
-                    System.out.println("padded message: " + paddedMessage);
-                    byte [] cipher = AESEncryption.encrypt(paddedMessage, key, iv);
-                    AESEncryption.print_cipher(cipher, cipher.length);
-                    outputStream.write(cipher);
-                }
-                System.out.println("Finished sending encrypted!");
 
-                outputStream.write(0);
-                key = null;
-                iv = null;
-                outputStream.write(3);
-
-            } catch(Exception e) {
-                e.printStackTrace();
+            ArrayList<String> stringChunks = new ArrayList<>();
+            System.out.println("Beginning encryption...");
+            for (int start = 0; start < message.length(); start += 16) {
+                stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
             }
-        }catch (IOException e){
+            System.out.println("Continuing encryption...");
+            System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
+            for (int start = 0; start < stringChunks.size(); start++){
+                String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                System.out.println("padded message: " + paddedMessage);
+                byte [] cipher = AESEncryption.encrypt(paddedMessage, key, iv);
+                AESEncryption.print_cipher(cipher, cipher.length);
+                outputStream.write(cipher);
+            }
+            System.out.println("Finished sending encrypted!");
+
+            outputStream.write(NULL_CHARACTER);
+            key = null;
+            iv = null;
+            outputStream.write(MESSAGE_END);
+
+
+        }catch (Exception e){
             e.printStackTrace();
         }
     }

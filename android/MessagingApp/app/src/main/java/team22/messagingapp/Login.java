@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -83,30 +84,22 @@ public class Login extends AppCompatActivity {
                     BluetoothSocket socket;
                     try{
                         socket = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
-                        try {
-                            socket.connect();
-                        }catch (IOException e){
-                            e.printStackTrace();
-                            try{
-                                socket =(BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
+                        socket.connect();
+                        if (!socket.isConnected()){
+                                socket = (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
                                 socket.connect();
-                            }catch(Exception e2){
-                                e2.printStackTrace();
-                            }
                         }
                         if (socket.isConnected()) {
                             System.out.println("Connected to socket!");
                             ((MessagingApplication) getApplication()).setBluetoothInformation(device, socket);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                            //((MessagingApplication) getApplication()).getOutputStream().write(65);
-
                         }
                         else {
+                            //Should probably do something else **after** this to go back to the
+                            //selection page...
                             System.out.println("Could not connect to socket!");
                         }
 
-                    }catch (IOException e){
+                    }catch (IOException|NoSuchMethodException|IllegalAccessException|InvocationTargetException e){
                         e.printStackTrace();
                     }
                 }
