@@ -11,10 +11,17 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
+        android:background="@color/primary_dark_material_light"
+        android:elevation="4dp"
         android:gravity="center"
         android:id="@+id/chat_name"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.00"
+        android:textSize="40dp"
+        android:layout_marginBottom="50dp"
+        android:padding="5dp" />
     </LinearLayout>
     <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"

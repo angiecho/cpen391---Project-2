@@ -11,6 +11,21 @@
     android:orientation="vertical"
     tools:context="team22.messagingapp.Login">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/primary_dark_material_light"
+        android:elevation="4dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Login"
+        android:id="@+id/textView2"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.00"
+        android:textSize="40dp"
+        android:layout_marginBottom="50dp"
+        android:padding="5dp"
+        android:textColor="#FFFFFF" />
+
     <EditText
         android:id="@+id/username"
         android:layout_width="167dp"

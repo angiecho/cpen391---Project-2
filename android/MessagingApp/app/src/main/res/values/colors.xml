@@ -15,5 +15,5 @@
     <color name="black">#5088cb</color>
     <color name="primary_material_light">#2196f3</color>
     <color name="colorBackgroundFloating">#81def5</color>
-    <color name="dialog_background_material">#0089cf26</color>
+    <color name="dialog_background_material">#ffffff</color>
 </resources>
