@@ -9,20 +9,24 @@
     android:weightSum="1"
     android:id="@+id/parentLayoutPanel">
 
-    <LinearLayout
+
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/primary_dark_material_light"
+        android:layout_height="74dp"
+        android:background="@color/primary_material_light"
         android:elevation="4dp"
-        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/chat_name"
-        android:orientation="vertical"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.00"
-        android:textSize="40dp"
+        android:textSize="34dp"
         android:layout_marginBottom="50dp"
-        android:padding="5dp" />
-    </LinearLayout>
+        android:padding="20dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
     <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"
         android:layout_height="0dp"
