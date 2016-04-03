@@ -57,20 +57,14 @@
             android:maxLines="10"
             android:hint="@string/edit_message" />
 
-        <Button
+        <ImageButton
+            android:background="@drawable/send"
             android:id="@+id/send_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="68dp"
+            android:layout_height="45dp"
             android:text="@string/button_send"
-            android:layout_weight="0.1"
             android:onClick="sendMessage" />
-        <Button
-            android:id="@+id/receive_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_receive"
-            android:layout_weight="0.1"
-            android:onClick="receiveMessage"/>
+
     </LinearLayout>
 
 </LinearLayout>
