@@ -123,11 +123,5 @@ void assignBluetooth(char* name, char* pw){
 
 bool getCommand(void){
 	printf("%c\n", getCharBluetooth());
-	if ((int)getCharBluetooth() == 1){
- 		return true;
- 	}
-	else return false;
+	return ((int)getCharBluetooth() == 1);
 }
-
-
-

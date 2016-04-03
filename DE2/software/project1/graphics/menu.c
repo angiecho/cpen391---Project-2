@@ -230,21 +230,12 @@ void init_screen(){
 		char* searchText[] = {"SEARCH", "INFO", "ZOOM", ""};
 		char* roadText[] = {"ROADS", "DIRECTIONS", "ABOUT", ""};
 
-		about_screen();
 
 		draw_menu(arrowsP, BOX_WIDTH, ARR_BUTT_HEIGHT, 1 , BLACK, WHITE, BLACK, SMALL, arrowsText);
 		draw_menu(searchP, SBUTT_WIDTH, SBUTT_HEIGHT, 1 , BLACK, WHITE, BLACK, SMALL, searchText);
 		draw_menu(roadP, SBUTT_WIDTH, SBUTT_HEIGHT, 1, BLACK, WHITE, BLACK, SMALL, roadText);
 
 		draw_arrows();
-}
-
-void about_screen(){
-	draw_information_box("PATHFINDING MAP\n(CPEN 391 TEAM 22)\nALEX CHARLES\nANGELA CHO\nCALEB KWAN\nWILLIAM TANG\n\nABOUT:\n(1)SEARCH FOR AN AREA\nAND GET DIRECTIONS\n\n(2)INFO ON MAP POINTS\n\n(3)ZOOM IN/OUT AND\nTRANSLATE SCREEN\n\n(4)FIND ONLY PATHS FOR ROADS\n\n(5)GET DIRECTIONS BY\nTOUCHING MAP POINTS\n\n(6)ABOUT INFO FOR APP");
-}
-
-void info_screen(char* info){
-	draw_information_box(info);
 }
 
 void zoom_screen(){
@@ -259,41 +250,11 @@ void pop_screen(){
 	draw_information_box("ENTER YOUR SEARCH!");
 
 	Point kb_p = {KB_LEFT, KB_TOP};
-	Point border_p = {ORIGIN, BORD_TOP};
 	Point search_p = {ORIGIN, SEARCH_TOP};
 	char* t[] = {" ", ""};
 
-	draw_menu(border_p, MAP_WIDTH, BORD_HEIGHT, 2, BLACK, WHITE, BLACK, SMALL, t);
 	draw_menu(search_p, MAP_WIDTH, SEARCH_HEIGHT, 2, BLACK, WHITE, BLACK, SMALL, t);
 	draw_keyboard(kb_p, KEY_SIZE);
-}
-
-// draw the names matched with the query string and highlight the current chosen entry
-void match_screen(int sel, int mn_count){
-	if(mn_count == 0){
-		draw_information_box("NO SEARCH RESULTS FOUND");
-		return;
-	}
-
-	char* t[2];
-	Point p;
-
-	int incr = BOX_HEIGHT / mn_count;
-	name_list* nl = matched_names.head;
-	for(int i = 0; i < mn_count; i++){
-		p.x = MAP_WIDTH;
-		p.y = i*incr;
-
-		t[0] = nl->name;
-		t[1] = "";
-
-		nl = nl->next;
-
-		if(i != (sel-1))
-			draw_menu(p, BOX_WIDTH, incr, 2 , BLACK, WHITE, BLACK, SMALL, t);
-		else if(i == (sel-1))
-			draw_menu(p, BOX_WIDTH, incr, 2 , WHITE, BLACK, WHITE, SMALL, t);
-	}
 }
 
 void highlight(Button b){
