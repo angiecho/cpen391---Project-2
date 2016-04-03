@@ -18,7 +18,7 @@
         android:id="@+id/contacts"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.00"
-        android:textSize="34dp"
+        android:textSize="30dp"
         android:padding="20dp"
         android:textColor="#FFFFFF"
         android:textStyle="bold"

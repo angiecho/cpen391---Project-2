@@ -309,13 +309,8 @@ public class MainActivity extends AppCompatActivity {
         Bundle chatBundle = getIntent().getExtras();
         String chatWith = chatBundle.getString("receiver");
 
-        LinearLayout parentLinearLayout = (LinearLayout) findViewById(R.id.chat_name);
-        TextView chatName = new TextView(this);
-        chatName.setTextColor(0xff000000);
-        chatName.setTextSize(50);
+        TextView chatName = (TextView) findViewById(R.id.chat_name);
         chatName.setText(chatWith);
-        chatName.setGravity(Gravity.CENTER_HORIZONTAL);
-        parentLinearLayout.addView(chatName);
 
         Log.v("Chat With:", chatWith);
 

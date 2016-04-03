@@ -18,13 +18,14 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/chat_name"
         android:layout_gravity="center_horizontal"
-        android:textSize="34dp"
+        android:textSize="30dp"
         android:layout_marginBottom="50dp"
         android:padding="20dp"
         android:gravity="center"
         android:orientation="vertical"
         android:textColor="#FFFFFF"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textIsSelectable="false" />
 
     <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"
