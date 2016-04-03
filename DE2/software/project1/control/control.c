@@ -1,28 +1,18 @@
 #include <control.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "graph.h"
 #include "menu.h"
 #include "gps.h"
 #include "control.h"
 #include "graphics.h"
 #include "touchscreen.h"
 #include <math.h>
-#include "load_node.h"
 #include "misc_helpers.h"
 #include "button.h"
 #include "bluetooth.h"
 
-const static Point NULL_CORNER = {-1,-1};
-extern Point curr_image_pos, prev_zoomed_in_min_corner, prev_zoomed_in_max_corner, prev_zoomed_out_min_corner, prev_zoomed_out_max_corner;
-extern int zoom_level;
-extern bool road_only;
-extern int end_node;
-extern path_points* points;
-
 // Initialise components and popup the keyboard
 void init_control(){
-	init_globals();
 	Init_GPS();
 	Init_Bluetooth();
 	init_touch();
@@ -63,18 +53,6 @@ void kb_listen(){
 		}
 	}
 }
-void init_globals(){
-	prev_zoomed_in_min_corner = NULL_CORNER;
-	prev_zoomed_in_max_corner = NULL_CORNER;
-	prev_zoomed_out_min_corner = NULL_CORNER;
-	prev_zoomed_out_max_corner = NULL_CORNER;
-	zoom_level = ZOOM_OUT;
-	Point p = {0,0};
-	curr_image_pos = p;
-	road_only = false;
-	end_node = 0;
-	points = NULL;
-}
 
 char* getMessage(unsigned* length, char* receiver, char* sender){
 	char sender_receiver = getCharBluetooth();
@@ -101,8 +79,8 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 }
 
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
-	printf("message from: %d \n", receiver);
-	printf("message to: %d \n", sender);
+	printf("message from: %d \n", sender);
+	printf("message to: %d \n", receiver);
 	printf("message length: %d \n", length);
 	printf("message: %s \n", msg);
 	//TODO determine who to send to

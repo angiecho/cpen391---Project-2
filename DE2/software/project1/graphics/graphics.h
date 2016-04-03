@@ -44,7 +44,6 @@ void draw_filled_circle_border(Point centre, int radius, int colour, int borderC
 void draw_arc(Point centre, int radius, int colour, double angleStart, double angleEnd);
 
 void draw_path(Point points[], int num_points, int colour);
-void PathLine(int x1, int y1, int x2, int y2, int Colour);
 
 /**************************** Core Functionality *******************************/
 void ProgramPalette(int PaletteNumber, int RGB);

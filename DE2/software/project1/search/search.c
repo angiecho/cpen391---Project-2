@@ -7,11 +7,9 @@
 #include "button.h"
 #include "search.h"
 #include <string.h>
-#include "graph.h"
 
 // Reset the query string to be empty
 void reset_query(){
-	sel = 1;
 	while(qs_length() > 0){
 		del_letter();
 	}
@@ -49,37 +47,3 @@ void draw_word(){
 		x += INCR;
 	}
 }
-
-// A match occurs when the string query maps to a name by substring
-bool is_matched(char* name){
-	bool matches = true;
-	if(strstr(name, query_string) == NULL)
-		matches = false;
-	return matches;
-}
-
-void destroy_matches(){
-	name_list* nl = matched_names.head;
-	name_list* temp;
-	while(nl != NULL){
-		temp = nl->next;
-		free(nl);
-		nl = temp;
-	}
-}
-
-// Search ready to be entered if we have at least one matching entry
-bool ready(){
-	return(MN_COUNT > 0);
-}
-
-// Return the number of names in the name list
-int mn_count(name_list* nl){
-	int count = 0;
-	while(nl != NULL){
-		nl = nl->next;
-		count++;
-	}
-	return count;
-}
-

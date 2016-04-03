@@ -3,7 +3,6 @@
 
 #include "misc_helpers.h"
 #include <string.h>
-#include "graph.h"
 
 #define FLICKER_DELAY 100000
 #define TOGGLE_DELAY 10000
@@ -68,20 +67,7 @@ void do_key(char key);
 void do_del();
 void do_back();
 void do_enter();
-void do_info();
-void do_dir();
-void do_zoom();
-void do_about();
 void do_pop();
 void flicker(Button b);
-
-bool road_only;
-int end_node;
-path_points* points;
-
-//helper function
-int get_start_node();
-bool draw_graph_path(int colour);
-void re_draw_path();
 
 #endif /* BUTTON_H_ */
