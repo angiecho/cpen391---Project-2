@@ -7,7 +7,8 @@
     android:orientation="vertical"
     android:weightSum="1"
     android:id="@+id/parentLayoutPanel"
-    tools:context="team22.messagingapp.Contacts">
+    tools:context="team22.messagingapp.Contacts"
+    android:background="#FFFFFF">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="74dp"
