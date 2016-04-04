@@ -26,9 +26,7 @@ char getCharBluetooth2(){
 
 void Init_Bluetooth(void){
 	Bluetooth_Control = 0x95;
-	Touchscreen_Control = 0x15;
 	Bluetooth_Baud = 0x01;
-	Touchscreen_Baud = 0x01;
 }
 
 void WaitForReadStat(){
@@ -121,6 +119,7 @@ void assignBluetooth(char* name, char* pw){
 	dataMode();
 }
 
+<<<<<<< HEAD
 bool getCommand(void){
 	printf("%c\n", getCharBluetooth());
 	if ((int)getCharBluetooth() == 1){
@@ -131,3 +130,5 @@ bool getCommand(void){
 
 
 
+=======
+>>>>>>> sendmsg

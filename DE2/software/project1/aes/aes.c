@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "gps.h"
 #include "misc_helpers.h"
@@ -12,33 +13,32 @@
 /* get_key will receive a 16 byte key from user
  * input on the touchscreen.
  */
-void get_key(char* key){
-	for (int i = 0; i < strlen(key); i++){
+void get_key(){
+	for (int i = 0; i < 16; i++){
 		putCharBluetooth(key[i]);
 	}
-	putCharBluetooth(2);
-	printf ("got key: %s\n", key);
+	printf ("Key: %s\n", key);
 }
 
 /* gen_iv will generate a 16 char IV based on the
  * GPS coordinates for longitude and latitude.
  */
 void gen_iv(void){
-
-	char iv[18];
-	iv[17] = '\0';
+	char iv[17];
+	iv[16] = '\0';
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
+	printf("IV: ");
 	for (int i = 0; i < strlen(iv); i++){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
-		printf("%c, ", iv[i]);
+		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
-	putCharBluetooth(3);
-	printf ("got iv: %s", iv);
-
+	printf("\n");
+	IV = malloc(sizeof(char) * strlen(iv));
+	strcpy(IV,iv);
 }
 
 /* getASCII will use an integer value to generate an ASCII value
@@ -52,19 +52,4 @@ int getASCII(long long c){
 		i++;
 	}
 	return ascii;
-}
-
-//send key and receive message+header from sender
-void rcv_message(void){
-	bool keyreq = false;
-	while (!keyreq){
-		keyreq = getCommand();
-	}
-	draw_information_box("Requesting Key!");
-	do_pop();
-}
-
-//send key and send message+header to receiver
-void send_message(void){
-
 }

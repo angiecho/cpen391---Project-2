@@ -49,13 +49,11 @@ Button* keyboard;
 
 // initialise keyboard
 void init_kb_button(char key, int id);
-void init_s_button(char key, int id);
 void init_keyboard();
 void destroy_keyboard();
 
 // Gets the button upon input for control
 int falls_inside(Point p, Button b);
-Button* get_s_button(Point p);
 Button* get_kb_button(Point p);
 
 bool is_kb_butt(Button b);
@@ -75,21 +73,12 @@ void do_dir();
 void do_zoom();
 void do_about();
 void do_pop();
-void do_sel(char key);
-void do_west();
-void do_east();
-void do_north();
-void do_up();
-void do_south();
-void do_down();
-void do_road();
 void flicker(Button b);
-void toggle(Button b);
-bool road_mode();
 
 bool road_only;
 int end_node;
 path_points* points;
+bool key_sent;
 
 //helper function
 int get_start_node();

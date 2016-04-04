@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef BLUETOOTH_H_
 #define BLUETOOTH_H_
 
