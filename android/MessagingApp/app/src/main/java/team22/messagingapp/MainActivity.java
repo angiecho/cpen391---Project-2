@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     byte[] readBuffer;
     int readBufferPosition;
     volatile boolean stopWorker;
+    private Handler handler;
 
     public class Message {
         public String text;
@@ -175,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Worker thread conts listens for bluetooth data.
     public void listenMessages(){
+        this.handler = new Handler();
         if (workerThread == null) {
             workerThread = new Thread(new Runnable() {
                 public void run() {
@@ -227,8 +229,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleEndOfMessage(){
         assert (readBufferPosition > 0);
-
-        final Handler handler = new Handler();
 
         byte[] encodedBytes = new byte[readBufferPosition];
         System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
@@ -489,9 +489,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (message != null && !message.trim().isEmpty()){
-            int sender_id = getCurrentSender();  //Hardcoded for now, make a get function...
-            int recipient_id = getCurrentReceiver(); //Hardcoded for now, make a get function...
-            int messageHeader = 16*sender_id + recipient_id; //16* = bit shift left 4
+            int sender_id = getCurrentSender();
+            int recipient_id = getCurrentReceiver();
+            int messageHeader = 16*sender_id + recipient_id;
 
             Date d = insertMessageToDatabase(sender_id, recipient_id, message);
             insertSentMessageToView(message, false, d);
@@ -513,7 +513,7 @@ public class MainActivity extends AppCompatActivity {
             while (key == null || iv == null);
             System.out.println("Key: " + key);
             System.out.println("IV: " + iv);
-            //outputStream.write(2);
+
             outputStream.write(messageHeader);
             try {
                 ArrayList<String> stringChunks = new ArrayList<>();

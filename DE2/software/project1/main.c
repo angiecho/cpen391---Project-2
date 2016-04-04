@@ -27,11 +27,11 @@ volatile char bt = 0;
 void get_sender_receiver(char ids){
 	receiver = ids & 0x0f;
 	sender = (ids>>4) & 0x0f;
-	printf("Receiver: %d\n", (int)receiver);
-	printf("Sender: %d\n", (int)sender);
 }
 
 void interruptHandler(void){
+	char ids;
+
 	switch(stage){
 
 	case start:
@@ -49,12 +49,11 @@ void interruptHandler(void){
 		break;
 
 	case get_header:
-		receiver = getCharBluetooth();
+		ids = getCharBluetooth();
+		get_sender_receiver(ids);
 		printf("Receiver: %d\n", (int)receiver);
-		sender = getCharBluetooth();
 		printf("Sender: %d\n", (int)sender);
 		stage = rx_message;
-
 		break;
 
 	case rx_message:
@@ -65,6 +64,7 @@ void interruptHandler(void){
 		}
 
 		msg[msg_index] = '\0';
+		printf("msg:\n %s\n", msg);
 		stage = tx_message;
 		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
 		break;
