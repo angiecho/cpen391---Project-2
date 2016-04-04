@@ -159,7 +159,8 @@ C_SRCS += control/button.c
 C_SRCS += search/search.c
 C_SRCS += bluetooth/bluetooth.c
 C_SRCS += aes/aes.c
-CXX_SRCS :=
+C_SRCS += .metadata/.plugins/org.eclipse.cdt.make.core/specs.c
+CXX_SRCS := .metadata/.plugins/org.eclipse.cdt.make.core/specs.cpp
 ASM_SRCS :=
 
 
@@ -204,7 +205,6 @@ APP_INCLUDE_DIRS += graphics
 APP_INCLUDE_DIRS += touchscreen
 APP_INCLUDE_DIRS += bluetooth
 APP_INCLUDE_DIRS += gps
-APP_INCLUDE_DIRS += pathfinding
 APP_INCLUDE_DIRS += control
 APP_INCLUDE_DIRS += search
 APP_INCLUDE_DIRS += aes
