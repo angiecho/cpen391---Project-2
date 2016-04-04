@@ -45,7 +45,25 @@ public class Login extends AppCompatActivity {
         mUser = (EditText)findViewById(R.id.username);
         mPin = (EditText)findViewById(R.id.pin);
         String userID = mUser.getText().toString();
-        //String userPIN = mPin.getText().toString();
+        String userPIN = mPin.getText().toString();
+        try{
+            if(userID.length() > 0 && userPIN.length() >0)
+            {
+                DBUserAuthentication dbUser = new DBUserAuthentication(Login.this);
+                dbUser.open();
+
+                if(dbUser.Login(userID, userPIN))
+                {
+                    Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
+                }
+                dbUser.close();
+            }
+
+        }catch(Exception e){
+            Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
+        }
 
         int resID = getResources().getIdentifier(userID, "id", getPackageName());
         if (resID < 1){
@@ -98,10 +116,6 @@ public class Login extends AppCompatActivity {
                         if (socket.isConnected()) {
                             System.out.println("Connected to socket!");
                             ((MessagingApplication) getApplication()).setBluetoothInformation(device, socket);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                            //((MessagingApplication) getApplication()).getOutputStream().write(65);
-
                         }
                         else {
                             System.out.println("Could not connect to socket!");
