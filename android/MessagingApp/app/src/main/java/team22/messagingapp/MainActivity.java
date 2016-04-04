@@ -27,6 +27,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.Long;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -174,129 +175,25 @@ public class MainActivity extends AppCompatActivity {
 
     // Worker thread conts listens for bluetooth data.
     public void listenMessages(){
-        final Handler handler = new Handler();
-        final byte delimiter = 0; //This is the ASCII code for a \0
-        final byte keyDelimiter = 2;
-        final byte ivDelimiter = 3;
-
         if (workerThread == null) {
             workerThread = new Thread(new Runnable() {
                 public void run() {
                     readBufferPosition = 0;
                     readBuffer = new byte[4096]; //4096 bytes SHOULD be enough....
                     stopWorker = false;
-                    System.out.println("ayyyy"); //this stupid line is just for me to know if it's successfully connected - i'll get rid of it later
+                    System.out.println("listenMessages started");
 
                     while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                         try {
                             int bytesAvailable = inputStream.available();
-                            if (bytesAvailable > 1) {
+                            if (bytesAvailable > 0) {
                                 byte[] packetBytes = new byte[bytesAvailable];
                                 inputStream.read(packetBytes);
-                                for (int i = 0; i < bytesAvailable; i++) {
-
-                                    byte bite = packetBytes[i];
-                                    System.out.print(bite + " ");
-                                    if (bite == delimiter && readBufferPosition > 1) {
-                                        byte[] encodedBytes = new byte[readBufferPosition];
-                                        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
-
-                                        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
-
-                                        System.out.println("We have " + encodedBytes.length + " bytes!");
-
-                                        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
-                                        System.out.println("We have " + chunkNumber + " chunks!");
-                                        byte[][] byteChunks = new byte[chunkNumber][16];
-                                        int start = 0;
-                                        for(int j = 0; j < chunkNumber; j++) {
-                                            if(start + 16 > encodedBytes.length) {
-                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
-                                            } else {
-                                                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
-                                            }
-                                            start += 16;
-                                        }
-                                        String[] decodedByteChunks = new String[chunkNumber];
-                                        System.out.println("Key: " + key);
-                                        System.out.println("IV: " + iv);
-
-                                        for (int j = 0; j < byteChunks.length; j++){
-                                            try {
-                                                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
-                                                System.out.println("Decoded byte: " + decodedByteChunks[j]);
-                                            }catch(Exception e){
-                                                e.printStackTrace();
-                                            }
-                                        }
-
-                                        StringBuilder builder = new StringBuilder();
-                                        for(String s : decodedByteChunks) {
-                                            builder.append(s);
-                                        }
-                                        final String data = builder.toString();
-                                        System.out.println(data);
-                                        System.out.println("S/R is " + readBuffer[0]);
-
-                                        final int receiver_id = 0b00001111 & readBuffer[0];
-                                        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
-
-                                        System.out.println("Receiver ID is: " + receiver_id);
-                                        System.out.println("Sender ID is: " + sender_id);
-
-                                        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
-
-                                        readBufferPosition = 0;
-                                        handler.post(new Runnable() {
-                                            public void run() {
-                                                //insert check if it's the same user we're getting stuff from
-
-                                                if (sender_id == getCurrentReceiver()) {
-                                                    insertReceivedMessageToView(data, false, date);
-                                                } else {
-                                                    //check if volume
-
-                                                    String author = getSenderName(sender_id);
-                                                    showNotification(data, author);
-                                                }
-                                                scrollDown();
-                                            }
-                                        });
-
-                                    } else if(bite == keyDelimiter && readBufferPosition > 1) {
-                                        //readBuffer[readBufferPosition++] = bite;
-                                        byte[] encodedBytes = new byte[readBufferPosition];
-                                        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
-                                        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
-                                        key = new String(encodedBytes, FORMAT);
-                                        for (int j = 0; j < encodedBytes.length; j++){
-                                            System.out.println(encodedBytes[j]);
-                                        }
-                                        System.out.println("Key is : " + key);
-                                        readBufferPosition = 0;
-
-                                    }else if(bite == ivDelimiter && readBufferPosition > 1) {
-                                        //readBuffer[readBufferPosition++] = bite;
-                                        byte[] encodedBytes = new byte[readBufferPosition];
-                                        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                        iv  = new String(encodedBytes, FORMAT);
-                                        System.out.println("");
-                                        System.out.println("IV is: " + iv);
-                                        readBufferPosition = 0;
-                                    } else if (bite == delimiter){
-                                        System.out.println("WHEEE");
-                                    } else {
-                                        readBuffer[readBufferPosition++] = bite;
-                                    }
-
+                                for (byte bite : packetBytes) {
+                                    handleBite(bite);
                                 }
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            stopWorker = true;
-                            break;
-                        } catch (NullPointerException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                             stopWorker = true;
                             break;
@@ -309,6 +206,113 @@ public class MainActivity extends AppCompatActivity {
         else {
             stopWorker = false;
         }
+    }
+
+    private void handleBite(byte bite) throws UnsupportedEncodingException{
+        final byte delimiter = 0; //This is the ASCII code for a \0
+        final byte keyDelimiter = 2;
+        final byte ivDelimiter = 3;
+
+        if (bite == delimiter) {
+            handleEndOfMessage();
+        } else if(bite == keyDelimiter) {
+            getKey();
+        } else if(bite == ivDelimiter) {
+            getIV();
+        } else {
+            readBuffer[readBufferPosition++] = bite;
+        }
+
+    }
+
+    private void handleEndOfMessage(){
+        assert (readBufferPosition > 0);
+
+        final Handler handler = new Handler();
+
+        byte[] encodedBytes = new byte[readBufferPosition];
+        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
+
+        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
+
+        System.out.println("We have " + encodedBytes.length + " bytes!");
+
+        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
+        System.out.println("We have " + chunkNumber + " chunks!");
+        byte[][] byteChunks = new byte[chunkNumber][16];
+        int start = 0;
+        for(int j = 0; j < chunkNumber; j++) {
+            if(start + 16 > encodedBytes.length) {
+                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
+            } else {
+                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
+            }
+            start += 16;
+        }
+        String[] decodedByteChunks = new String[chunkNumber];
+        System.out.println("Key: " + key);
+        System.out.println("IV: " + iv);
+
+        for (int j = 0; j < byteChunks.length; j++){
+            try {
+                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
+                System.out.println("Decoded byte: " + decodedByteChunks[j]);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for(String s : decodedByteChunks) {
+            builder.append(s);
+        }
+        final String data = builder.toString();
+        System.out.println(data);
+        System.out.println("S/R is " + readBuffer[0]);
+
+        final int receiver_id = 0b00001111 & readBuffer[0];
+        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
+
+        System.out.println("Receiver ID is: " + receiver_id);
+        System.out.println("Sender ID is: " + sender_id);
+
+        final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
+
+        readBufferPosition = 0;
+        handler.post(new Runnable() {
+            public void run() {
+                //insert check if it's the same user we're getting stuff from
+
+                if (sender_id == getCurrentReceiver()) {
+                    insertReceivedMessageToView(data, false, date);
+                } else {
+                    //check if volume
+
+                    String author = getSenderName(sender_id);
+                    showNotification(data, author);
+                }
+                scrollDown();
+            }
+        });
+    }
+
+    private void getIV() throws UnsupportedEncodingException{
+        assert (readBufferPosition > 0);
+        iv = byteArrToString(readBuffer, readBufferPosition);
+        readBufferPosition = 0;
+    }
+
+    private void getKey() throws UnsupportedEncodingException{
+        assert (readBufferPosition > 0);
+        key = byteArrToString(readBuffer, readBufferPosition);
+        readBufferPosition = 0;
+    }
+
+    private String byteArrToString(byte[] bytes, int bytesLength)
+                throws UnsupportedEncodingException{
+        byte[] encodedBytes = new byte[bytesLength];
+        System.arraycopy(bytes, 0, encodedBytes, 0, encodedBytes.length);
+        return new String(encodedBytes, FORMAT);
     }
 
     @Override
