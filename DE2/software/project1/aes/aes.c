@@ -19,6 +19,7 @@ void get_key(){
 		putCharBluetooth(key[i]);
 	}
 	printf ("Key: %s\n", key);
+	putCharBluetooth(STX);
 }
 
 /* gen_iv will generate a 16 char IV based on the
@@ -40,6 +41,7 @@ void gen_iv(void){
 	}
 	printf("\n");
 	strcpy(IV,iv);
+	putCharBluetooth(ETX);
 }
 
 /* getASCII will use an integer value to generate an ASCII value
