@@ -14,6 +14,7 @@
  * input on the touchscreen.
  */
 void get_key(){
+	// strcpy(key, query_string); TODO: FOR DEMO, READ KEYBOARD INPUT INSTEAD OF FAKE DATA
 	for (int i = 0; i < 16; i++){
 		putCharBluetooth(key[i]);
 	}
@@ -24,6 +25,7 @@ void get_key(){
  * GPS coordinates for longitude and latitude.
  */
 void gen_iv(void){
+	// TODO: FOR DEMO, READ GPS DATA INSTEAD OF FAKE DATA
 	char iv[17];
 	iv[16] = '\0';
 	long lat, lon;
@@ -37,7 +39,6 @@ void gen_iv(void){
 		putCharBluetooth(iv[i]);
 	}
 	printf("\n");
-	IV = malloc(sizeof(char) * strlen(iv));
 	strcpy(IV,iv);
 }
 

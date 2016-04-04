@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 //TODO change constants
-#define MAX_CHAR 26 - 1 // n - 1 because of index; Change n to be the longest node name
+#define MAX_CHAR 18 - 1 // n - 1 because of index; Change n to be the longest node name
 #define X 40
 #define Y 235
 #define INCR 20 // Change this so that MAX_CHAR letters fits

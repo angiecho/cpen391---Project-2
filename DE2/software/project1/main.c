@@ -6,11 +6,13 @@
 #include "sys/alt_irq.h"
 #include <system.h>
 #include <assert.h>
+#include <unistd.h>
 
 typedef enum {
 	start,
 	get_header,
 	rx_message,
+	acknowledge,
 	tx_message,
 	init
 } Stage;
@@ -20,8 +22,7 @@ volatile Stage stage;
 volatile char sender, receiver;
 volatile char* msg;
 volatile int msg_index;
-char bt = 0;
-volatile int count;
+volatile char bt = 0;
 
 void get_sender_receiver(char ids){
 	receiver = ids & 0x0f;
@@ -39,9 +40,9 @@ void interruptHandler(void){
 		printf("ENQ: %d\n", (int)bt);
 		if (bt == ENQ){
 			printf ("got ENQ\n");
-			//do_pop();
+			//do_pop(); TODO: COMMENT OUT THE 3 LINES BELOW WHEN USING KEYBOARD
 			key = "abcdefghijklmnop";
-			get_key(); //Use when you don't want to use the touchscreen. Comment out do_pop
+			get_key();
 			gen_iv();
 			stage = get_header;
 		}
@@ -65,18 +66,34 @@ void interruptHandler(void){
 
 		msg[msg_index] = '\0';
 		stage = tx_message;
+		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
+		break;
+
+	case acknowledge:
+		putCharBluetooth(ACK);
+		usleep(ACK_DURATION);
+		bt = getCharBluetooth();
+		if(bt == ACK){
+			stage = tx_message;
+		}
+		else{
+			stage = init; // TODO: CHANGE THIS TO STORE THE MESSAGE IN THE DATABASE AND NOTIFY THE RECEIVER UPON LOGIN
+		}
 		break;
 
 	case tx_message:
 		sendMessage(msg_index, receiver, sender, msg);
 		free(msg);
 		free(IV);
+		free(key);
 		stage = init;
 		break;
 
 	case init:
 		msg_index = 0;
-		msg = malloc(MAX_LENGTH+1);
+		key = malloc(sizeof(char)*BLK_SIZE);
+		IV = malloc(sizeof(char)*BLK_SIZE);
+		msg = malloc(BLK_SIZE+1);
 		receiver = 0;
 		sender = 0;
 		stage = start;

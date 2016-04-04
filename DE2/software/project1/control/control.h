@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "button.h"
 
-#define MAX_LENGTH 140
+#define BLK_SIZE 16
 #define SOH 1
 #define STX 2
 #define ETX 3
@@ -14,6 +14,8 @@
 #define ENQ 5
 #define ACK 6
 #define BEL 7
+
+#define ACK_DURATION 5000000
 
 char* getMessage(unsigned* length, char* receiver, char* sender);
 char* getMessage2(unsigned* length, char* receiver, char* sender);

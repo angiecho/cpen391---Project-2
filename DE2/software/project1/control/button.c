@@ -297,7 +297,6 @@ void do_enter(){
 		key_sent = false;
 	}
 	else {
-		key = query_string;
 		get_key();
 		gen_iv();
 		key_sent = true;
