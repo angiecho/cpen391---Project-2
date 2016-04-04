@@ -37,6 +37,7 @@ public class Login extends AppCompatActivity {
         else{
             finish();
         }
+
         setContentView(R.layout.activity_login);
     }
 

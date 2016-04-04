@@ -10,14 +10,23 @@
     android:id="@+id/parentLayoutPanel">
 
 
-
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:gravity="center"
+        android:layout_height="74dp"
+        android:background="@color/primary_material_light"
+        android:elevation="4dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/chat_name"
-        android:orientation="vertical">
-    </LinearLayout>
+        android:layout_gravity="center_horizontal"
+        android:textSize="30dp"
+        android:layout_marginBottom="50dp"
+        android:padding="20dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textIsSelectable="false" />
+
     <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"
         android:layout_height="0dp"
@@ -49,20 +58,14 @@
             android:maxLines="10"
             android:hint="@string/edit_message" />
 
-        <Button
+        <ImageButton
+            android:background="@drawable/send"
             android:id="@+id/send_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="68dp"
+            android:layout_height="45dp"
             android:text="@string/button_send"
-            android:layout_weight="0.1"
             android:onClick="sendMessage" />
-        <Button
-            android:id="@+id/receive_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/button_receive"
-            android:layout_weight="0.1"
-            android:onClick="receiveMessage"/>
+
     </LinearLayout>
 
 </LinearLayout>
