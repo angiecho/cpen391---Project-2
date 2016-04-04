@@ -299,27 +299,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void getIV() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        //readBuffer[readBufferPosition++] = bite;
-        byte[] encodedBytes = new byte[readBufferPosition];
-        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-        iv  = new String(encodedBytes, FORMAT);
-        System.out.println("\nIV is: " + iv);
+        iv = byteArrToString(readBuffer, readBufferPosition);
         readBufferPosition = 0;
     }
 
     private void getKey() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        //readBuffer[readBufferPosition++] = bite;
-        byte[] encodedBytes = new byte[readBufferPosition];
-        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
-        System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-        System.out.println("The length of encoded bytes is: " + encodedBytes.length);
-        key = new String(encodedBytes, FORMAT);
-        for (int j = 0; j < encodedBytes.length; j++){
-            System.out.println(encodedBytes[j]);
-        }
-        System.out.println("\nKey is : " + key);
+        key = byteArrToString(readBuffer, readBufferPosition);
         readBufferPosition = 0;
+    }
+
+    private String byteArrToString(byte[] bytes, int bytesLength)
+                throws UnsupportedEncodingException{
+        byte[] encodedBytes = new byte[bytesLength];
+        System.arraycopy(bytes, 0, encodedBytes, 0, encodedBytes.length);
+        return new String(encodedBytes, FORMAT);
     }
 
     @Override
