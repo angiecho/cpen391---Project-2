@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
     private void handleEndOfMessage() throws  UnsupportedEncodingException{
         // need key, iv, header(1 byte), and message(1 >= bytes)
         assert (readBufferPosition > (KEY_IV_SIZE*2)+2 );
-
+        System.out.println("Got a new message " + readBufferPosition);
         byte[] keyBytes = new byte[KEY_IV_SIZE];
         byte[] ivBytes = new byte[KEY_IV_SIZE];
         byte sender_receiver;
