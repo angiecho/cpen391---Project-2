@@ -216,9 +216,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (bite == delimiter) {
             handleEndOfMessage();
-        } else if(bite == keyDelimiter && readBufferPosition > 1) {
+        } else if(bite == keyDelimiter) {
             getKey();
-        } else if(bite == ivDelimiter && readBufferPosition > 1) {
+        } else if(bite == ivDelimiter) {
             getIV();
         } else {
             readBuffer[readBufferPosition++] = bite;
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleEndOfMessage(){
-        assert (readBufferPosition > 1);
+        assert (readBufferPosition > 0);
 
         final Handler handler = new Handler();
 
@@ -298,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getIV() throws UnsupportedEncodingException{
+        assert (readBufferPosition > 0);
         //readBuffer[readBufferPosition++] = bite;
         byte[] encodedBytes = new byte[readBufferPosition];
         System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
@@ -307,6 +308,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getKey() throws UnsupportedEncodingException{
+        assert (readBufferPosition > 0);
         //readBuffer[readBufferPosition++] = bite;
         byte[] encodedBytes = new byte[readBufferPosition];
         System.out.println("The length of encoded bytes is: " + encodedBytes.length);
