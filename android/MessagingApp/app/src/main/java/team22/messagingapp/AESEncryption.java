@@ -18,12 +18,7 @@ class AESEncryption {
 
         Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, keyspec, ivspec);
-        System.out.println("Cipher initialized to encrypt");
-
-        byte[] ciphr = cipher.doFinal(text.getBytes(FORMAT));
-        print_cipher(ciphr, ciphr.length);
-
-        return ciphr;
+        return cipher.doFinal(text.getBytes(FORMAT));
     }
 
     public static String decrypt(byte[] text, String key, String iv) throws Exception{

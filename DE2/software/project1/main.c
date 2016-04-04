@@ -64,7 +64,11 @@ void interruptHandler(void){
 		}
 
 		msg[msg_index] = '\0';
-		printf("msg:\n %s\n", msg);
+		printf("msg:\n");
+		for (int i = 0; i<msg_index; i++){
+			printf("%d ", (int)msg[i]);
+		}
+		printf("\n");
 		stage = tx_message;
 		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
 		break;
@@ -82,7 +86,9 @@ void interruptHandler(void){
 		break;
 
 	case tx_message:
-		sendMessage(msg_index, receiver, sender, msg);
+		//TODO switch this -> it just echoes message back
+		sendMessage(msg_index, sender, receiver, msg);
+		//sendMessage(msg_index, receiver, sender, msg);
 		free(msg);
 		free(IV);
 		free(key);

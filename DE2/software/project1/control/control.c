@@ -106,22 +106,24 @@ char* getMessage2(unsigned* length, char* receiver, char* sender){
 }
 
 bool sendMessage(unsigned length, char receiver, char sender, char* msg){
-	printf("Sending: ");
+	printf("Sending: \n");
 	for (int i = 0; i<strlen(key); i++){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
+
 	printf("\n");
 
 	for (int i = 0; i<strlen(IV); i++){
 		printf("%c", IV[i]);
 		putCharBluetooth(IV[i]);
 	}
+	//keys/ivs are always 16 bits, and placed at front of incoming message,
+	//so we do not require the ETX/STX delimiters here
 	printf("\n");
 
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
-	//putCharBluetooth((char)length);
 
 	for(int i = 0; i<length; i++){
 		printf("%d ", msg[i]);

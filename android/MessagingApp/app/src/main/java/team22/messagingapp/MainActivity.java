@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.Long;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private InputStream inputStream;
     private BluetoothSocket socket;
 
-    private static volatile String key;
-    private static volatile String iv;
+    private static volatile String keyRequested;
+    private static volatile String ivRequested;
+    private static final int KEY_IV_SIZE = 16;
 
     private static final String SENDER = "sender";
     private static final String RECIPIENT = "recipient";
@@ -227,36 +227,50 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void handleEndOfMessage(){
-        assert (readBufferPosition > 0);
+    private void handleEndOfMessage() throws  UnsupportedEncodingException{
+        // need key, iv, header(1 byte), and message(1 >= bytes)
+        assert (readBufferPosition > (KEY_IV_SIZE*2)+2 );
 
-        byte[] encodedBytes = new byte[readBufferPosition];
-        System.arraycopy(readBuffer, 1, encodedBytes, 0, encodedBytes.length);
+        byte[] keyBytes = new byte[KEY_IV_SIZE];
+        byte[] ivBytes = new byte[KEY_IV_SIZE];
+        byte sender_receiver;
+        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)];
+
+        System.arraycopy(readBuffer, 0, keyBytes, 0, KEY_IV_SIZE);
+        System.arraycopy(readBuffer, KEY_IV_SIZE, ivBytes, 0, KEY_IV_SIZE);
+        sender_receiver = readBuffer[KEY_IV_SIZE*2];
+        System.arraycopy(readBuffer, KEY_IV_SIZE*2+1, encodedBytes, 0, encodedBytes.length);
+
+        String keyReceived = byteArrToString(keyBytes, KEY_IV_SIZE);
+        String ivReceived = byteArrToString(ivBytes, KEY_IV_SIZE);
+        System.out.println("Key received: " + keyReceived);
+        System.out.println("IV received: " + ivReceived);
 
         AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
 
-        System.out.println("We have " + encodedBytes.length + " bytes!");
+        final int chunkSize = 16;
 
-        int chunkNumber = (int)Math.ceil(encodedBytes.length/16);
-        System.out.println("We have " + chunkNumber + " chunks!");
-        byte[][] byteChunks = new byte[chunkNumber][16];
-        int start = 0;
-        for(int j = 0; j < chunkNumber; j++) {
-            if(start + 16 > encodedBytes.length) {
-                System.arraycopy(encodedBytes, start, byteChunks[j], 0, encodedBytes.length - start);
-            } else {
-                System.arraycopy(encodedBytes, start, byteChunks[j], 0, 16);
-            }
-            start += 16;
+        // we expect this to be padded
+        assert (encodedBytes.length % chunkSize == 0);
+        int numChunks = encodedBytes.length/chunkSize;
+        System.out.println("We have " + encodedBytes.length + " bytes!");
+        System.out.println("We have " + numChunks + " chunks!");
+
+        byte[][] byteChunks = new byte[numChunks][16];
+        int curr = 0;
+
+        for(int currChunk = 0; currChunk < numChunks; currChunk++) {
+            int length = Math.min(chunkSize, encodedBytes.length - curr);
+            System.arraycopy(encodedBytes, curr, byteChunks[currChunk], 0, length);
+            curr += chunkSize;
         }
-        String[] decodedByteChunks = new String[chunkNumber];
-        System.out.println("Key: " + key);
-        System.out.println("IV: " + iv);
+
+        String[] decodedByteChunks = new String[numChunks];
 
         for (int j = 0; j < byteChunks.length; j++){
             try {
-                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], key, iv);
-                System.out.println("Decoded byte: " + decodedByteChunks[j]);
+                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], keyReceived, ivReceived);
+                System.out.print("Decoded byte: " + decodedByteChunks[j]);
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -266,12 +280,10 @@ public class MainActivity extends AppCompatActivity {
         for(String s : decodedByteChunks) {
             builder.append(s);
         }
-        final String data = builder.toString();
-        System.out.println(data);
-        System.out.println("S/R is " + readBuffer[0]);
+        final String data = builder.toString().trim();
 
-        final int receiver_id = 0b00001111 & readBuffer[0];
-        final int sender_id = 0b00001111 & (readBuffer[0] >>> 4);
+        final int receiver_id = 0xf & sender_receiver;
+        final int sender_id = sender_receiver >>> 4;
 
         System.out.println("Receiver ID is: " + receiver_id);
         System.out.println("Sender ID is: " + sender_id);
@@ -298,13 +310,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void getIV() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        iv = byteArrToString(readBuffer, readBufferPosition);
+        ivRequested = byteArrToString(readBuffer, readBufferPosition);
         readBufferPosition = 0;
     }
 
     private void getKey() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        key = byteArrToString(readBuffer, readBufferPosition);
+        keyRequested = byteArrToString(readBuffer, readBufferPosition);
         readBufferPosition = 0;
     }
 
@@ -507,40 +519,34 @@ public class MainActivity extends AppCompatActivity {
     private void sendMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
-            outputStream.write(ENQ); //This is a way to say "Give me key/iv!"
+            outputStream.write(ENQ); //request key, iv from DE2
 
             System.out.println("Waiting for TS and GPS");
-            while (key == null || iv == null);
-            System.out.println("Key: " + key);
-            System.out.println("IV: " + iv);
+            while (keyRequested == null || ivRequested == null);
+            System.out.println("Key requested: " + keyRequested);
+            System.out.println("IV requested: " + ivRequested);
 
             outputStream.write(messageHeader);
-            try {
-                ArrayList<String> stringChunks = new ArrayList<>();
-                System.out.println("Beginning encryption...");
-                for (int start = 0; start < message.length(); start += 16) {
-                    stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
-                }
-                System.out.println("Continuing encryption...");
-                System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
-                for (int start = 0; start < stringChunks.size(); start++){
-                    String paddedMessage = String.format("%1$16s", stringChunks.get(start));
-                    System.out.println("padded message: " + paddedMessage);
-                    byte [] cipher = AESEncryption.encrypt(paddedMessage, key, iv);
-                    AESEncryption.print_cipher(cipher, cipher.length);
-                    outputStream.write(cipher);
-                }
-                System.out.println("Finished sending encrypted!");
 
-                //outputStream.write(0);
-                key = null;
-                iv = null;
-                //outputStream.write(3);
-
-            } catch(Exception e) {
-                e.printStackTrace();
+            ArrayList<String> stringChunks = new ArrayList<>();
+            for (int start = 0; start < message.length(); start += 16) {
+                stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
             }
-        }catch (IOException e){
+
+            System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
+            for (int start = 0; start < stringChunks.size(); start++){
+                String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                System.out.println("padded message: " + paddedMessage);
+                byte[] cipher = AESEncryption.encrypt(paddedMessage, keyRequested, ivRequested);
+                AESEncryption.print_cipher(cipher, cipher.length);
+                outputStream.write(cipher);
+            }
+            System.out.println("Finished sending encrypted!");
+
+            keyRequested = null;
+            ivRequested = null;
+
+        } catch (Exception e){
             e.printStackTrace();
         }
     }
