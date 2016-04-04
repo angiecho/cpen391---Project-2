@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLUE = 0xff000000;
     private static final Integer WIDTH = 300;
     private static final Integer TEXT_SIZE = 50;
+    private static final Integer ENQ = 5;
 
     Thread workerThread;
     byte[] readBuffer;
@@ -502,13 +503,13 @@ public class MainActivity extends AppCompatActivity {
     private void sendMessageBluetooth(String message, int messageHeader){
         System.out.println("Attempting to send message!");
         try {
-            outputStream.write(5); //This is a way to say "Give me key/iv!"
+            outputStream.write(ENQ); //This is a way to say "Give me key/iv!"
 
             System.out.println("Waiting for TS and GPS");
             while (key == null || iv == null);
             System.out.println("Key:" + key);
             System.out.println("IV:" + iv);
-            outputStream.write(2);
+            //outputStream.write(2);
             outputStream.write(messageHeader);
             try {
                 ArrayList<String> stringChunks = new ArrayList<>();
@@ -527,10 +528,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 System.out.println("Finished sending encrypted!");
 
-                outputStream.write(0);
+                //outputStream.write(0);
                 key = null;
                 iv = null;
-                outputStream.write(3);
+                //outputStream.write(3);
 
             } catch(Exception e) {
                 e.printStackTrace();
