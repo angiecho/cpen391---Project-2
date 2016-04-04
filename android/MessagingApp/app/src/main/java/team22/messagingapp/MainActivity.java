@@ -189,8 +189,7 @@ public class MainActivity extends AppCompatActivity {
                             if (bytesAvailable > 0) {
                                 byte[] packetBytes = new byte[bytesAvailable];
                                 inputStream.read(packetBytes);
-                                for (int i = 0; i < bytesAvailable; i++) {
-                                    byte bite = packetBytes[i];
+                                for (byte bite : packetBytes) {
                                     handleBite(bite);
                                 }
                             }
