@@ -167,8 +167,6 @@ C_SRCS += tests/btree_test.c
 C_SRCS += tests/general_tests.c
 C_SRCS += bluetooth/bluetooth.c
 C_SRCS += aes/aes.c
-C_SRCS += .metadata/.plugins/org.eclipse.cdt.make.core/specs.c
-CXX_SRCS := .metadata/.plugins/org.eclipse.cdt.make.core/specs.cpp
 ASM_SRCS :=
 
 
