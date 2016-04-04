@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], keyReceived, ivReceived);
                 System.out.print("Decoded byte: " + decodedByteChunks[j]);
-            }catch(Exception e){
+            } catch(Exception e){
                 e.printStackTrace();
             }
         }
@@ -286,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
                     insertReceivedMessageToView(data, false, date);
                 } else {
                     //check if volume
-
                     String author = getSenderName(sender_id);
                     showNotification(data, author);
                 }

@@ -90,15 +90,13 @@ void interruptHandler(void){
 		sendMessage(msg_index, sender, receiver, msg);
 		//sendMessage(msg_index, receiver, sender, msg);
 		free(msg);
-		free(IV);
-		free(key);
 		stage = init;
 		break;
 
 	case init:
 		msg_index = 0;
-		key = malloc(sizeof(char)*BLK_SIZE);
-		IV = malloc(sizeof(char)*BLK_SIZE);
+		key = malloc(BLK_SIZE);
+		IV = malloc(BLK_SIZE);
 		msg = malloc(BLK_SIZE+1);
 		receiver = 0;
 		sender = 0;
