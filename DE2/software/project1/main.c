@@ -36,7 +36,7 @@ void interruptHandler(void){
 	case start:
 		printf("*start*\n");
 		bt = getCharBluetooth();
-		printf("%c\n", bt);
+		printf("ENQ: %d\n", (int)bt);
 		if (bt == ENQ){
 			printf ("got ENQ\n");
 			//do_pop();
@@ -48,37 +48,26 @@ void interruptHandler(void){
 		break;
 
 	case get_header:
-		bt = getCharBluetooth();
-		printf("%c\n", bt);
-		if (bt == STX){
-			get_sender_receiver(getCharBluetooth());
-			printf("got STX\n");
-			stage = rx_message;
-			printf("cipher: ");
-		}
+		receiver = getCharBluetooth();
+		printf("Receiver: %d\n", (int)receiver);
+		sender = getCharBluetooth();
+		printf("Sender: %d\n", (int)sender);
+		stage = rx_message;
+
 		break;
 
 	case rx_message:
-		count = 0;
-		while(count < 18){
+		while(msg_index < 16){
 			bt = getCharBluetooth();
-			printf("%d ", (int)bt);
-			if (bt==ETX){
-				printf("\n");
-				printf("got ETX\n");
-				msg[msg_index] = '\0';
-				stage = tx_message;
-			}
-			else {
-				msg[msg_index] = bt;
-				msg_index++;
-			}
-			count++;
+			msg[msg_index] = bt;
+			msg_index++;
 		}
+
+		msg[msg_index] = '\0';
+		stage = tx_message;
 		break;
 
 	case tx_message:
-		printf("naiof");
 		sendMessage(msg_index, receiver, sender, msg);
 		free(msg);
 		free(IV);

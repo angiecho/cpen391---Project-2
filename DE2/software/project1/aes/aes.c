@@ -17,7 +17,6 @@ void get_key(){
 	for (int i = 0; i < 16; i++){
 		putCharBluetooth(key[i]);
 	}
-	putCharBluetooth(STX);
 	printf ("Key: %s\n", key);
 }
 
@@ -38,7 +37,6 @@ void gen_iv(void){
 		putCharBluetooth(iv[i]);
 	}
 	printf("\n");
-	putCharBluetooth(ETX);
 	IV = malloc(sizeof(char) * strlen(iv));
 	strcpy(IV,iv);
 }

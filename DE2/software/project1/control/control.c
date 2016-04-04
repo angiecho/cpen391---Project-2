@@ -112,14 +112,12 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 		putCharBluetooth(key[i]);
 	}
 	printf("\n");
-	putCharBluetooth(STX);
 
 	for (int i = 0; i<strlen(IV); i++){
 		printf("%c", IV[i]);
 		putCharBluetooth(IV[i]);
 	}
 	printf("\n");
-	putCharBluetooth(ETX);
 
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
@@ -142,14 +140,12 @@ bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
 		putCharBluetooth2(key[i]);
 	}
 	printf("\n");
-	putCharBluetooth2(STX);
 
 	for (int i = 0; i<strlen(IV); i++){
 		printf("%c", IV[i]);
 		putCharBluetooth2(IV[i]);
 	}
 	printf("\n");
-	putCharBluetooth2(ETX);
 
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth2(sender_receiver);
