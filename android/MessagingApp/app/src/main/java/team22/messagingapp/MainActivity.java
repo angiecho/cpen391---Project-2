@@ -24,20 +24,12 @@ import android.widget.TextView;
 import android.database.sqlite.*;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase messages;
-    private BluetoothAdapter BA;
     private OutputStream outputStream;
     private InputStream inputStream;
     private BluetoothSocket socket;
@@ -70,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
         public Date date;
 
         public Message(String text, boolean sent, String date){
-            System.out.println("Creating with " + text);
             this.text = text;
             this.sent = sent;
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -253,8 +244,7 @@ public class MainActivity extends AppCompatActivity {
         // we expect this to be padded
         assert (encodedBytes.length % chunkSize == 0);
         int numChunks = encodedBytes.length/chunkSize;
-        System.out.println("We have " + encodedBytes.length + " bytes!");
-        System.out.println("We have " + numChunks + " chunks!");
+        System.out.println("Received " + encodedBytes.length + " bytes");
 
         byte[][] byteChunks = new byte[numChunks][16];
         int curr = 0;
@@ -284,9 +274,6 @@ public class MainActivity extends AppCompatActivity {
 
         final int receiver_id = 0xf & sender_receiver;
         final int sender_id = sender_receiver >>> 4;
-
-        System.out.println("Receiver ID is: " + receiver_id);
-        System.out.println("Sender ID is: " + sender_id);
 
         final Date date = insertMessageToDatabase(sender_id, receiver_id, data);
 
@@ -407,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
         //get id of contact accessed
         System.out.println("Attempting to load message history...");
         int recipient_id = getCurrentReceiver();
+
         int sender_id = getCurrentSender();
 
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
@@ -517,7 +505,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Helper fcn for sending message bytes to bluetooth.
     private void sendMessageBluetooth(String message, int messageHeader){
-        System.out.println("Attempting to send message!");
         try {
             outputStream.write(ENQ); //request key, iv from DE2
 
@@ -533,15 +520,12 @@ public class MainActivity extends AppCompatActivity {
                 stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
             }
 
-            System.out.println("Need to encrypt " + stringChunks.size() + " chunks");
             for (int start = 0; start < stringChunks.size(); start++){
                 String paddedMessage = String.format("%1$16s", stringChunks.get(start));
-                System.out.println("padded message: " + paddedMessage);
                 byte[] cipher = AESEncryption.encrypt(paddedMessage, keyRequested, ivRequested);
                 AESEncryption.print_cipher(cipher, cipher.length);
                 outputStream.write(cipher);
             }
-            System.out.println("Finished sending encrypted!");
 
             keyRequested = null;
             ivRequested = null;
