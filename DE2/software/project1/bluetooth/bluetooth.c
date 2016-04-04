@@ -118,17 +118,3 @@ void assignBluetooth(char* name, char* pw){
 	changePassword(pw);
 	dataMode();
 }
-
-<<<<<<< HEAD
-bool getCommand(void){
-	printf("%c\n", getCharBluetooth());
-	if ((int)getCharBluetooth() == 1){
- 		return true;
- 	}
-	else return false;
-}
-
-
-
-=======
->>>>>>> sendmsg

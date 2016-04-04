@@ -215,7 +215,7 @@ void do_dir(){
 	}
 	draw_information_box("PLEASE SELECT DESTINATION");
 
-	end_node = get_node(full_map_graph);
+	//end_node = get_node(full_map_graph);
 	if (end_node == -1){
 		DIR_BUTT.prs_p(DIR_BUTT);
 		//about_screen();
