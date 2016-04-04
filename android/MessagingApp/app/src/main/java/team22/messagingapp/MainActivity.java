@@ -507,8 +507,8 @@ public class MainActivity extends AppCompatActivity {
 
             System.out.println("Waiting for TS and GPS");
             while (key == null || iv == null);
-            System.out.println("Key:" + key);
-            System.out.println("IV:" + iv);
+            System.out.println("Key: " + key);
+            System.out.println("IV: " + iv);
             //outputStream.write(2);
             outputStream.write(messageHeader);
             try {
