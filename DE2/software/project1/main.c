@@ -10,7 +10,6 @@
 
 typedef enum {
 	start,
-	get_header,
 	rx_message,
 	acknowledge,
 	tx_message,
@@ -44,31 +43,25 @@ void interruptHandler(void){
 			key = "abcdefghijklmnop";
 			get_key();
 			gen_iv();
-			stage = get_header;
+			stage = rx_message;
 		}
 		break;
 
-	case get_header:
-		ids = getCharBluetooth();
-		get_sender_receiver(ids);
-		printf("Receiver: %d\n", (int)receiver);
-		printf("Sender: %d\n", (int)sender);
-		stage = rx_message;
-		break;
-
 	case rx_message:
+		ids = getCharBluetooth();
+		printf("msg:\n");
 		while(msg_index < 16){
 			bt = getCharBluetooth();
+			printf("%d ", bt);
 			msg[msg_index] = bt;
 			msg_index++;
 		}
 
 		msg[msg_index] = '\0';
-		printf("msg:\n");
-		for (int i = 0; i<msg_index; i++){
-			printf("%d ", (int)msg[i]);
-		}
 		printf("\n");
+		get_sender_receiver(ids);
+		printf("Receiver: %d\n", (int)receiver);
+		printf("Sender: %d\n", (int)sender);
 		stage = tx_message;
 		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
 		break;

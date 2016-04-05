@@ -12,7 +12,6 @@ class AESEncryption {
 
     // requires 16 bytes key and iv
     public static byte[] encrypt(String text, String key, String iv) throws Exception {
-        System.out.println("Key:" + key + ", IV:" + iv);
         SecretKeySpec keyspec = new SecretKeySpec(key.getBytes(FORMAT), "AES");
         IvParameterSpec ivspec = new IvParameterSpec(iv.getBytes(FORMAT));
 
