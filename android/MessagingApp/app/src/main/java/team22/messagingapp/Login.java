@@ -131,6 +131,7 @@ public class Login extends AppCompatActivity {
         try {
             if (inputStream.available() > 0){
                 inputStream.read(validID);
+                System.out.println("Got back: " + validID);
             }
             if (validID[0] == 1)
                 return true;
@@ -143,14 +144,17 @@ public class Login extends AppCompatActivity {
         }
     }
 
-    private void sendID(String user){
+    private void sendID(String user) {
         Integer ID = Login.getUserID(user);
         System.out.println("Logging in:" + ID + "\n");
         connectBT();
-        try {
-            outputStream.write(ID);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (outputStream != null) {
+            try {
+                System.out.println("Sending ID!\n");
+                outputStream.write(ID);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
