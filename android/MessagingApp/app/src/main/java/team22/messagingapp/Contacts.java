@@ -14,15 +14,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class Contacts extends AppCompatActivity {
-    private OutputStream outputStream;
+    private static OutputStream outputStream;
     private static final Integer EOT = 4;
-    private String User;
+    private static String User;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
-        removeUser();
+        removeUser();   // Remove current user from contact list
     }
 
     private void removeUser() {
@@ -44,6 +44,8 @@ public class Contacts extends AppCompatActivity {
 
     public void logout(View view) {
         Integer ID = Login.getUserID(User);
+        System.out.println("Logging out:" + ID + "\n");
+        connectBT();
         try {
             for (int i = 0; i < 3; i++) {
                 outputStream.write(EOT);
@@ -56,8 +58,10 @@ public class Contacts extends AppCompatActivity {
         startActivity(loginScreen);
     }
 
-
-    private void connect(){
+    /*  Code duplicate. Login.java and Contacts.java
+        Function cannot be shared due to Activity classes.
+     */
+   private void connectBT(){
         BluetoothSocket socket = ((MessagingApplication) getApplication()).getSocket();
         if (!socket.isConnected()){
             try {

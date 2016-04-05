@@ -20,16 +20,18 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
 public class Login extends AppCompatActivity {
+    private OutputStream outputStream;
+    private InputStream inputStream;
+
     public static final String KEY_ID = "_id";
     public static final String KEY_USERNAME= "username";
     public static final String KEY_PASSWORD = "password";
-    private static final String TAG = "DBAdapter";
-
     private static final String DATABASE_NAME = "usersdb";
     private static final String DATABASE_TABLE = "users";
 
@@ -56,9 +58,6 @@ public class Login extends AppCompatActivity {
         db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
        // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-//        AddUser("caleb", "0003", 1);
-//        AddUser("charles","0001", 2);
-//        AddUser("cho","0002", 3);
 
         setContentView(R.layout.activity_login);
     }
@@ -104,12 +103,19 @@ public class Login extends AppCompatActivity {
             if(userID.length() > 0 && userPIN.length() >0) {
                 if(checkLogin(userID, userPIN))
                 {
-                    Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
-                    Intent contacts = new Intent(this, Contacts.class);
-                    contacts.putExtra("username",userID);
+                    if (notLoggedIn(userID)) {
+                        Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
+                        Intent contacts = new Intent(this, Contacts.class);
+                        contacts.putExtra("username", userID);
+                        startActivity(contacts);
+                    }
+                    else
+                        Toast.makeText(Login.this, "Unable to login", Toast.LENGTH_LONG).show();
+
                     mUser.setText("");
                     mPin.setText("");
-                    startActivity(contacts);
+                    connectBT();
+
                 }else{
                     Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
                 }
@@ -117,6 +123,51 @@ public class Login extends AppCompatActivity {
 
         }catch(Exception e){
             Toast.makeText(Login.this, "Invalid login", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private Boolean notLoggedIn(String user){
+        sendID(user);
+        byte[]validID = new byte[1];
+        try {
+            if (inputStream.available() > 0){
+                inputStream.read(validID);
+            }
+            if (validID[0] == 1)
+                return true;
+            else
+                return false;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void sendID(String user){
+        Integer ID = Login.getUserID(user);
+        System.out.println("Logging in:" + ID + "\n");
+        connectBT();
+        try {
+            outputStream.write(ID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void connectBT(){
+        BluetoothSocket socket = ((MessagingApplication) getApplication()).getSocket();
+        if (!socket.isConnected()){
+            try {
+                socket.connect();
+                outputStream = socket.getOutputStream();
+                inputStream = socket.getInputStream();
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            outputStream = ((MessagingApplication) getApplication()).getOutputStream();
+            inputStream = ((MessagingApplication) getApplication()).getInputStream();
         }
     }
 
