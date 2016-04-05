@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private static volatile String ivRequested;
     private static final int KEY_IV_SIZE = 16;
 
-    private static final String SENDER = "sender";
+    public static final String SENDER = "sender";
     private static final String RECIPIENT = "recipient";
     private static final String MESSAGE_TEXT = "message_text";
     private static final String MESSAGE_DATE = "message_date";
@@ -671,6 +671,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return stringbuilder.toString();
     }
-
-
 }

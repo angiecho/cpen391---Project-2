@@ -4,8 +4,13 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,10 +20,23 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
 public class Login extends AppCompatActivity {
+    private OutputStream outputStream;
+    private InputStream inputStream;
+
+    public static final String KEY_ID = "_id";
+    public static final String KEY_USERNAME= "username";
+    public static final String KEY_PASSWORD = "password";
+    private static final String DATABASE_NAME = "usersdb";
+    private static final String DATABASE_TABLE = "users";
+
+    private static SQLiteDatabase db;
+
     EditText mUser;
     EditText mPin;
     @Override
@@ -37,29 +55,124 @@ public class Login extends AppCompatActivity {
         else{
             finish();
         }
-
+        db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+       // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
+        db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
+//        AddUser("caleb", "0003", 1);
+//        AddUser("charles", "0001", 2);
+//        AddUser("cho", "0002", 3);
         setContentView(R.layout.activity_login);
+    }
+
+    public long AddUser(String username, String password, Integer ID) {
+        ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_USERNAME, username);
+        initialValues.put(KEY_PASSWORD, password);
+        initialValues.put(KEY_ID, ID);
+        return db.insert(DATABASE_TABLE, null, initialValues);
+    }
+
+    public boolean checkLogin(String username, String password) throws SQLException {
+        String columns[] = {KEY_USERNAME, KEY_PASSWORD};
+        String args[] = {username, password};
+        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=? AND password=?", args, null, null, null, String.valueOf(3));
+        if (mCursor != null) {
+            if(mCursor.getCount() > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Integer getUserID(String user){
+        String columns[] = {KEY_USERNAME, KEY_ID};
+        String args[] = {user};
+        Integer ID = -1;
+        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=?", args, null, null, null, String.valueOf(3));
+        if (mCursor.moveToFirst()) {
+             ID = mCursor.getInt(mCursor.getColumnIndexOrThrow(KEY_ID));
+        }
+        return ID;
     }
 
     public void login(View view){
         mUser = (EditText)findViewById(R.id.username);
         mPin = (EditText)findViewById(R.id.pin);
         String userID = mUser.getText().toString();
-        //String userPIN = mPin.getText().toString();
+        String userPIN = mPin.getText().toString();
+        try{
+            if(userID.length() > 0 && userPIN.length() >0) {
+                if(checkLogin(userID, userPIN))
+                {
+                    if (notLoggedIn(userID)) {
+                        Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
+                        Intent contacts = new Intent(this, Contacts.class);
+                        contacts.putExtra("username", userID);
+                        startActivity(contacts);
+                    }
+                    else
+                        Toast.makeText(Login.this, "Unable to login", Toast.LENGTH_LONG).show();
 
-        int resID = getResources().getIdentifier(userID, "id", getPackageName());
-        if (resID < 1){
-            Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
+                    mUser.setText("");
+                    mPin.setText("");
+                    connectBT();
+
+                }else{
+                    Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
+                }
+            }
+
+        }catch(Exception e){
+            Toast.makeText(Login.this, "Invalid login", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private Boolean notLoggedIn(String user){
+        sendID(user);
+        byte[]validID = new byte[1];
+        try {
+            inputStream.read(validID);
+            if (validID[0] == 1) {
+                System.out.println("Got back: " + validID[0]);
+                return true;
+            }
+            else
+                return false;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void sendID(String user) {
+        Integer ID = Login.getUserID(user);
+        System.out.println("Logging in:" + ID + "\n");
+        connectBT();
+        if (outputStream != null) {
+            try {
+                System.out.println("Sending ID!\n");
+                outputStream.write(ID);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void connectBT(){
+        BluetoothSocket socket = ((MessagingApplication) getApplication()).getSocket();
+        if (!socket.isConnected()){
+            try {
+                socket.connect();
+                outputStream = socket.getOutputStream();
+                inputStream = socket.getInputStream();
+            } catch(IOException e){
+                e.printStackTrace();
+            }
         }
         else {
-
-            Intent chatWindow = new Intent(this, Contacts.class);
-            chatWindow.putExtra("resUser", resID);
-            chatWindow.putExtra("username",userID);
-            mUser.setText("");
-            mPin.setText("");
-
-            startActivity(chatWindow);
+            outputStream = ((MessagingApplication) getApplication()).getOutputStream();
+            inputStream = ((MessagingApplication) getApplication()).getInputStream();
         }
     }
 
@@ -98,10 +211,6 @@ public class Login extends AppCompatActivity {
                         if (socket.isConnected()) {
                             System.out.println("Connected to socket!");
                             ((MessagingApplication) getApplication()).setBluetoothInformation(device, socket);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                            //((MessagingApplication) getApplication()).getOutputStream().write(65);
-
                         }
                         else {
                             System.out.println("Could not connect to socket!");

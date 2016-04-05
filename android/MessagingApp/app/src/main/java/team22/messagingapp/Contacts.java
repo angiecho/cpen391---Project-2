@@ -8,31 +8,72 @@ import android.R.id;
 import android.content.Intent;
 import android.widget.Button;
 import android.widget.Toast;
+import android.bluetooth.BluetoothSocket;
 
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class Contacts extends AppCompatActivity {
+    private static OutputStream outputStream;
+    private static final Integer EOT = 4;
+    private static String User;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
-        checkUser();
+        removeUser();   // Remove current user from contact list
     }
 
-    public void checkUser(){
+    private void removeUser() {
         Bundle loginBundle = getIntent().getExtras();
-        int user = loginBundle.getInt("resUser");
-        View userButton = findViewById(user);
+        User = loginBundle.getString("username");
+        int resID = getResources().getIdentifier(User, "id", getPackageName());
+        View userButton = findViewById(resID);
         ViewGroup parent = (ViewGroup) userButton.getParent();
         parent.removeView(userButton);
     }
 
-    public void openChat(View view){
+    public void openChat(View view) {
         String chatWith = view.getTag().toString();
-        Intent chatWindow = new Intent (this, MainActivity.class);
+        Intent chatWindow = new Intent(this, MainActivity.class);
         chatWindow.putExtra("receiver", chatWith);
         chatWindow.putExtra("senderName", getIntent().getExtras().getString("username"));
         startActivity(chatWindow);
     }
 
+    public void logout(View view) {
+        Integer ID = Login.getUserID(User);
+        System.out.println("Logging out:" + ID + "\n");
+        connectBT();
+        try {
+            for (int i = 0; i < 3; i++) {
+                outputStream.write(EOT);
+            }
+            outputStream.write(ID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Intent loginScreen = new Intent(this, Login.class);
+        startActivity(loginScreen);
+    }
+
+    /*  Code duplicate. Login.java and Contacts.java
+        Function cannot be shared due to Activity classes.
+     */
+   private void connectBT(){
+        BluetoothSocket socket = ((MessagingApplication) getApplication()).getSocket();
+        if (!socket.isConnected()){
+            try {
+                socket.connect();
+                outputStream = socket.getOutputStream();
+
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            outputStream = ((MessagingApplication) getApplication()).getOutputStream();
+        }
+    }
 }
