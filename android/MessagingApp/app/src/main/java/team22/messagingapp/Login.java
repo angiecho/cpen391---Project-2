@@ -4,8 +4,13 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,10 +20,21 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
 public class Login extends AppCompatActivity {
+    public static final String KEY_ID = "_id";
+    public static final String KEY_USERNAME= "username";
+    public static final String KEY_PASSWORD = "password";
+    private static final String TAG = "DBAdapter";
+
+    private static final String DATABASE_NAME = "usersdb";
+    private static final String DATABASE_TABLE = "users";
+
+    private static SQLiteDatabase db;
+
     EditText mUser;
     EditText mPin;
     @Override
@@ -37,8 +53,46 @@ public class Login extends AppCompatActivity {
         else{
             finish();
         }
+        db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+       // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
+        db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
+//        AddUser("caleb", "0003", 1);
+//        AddUser("charles","0001", 2);
+//        AddUser("cho","0002", 3);
 
         setContentView(R.layout.activity_login);
+    }
+
+    public long AddUser(String username, String password, Integer ID) {
+        ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_USERNAME, username);
+        initialValues.put(KEY_PASSWORD, password);
+        initialValues.put(KEY_ID, ID);
+        return db.insert(DATABASE_TABLE, null, initialValues);
+    }
+
+    public boolean checkLogin(String username, String password) throws SQLException {
+        String columns[] = {KEY_USERNAME, KEY_PASSWORD};
+        String args[] = {username, password};
+        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=? AND password=?", args, null, null, null, String.valueOf(3));
+        if (mCursor != null) {
+            if(mCursor.getCount() > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Integer getUserID(String user){
+        String columns[] = {KEY_USERNAME, KEY_ID};
+        String args[] = {user};
+        Integer ID = -1;
+        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=?", args, null, null, null, String.valueOf(3));
+        if (mCursor.moveToFirst()) {
+             ID = mCursor.getInt(mCursor.getColumnIndexOrThrow(KEY_ID));
+        }
+        return ID;
     }
 
     public void login(View view){
@@ -47,24 +101,18 @@ public class Login extends AppCompatActivity {
         String userID = mUser.getText().toString();
         String userPIN = mPin.getText().toString();
         try{
-            if(userID.length() > 0 && userPIN.length() >0)
-            {
-                DBUserAuthentication dbUser = new DBUserAuthentication(Login.this);
-                dbUser.open();
-
-                if(dbUser.Login(userID, userPIN))
+            if(userID.length() > 0 && userPIN.length() >0) {
+                if(checkLogin(userID, userPIN))
                 {
                     Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
-                    Intent chatWindow = new Intent(this, Contacts.class);
-                    chatWindow.putExtra("username",userID);
+                    Intent contacts = new Intent(this, Contacts.class);
+                    contacts.putExtra("username",userID);
                     mUser.setText("");
                     mPin.setText("");
-
-                    startActivity(chatWindow);
+                    startActivity(contacts);
                 }else{
                     Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
                 }
-                dbUser.close();
             }
 
         }catch(Exception e){
