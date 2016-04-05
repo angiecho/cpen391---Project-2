@@ -58,7 +58,9 @@ public class Login extends AppCompatActivity {
         db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
        // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-
+//        AddUser("caleb", "0003", 1);
+//        AddUser("charles", "0001", 2);
+//        AddUser("cho", "0002", 3);
         setContentView(R.layout.activity_login);
     }
 
@@ -129,12 +131,11 @@ public class Login extends AppCompatActivity {
         sendID(user);
         byte[]validID = new byte[1];
         try {
-            if (inputStream.available() > 0){
-                inputStream.read(validID);
-                System.out.println("Got back: " + validID);
-            }
-            if (validID[0] == 1)
+            inputStream.read(validID);
+            if (validID[0] == 1) {
+                System.out.println("Got back: " + validID[0]);
                 return true;
+            }
             else
                 return false;
         }
