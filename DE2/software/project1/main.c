@@ -57,7 +57,7 @@ void interruptHandler(void){
 			key = "abcdefghijklmnop";
 			get_key();
 			gen_iv();
-			stage = get_header;
+			stage = rx_message;
 		}
 
 		else if(bt == EOT){
@@ -79,16 +79,14 @@ void interruptHandler(void){
 	case rx_message:
 		while(msg_index < BLK_SIZE){
 			bt = getCharBluetooth();
+			printf("%d ", bt);
 			msg[msg_index] = bt;
 			msg_index++;
 		}
 
 		msg[msg_index] = '\0';
-		printf("msg:\n");
-		for (int i = 0; i<msg_index; i++){
-			printf("%d ", (int)msg[i]);
-		}
 		printf("\n");
+
 		stage = acknowledge;
 		break;
 

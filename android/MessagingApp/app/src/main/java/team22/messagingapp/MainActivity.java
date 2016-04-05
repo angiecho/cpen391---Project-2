@@ -46,15 +46,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String FORMAT = "US-ASCII";
     private static final int BLACK = 0xffffffff;
     private static final int BLUE = 0xff000000;
-    private static final Integer WIDTH = 300;
-    private static final Integer TEXT_SIZE = 50;
-    private static final Integer ENQ = 5;
+    private static final int WIDTH = 300;
+    private static final int TEXT_SIZE = 50;
+    private static final int ENQ = 5;
 
     Thread workerThread;
     byte[] readBuffer;
     int readBufferPosition;
     volatile boolean stopWorker;
     private Handler handler;
+    volatile boolean waitForAck;
 
     public class Message {
         public String text;
@@ -205,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         final byte delimiter = 0; //This is the ASCII code for a \0
         final byte keyDelimiter = 2;
         final byte ivDelimiter = 3;
+        final byte ackDelimiter = 6;
 
         if (bite == delimiter) {
             handleEndOfMessage();
@@ -212,6 +214,8 @@ public class MainActivity extends AppCompatActivity {
             getKey();
         } else if(bite == ivDelimiter) {
             getIV();
+        } else if(bite == ackDelimiter) {
+            waitForAck = false;
         } else {
             readBuffer[readBufferPosition++] = bite;
         }
@@ -220,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleEndOfMessage() throws  UnsupportedEncodingException{
         // need key, iv, header(1 byte), and message(1 >= bytes)
-        assert (readBufferPosition > (KEY_IV_SIZE*2)+2 );
         System.out.println("Got a new message " + readBufferPosition);
         byte[] keyBytes = new byte[KEY_IV_SIZE];
         byte[] ivBytes = new byte[KEY_IV_SIZE];
@@ -500,14 +503,14 @@ public class MainActivity extends AppCompatActivity {
     // Helper fcn for sending message bytes to bluetooth.
     private void sendMessageBluetooth(String message, int messageHeader){
         try {
-            outputStream.write(ENQ); //request key, iv from DE2
+            outputData((byte)ENQ); //request key, iv from DE2
 
             System.out.println("Waiting for TS and GPS");
             while (keyRequested == null || ivRequested == null);
             System.out.println("Key requested: " + keyRequested);
             System.out.println("IV requested: " + ivRequested);
 
-            outputStream.write(messageHeader);
+            outputData((byte)messageHeader);
 
             ArrayList<String> stringChunks = new ArrayList<>();
             for (int start = 0; start < message.length(); start += 16) {
@@ -518,15 +521,24 @@ public class MainActivity extends AppCompatActivity {
                 String paddedMessage = String.format("%1$16s", stringChunks.get(start));
                 byte[] cipher = AESEncryption.encrypt(paddedMessage, keyRequested, ivRequested);
                 AESEncryption.print_cipher(cipher, cipher.length);
-                outputStream.write(cipher);
+                for (byte bite : cipher) {
+                    outputData(bite);
+                }
             }
 
+            outputStream.flush();
             keyRequested = null;
             ivRequested = null;
 
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private void outputData(byte data) throws IOException{
+        outputStream.write(data);
+        waitForAck = true;
+        while(waitForAck);
     }
 
     // Display received message, store it in the DB, and get a notification.
