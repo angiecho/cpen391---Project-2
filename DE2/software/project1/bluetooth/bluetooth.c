@@ -4,6 +4,8 @@
 #include <bluetooth.h>
 #include <touchscreen.h>
 
+#define ACK 6
+
 void putCharBluetooth(char c){
 	while((Bluetooth_Status & 0x02) != 0x02);
 	Bluetooth_TxData = c & 0xFF;
@@ -16,7 +18,9 @@ void putCharBluetooth2(char c){
 
 char getCharBluetooth(){
 	while (!(Bluetooth_Status & 0x1));
-	return Bluetooth_RxData;
+	char data = Bluetooth_RxData;
+	putCharBluetooth(ACK);
+	return data;
 }
 
 char getCharBluetooth2(){
