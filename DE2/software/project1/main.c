@@ -132,7 +132,7 @@ void interruptHandler(void){
 		printf("%d\n", (int)bt);
 		if(log_in(bt)){
 			//check_mailbox(bt);
-			putCharBluetooth(SOH);
+			putCharBluetooth(NIL);
 			stage = init;
 		}
 		else{
