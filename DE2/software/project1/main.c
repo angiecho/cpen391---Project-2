@@ -127,10 +127,16 @@ void interruptHandler(void){
 		break;
 
 	case login:
+		printf("Waiting for login\n");
 		bt = getCharBluetooth();
+		printf("%d\n", (int)bt);
 		if(log_in(bt)){
-			check_mailbox(bt);
+			//check_mailbox(bt);
+			putCharBluetooth(SOH);
 			stage = init;
+		}
+		else{
+			putCharBluetooth(NIL);
 		}
 		break;
 

@@ -7,6 +7,7 @@
 #include "button.h"
 
 #define BLK_SIZE 16
+#define NIL 0
 #define SOH 1
 #define STX 2
 #define ETX 3
