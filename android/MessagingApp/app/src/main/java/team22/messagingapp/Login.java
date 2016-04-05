@@ -24,7 +24,7 @@ public class Login extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(((MessagingApplication) getApplication()).checkBluetoothAllowed()){
+        /*if(((MessagingApplication) getApplication()).checkBluetoothAllowed()){
             if (!((MessagingApplication)getApplication()).checkBluetoothEnabled()){
                 Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(turnOn, 0);
@@ -36,7 +36,7 @@ public class Login extends AppCompatActivity {
         }
         else{
             finish();
-        }
+        }*/
 
         setContentView(R.layout.activity_login);
     }
@@ -98,9 +98,6 @@ public class Login extends AppCompatActivity {
                         if (socket.isConnected()) {
                             System.out.println("Connected to socket!");
                             ((MessagingApplication) getApplication()).setBluetoothInformation(device, socket);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                            //((MessagingApplication) getApplication()).getOutputStream().write(65);
 
                         }
                         else {
