@@ -55,6 +55,12 @@ public class Login extends AppCompatActivity {
                 if(dbUser.Login(userID, userPIN))
                 {
                     Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
+                    Intent chatWindow = new Intent(this, Contacts.class);
+                    chatWindow.putExtra("username",userID);
+                    mUser.setText("");
+                    mPin.setText("");
+
+                    startActivity(chatWindow);
                 }else{
                     Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
                 }
@@ -62,22 +68,7 @@ public class Login extends AppCompatActivity {
             }
 
         }catch(Exception e){
-            Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
-        }
-
-        int resID = getResources().getIdentifier(userID, "id", getPackageName());
-        if (resID < 1){
-            Toast.makeText(this, "Invalid login", Toast.LENGTH_SHORT).show();
-        }
-        else {
-
-            Intent chatWindow = new Intent(this, Contacts.class);
-            chatWindow.putExtra("resUser", resID);
-            chatWindow.putExtra("username",userID);
-            mUser.setText("");
-            mPin.setText("");
-
-            startActivity(chatWindow);
+            Toast.makeText(Login.this, "Invalid login", Toast.LENGTH_SHORT).show();
         }
     }
 
