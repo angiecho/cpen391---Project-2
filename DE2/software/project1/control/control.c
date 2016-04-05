@@ -12,6 +12,7 @@
 #include "bluetooth.h"
 #include "aes.h"
 #include <stdbool.h>
+#include "user.h"
 
 // Initialise components and popup the keyboard
 void init_control(){
@@ -19,6 +20,7 @@ void init_control(){
 	Init_Bluetooth();
 	init_touch();
 	init_keyboard();
+	init_users();
 }
 void kb_listen(){
 	while(1){
@@ -105,7 +107,7 @@ char* getMessage2(unsigned* length, char* receiver, char* sender){
 	}
 }
 
-bool sendMessage(unsigned length, char receiver, char sender, char* msg){
+bool sendMessage(char receiver, char sender, char* msg){
 	printf("Sending: \n");
 	for (int i = 0; i<strlen(key); i++){
 		printf("%c", key[i]);
@@ -125,7 +127,7 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
 
-	for(int i = 0; i<length; i++){
+	for(int i = 0; i<BLK_SIZE; i++){
 		printf("%d ", msg[i]);
 		putCharBluetooth(msg[i]);
 	}
@@ -135,7 +137,7 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	return true;
 }
 
-bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
+bool sendMessage2(char receiver, char sender, char* msg){
 	printf("Sending: ");
 	for (int i = 0; i<strlen(key); i++){
 		printf("%c", key[i]);
@@ -153,7 +155,7 @@ bool sendMessage2(unsigned length, char receiver, char sender, char* msg){
 	putCharBluetooth2(sender_receiver);
 	//putCharBluetooth((char)length);
 
-	for(int i = 0; i<length; i++){
+	for(int i = 0; i<BLK_SIZE; i++){
 		printf("%d ", msg[i]);
 		putCharBluetooth2(msg[i]);
 	}

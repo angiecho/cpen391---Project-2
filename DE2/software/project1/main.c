@@ -7,6 +7,8 @@
 #include <system.h>
 #include <assert.h>
 #include <unistd.h>
+#include "user.h"
+#include "mailbox.h"
 
 typedef enum {
 	start,
@@ -14,11 +16,13 @@ typedef enum {
 	rx_message,
 	acknowledge,
 	tx_message,
-	init
+	mail,
+	init,
+	login,
+	logout
 } Stage;
 
 volatile Stage stage;
-//volatile unsigned length;
 volatile char sender, receiver;
 volatile char* msg;
 volatile int msg_index;
@@ -29,6 +33,15 @@ void get_sender_receiver(char ids){
 	sender = (ids>>4) & 0x0f;
 }
 
+bool confirm_logout(){
+	if(getCharBluetooth() == EOT){
+		if(getCharBluetooth() == EOT){
+			return true;
+		}
+	}
+	return false;
+}
+
 void interruptHandler(void){
 	char ids;
 
@@ -36,15 +49,22 @@ void interruptHandler(void){
 
 	case start:
 		printf("*start*\n");
+
 		bt = getCharBluetooth();
-		printf("ENQ: %d\n", (int)bt);
 		if (bt == ENQ){
-			printf ("got ENQ\n");
+			printf ("ENQ\n");
 			//do_pop(); TODO: COMMENT OUT THE 3 LINES BELOW WHEN USING KEYBOARD
 			key = "abcdefghijklmnop";
 			get_key();
 			gen_iv();
 			stage = get_header;
+		}
+
+		else if(bt == EOT){
+			if(confirm_logout()){
+				bt = getCharBluetooth();
+				stage = logout;
+			}
 		}
 		break;
 
@@ -57,7 +77,7 @@ void interruptHandler(void){
 		break;
 
 	case rx_message:
-		while(msg_index < 16){
+		while(msg_index < BLK_SIZE){
 			bt = getCharBluetooth();
 			msg[msg_index] = bt;
 			msg_index++;
@@ -69,26 +89,29 @@ void interruptHandler(void){
 			printf("%d ", (int)msg[i]);
 		}
 		printf("\n");
-		stage = tx_message;
-		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
+		stage = acknowledge;
 		break;
 
 	case acknowledge:
-		putCharBluetooth(ACK);
-		usleep(ACK_DURATION);
-		bt = getCharBluetooth();
-		if(bt == ACK){
+		if (users[(int)receiver].logged_in){
 			stage = tx_message;
 		}
 		else{
-			stage = init; // TODO: CHANGE THIS TO STORE THE MESSAGE IN THE DATABASE AND NOTIFY THE RECEIVER UPON LOGIN
+			stage = mail;
 		}
 		break;
 
 	case tx_message:
 		//TODO switch this -> it just echoes message back
-		sendMessage(msg_index, sender, receiver, msg);
-		//sendMessage(msg_index, receiver, sender, msg);
+		sendMessage(sender, receiver, msg);
+		//sendMessage(receiver, sender, msg);
+		free(msg);
+		stage = init;
+		break;
+
+	case mail:
+		send_mail(sender, receiver, msg);
+		users[(int) receiver].has_mail = true;
 		free(msg);
 		stage = init;
 		break;
@@ -102,13 +125,26 @@ void interruptHandler(void){
 		sender = 0;
 		stage = start;
 		break;
+
+	case login:
+		bt = getCharBluetooth();
+		if(log_in(bt)){
+			check_mailbox(bt);
+			stage = init;
+		}
+		break;
+
+	case logout:
+		log_out(bt);
+		stage = login;
+		break;
 	}
 }
 
 int main(void) {
 	init_control();
 
-	stage = init;
+	stage = login;
 
 	while(1){
 		interruptHandler();

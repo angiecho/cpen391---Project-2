@@ -111,7 +111,7 @@ void changePassword(char* pw){
     }
 }
 
-// Assign the device's with a name and password.
+// Assign the device a name and password.
 void assignBluetooth(char* name, char* pw){
 	commandMode();
 	changeName(name);

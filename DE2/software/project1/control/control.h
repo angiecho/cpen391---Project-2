@@ -15,13 +15,11 @@
 #define ACK 6
 #define BEL 7
 
-#define ACK_DURATION 5000000
-
 char* getMessage(unsigned* length, char* receiver, char* sender);
 char* getMessage2(unsigned* length, char* receiver, char* sender);
 //frees msg
-bool sendMessage(unsigned length, char receiver, char sender, char* msg);
-bool sendMessage2(unsigned length, char receiver, char sender, char* msg);
+bool sendMessage(char receiver, char sender, char* msg);
+bool sendMessage2(char receiver, char sender, char* msg);
 
 void connection(void);
 

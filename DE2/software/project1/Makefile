@@ -156,7 +156,6 @@ C_SRCS += pathfinding/a_star.c
 C_SRCS += misc/hashmap.c
 C_SRCS += misc/b_tree.c
 C_SRCS += control/control.c
-C_SRCS += contact/contact.c
 C_SRCS += control/load_node.c
 C_SRCS += tests/hashmap_test.c
 C_SRCS += tests/graph_test.c
@@ -167,6 +166,8 @@ C_SRCS += tests/btree_test.c
 C_SRCS += tests/general_tests.c
 C_SRCS += bluetooth/bluetooth.c
 C_SRCS += aes/aes.c
+C_SRCS += user/mailbox.c
+C_SRCS += user/user.c
 ASM_SRCS :=
 
 
@@ -215,6 +216,7 @@ APP_INCLUDE_DIRS += pathfinding
 APP_INCLUDE_DIRS += control
 APP_INCLUDE_DIRS += search
 APP_INCLUDE_DIRS += aes
+APP_INCLUDE_DIRS += user
 
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
