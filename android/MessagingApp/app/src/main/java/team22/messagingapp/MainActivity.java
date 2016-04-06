@@ -629,7 +629,7 @@ public class MainActivity extends AppCompatActivity {
         if (message != null && !message.trim().isEmpty()){
             int sender_id = getCurrentSender();
             int recipient_id = getCurrentReceiver();
-            int messageHeader = 16*sender_id + recipient_id;
+            int messageHeader = (sender_id<<4) + recipient_id;
 
             Message m1 = Database.insertMessageToDatabase(sender_id, recipient_id, true, message, database);
             insertSentMessageToView(m1, false);

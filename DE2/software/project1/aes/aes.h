@@ -1,6 +1,4 @@
-char* IV;
-char* key;
-
-void get_key();
-void gen_iv();
+void send_key(char* key);
+void send_iv(char* iv);
+void gen_iv(char* iv);
 int getASCII(long long c);

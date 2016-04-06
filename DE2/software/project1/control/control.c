@@ -12,6 +12,7 @@
 #include "bluetooth.h"
 #include "aes.h"
 #include <stdbool.h>
+#include "user.h"
 
 // Initialise components and popup the keyboard
 void init_control(){
@@ -19,6 +20,7 @@ void init_control(){
 	Init_Bluetooth();
 	init_touch();
 	init_keyboard();
+	init_users();
 }
 void kb_listen(){
 	while(1){
@@ -80,18 +82,43 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 	}
 }
 
-bool sendMessage(unsigned length, char receiver, char sender, char* msg){
+char* getMessage2(unsigned* length, char* receiver, char* sender){
+	char sender_receiver = getCharBluetooth2();
+	*receiver = sender_receiver & 0x0f;
+	*sender = (sender_receiver>>4) & 0x0f;
+
+	unsigned message_length = (unsigned)getCharBluetooth2();
+
+	//TODO should signal message is continuing instead
+	if(message_length != 0){
+
+		*length = message_length;
+		char* msg = malloc(message_length+1);
+
+		for (int i = 0; i < message_length; i++) {
+			msg[i] = getCharBluetooth2();
+		}
+
+		msg[message_length] = '\0';
+		return msg;
+	} else {
+		//assert(0);
+		return "";
+	}
+}
+
+bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult){
 	printf("Sending: \n");
-	for (int i = 0; i<strlen(key); i++){
+	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
 
 	printf("\n");
 
-	for (int i = 0; i<strlen(IV); i++){
-		printf("%c", IV[i]);
-		putCharBluetooth(IV[i]);
+	for (int i = 0; i<BLK_SIZE; i++){
+		printf("%c", iv[i]);
+		putCharBluetooth(iv[i]);
 	}
 	//keys/ivs are always 16 bits, and placed at front of incoming message,
 	//so we do not require the ETX/STX delimiters here
@@ -100,7 +127,7 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
 
-	for(int i = 0; i<length; i++){
+	for(int i = 0; i<BLK_SIZE*blk_mult; i++){
 		printf("%d ", msg[i]);
 		putCharBluetooth(msg[i]);
 	}
@@ -112,3 +139,31 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	return true;
 }
 
+
+bool sendMessage2(char receiver, char sender, char* msg, char* key, char* iv){
+	printf("Sending: ");
+	for (int i = 0; i<strlen(key); i++){
+		printf("%c", key[i]);
+		putCharBluetooth2(key[i]);
+	}
+	printf("\n");
+
+	for (int i = 0; i<strlen(iv); i++){
+		printf("%c", iv[i]);
+		putCharBluetooth2(iv[i]);
+	}
+	printf("\n");
+
+	char sender_receiver = (sender << 4) | receiver;
+	putCharBluetooth2(sender_receiver);
+	//putCharBluetooth((char)length);
+
+	for(int i = 0; i<BLK_SIZE; i++){
+		printf("%d ", msg[i]);
+		putCharBluetooth2(msg[i]);
+	}
+	printf("\n");
+	putCharBluetooth2(0);
+
+	return true;
+}

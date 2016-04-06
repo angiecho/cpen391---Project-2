@@ -7,25 +7,42 @@
 #include <system.h>
 #include <assert.h>
 #include <unistd.h>
+#include "user.h"
+#include "mailbox.h"
 
 typedef enum {
 	start,
+	get_header,
 	rx_message,
 	acknowledge,
 	tx_message,
-	init
+	mail,
+	init,
+	login,
+	logout
 } Stage;
 
 volatile Stage stage;
-//volatile unsigned length;
 volatile char sender, receiver;
-volatile char* msg;
+volatile char* MSG;
+volatile char* KEY;
+volatile char* IV;
 volatile int msg_index;
 volatile char bt = 0;
+volatile char BLK_MULT = 1;
 
 void get_sender_receiver(char ids){
 	receiver = ids & 0x0f;
 	sender = (ids>>4) & 0x0f;
+}
+
+bool confirm_logout(){
+	if(getCharBluetooth() == EOT){
+		if(getCharBluetooth() == EOT){
+			return true;
+		}
+	}
+	return false;
 }
 
 void interruptHandler(void){
@@ -35,73 +52,122 @@ void interruptHandler(void){
 
 	case start:
 		printf("*start*\n");
+
 		bt = getCharBluetooth();
-		printf("ENQ: %d\n", (int)bt);
 		if (bt == ENQ){
-			printf ("got ENQ\n");
-			//do_pop(); TODO: COMMENT OUT THE 3 LINES BELOW WHEN USING KEYBOARD
-			key = "abcdefghijklmnop";
-			get_key();
-			gen_iv();
-			stage = rx_message;
+			printf ("ENQ\n");
+			//do_pop(); TODO: USE KEYBOARD FOR DEMO
+//			while(!key_sent);
+//			strcpy(KEY, query_string);
+//			gen_iv(IV);
+//			send_key(KEY);
+//			send_key(IV);
+//			key_sent = false;
+
+			KEY = "abcdefghijklmnop";
+			send_key(KEY);
+			gen_iv(IV);
+			send_iv(IV);
+			printf("KEY/IV sent\n");
+
+			stage = get_header;
+		}
+
+		else if(bt == EOT){
+			if(confirm_logout()){
+				bt = getCharBluetooth();
+				stage = logout;
+			}
 		}
 		break;
 
-	case rx_message:
+	case get_header:
 		ids = getCharBluetooth();
-		printf("msg:\n");
-		while(msg_index < 16){
-			bt = getCharBluetooth();
-			printf("%d ", bt);
-			msg[msg_index] = bt;
-			msg_index++;
-		}
-
-		msg[msg_index] = '\0';
-		printf("\n");
 		get_sender_receiver(ids);
 		printf("Receiver: %d\n", (int)receiver);
 		printf("Sender: %d\n", (int)sender);
-		stage = tx_message;
-		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
+		BLK_MULT = getCharBluetooth();
+		stage = rx_message;
+		break;
+
+	case rx_message:
+		while(msg_index < BLK_SIZE*BLK_MULT){
+			bt = getCharBluetooth();
+			printf("%d ", bt);
+			MSG[msg_index] = bt;
+			msg_index++;
+		}
+
+		MSG[msg_index] = '\0';
+		printf("\n");
+
+		stage = acknowledge;
 		break;
 
 	case acknowledge:
-		putCharBluetooth(ACK);
-		usleep(ACK_DURATION);
-		bt = getCharBluetooth();
-		if(bt == ACK){
+		if (users[(int)receiver].logged_in){
 			stage = tx_message;
 		}
 		else{
-			stage = init; // TODO: CHANGE THIS TO STORE THE MESSAGE IN THE DATABASE AND NOTIFY THE RECEIVER UPON LOGIN
+			stage = mail;
 		}
 		break;
 
 	case tx_message:
-		//TODO switch this -> it just echoes message back
-		sendMessage(msg_index, sender, receiver, msg);
-		//sendMessage(msg_index, receiver, sender, msg);
-		free(msg);
+		sendMessage(sender, receiver, MSG, KEY, IV, BLK_MULT); //TODO switch this -> it just echoes message back
+		//sendMessage(receiver, sender, MSG);
+		free(MSG);
+		stage = init;
+		break;
+
+	case mail:
+		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
+		users[(int) receiver].has_mail = true;
+		printf("Is the mail okay?\n");
+		view_message(receiver);
+		free(MSG);
 		stage = init;
 		break;
 
 	case init:
 		msg_index = 0;
-		key = malloc(BLK_SIZE);
+		KEY = malloc(BLK_SIZE);
 		IV = malloc(BLK_SIZE);
-		msg = malloc(BLK_SIZE+1);
+		MSG = malloc(BLK_SIZE*MAX_MULT+1);
 		receiver = 0;
 		sender = 0;
 		stage = start;
+		break;
+
+	case login:
+		printf("Logging in with user_id: ");
+		bt = getCharBluetooth();
+		printf("%d\n", (int) bt);
+		if(log_in(bt)){
+			putCharBluetooth(SOH);
+			putCharBluetooth(SOH);
+			check_mailbox(bt);
+			stage = init;
+		}
+		else{
+			putCharBluetooth(NIL);
+			putCharBluetooth(NIL);
+		}
+		break;
+
+	case logout:
+		printf("Logging out with user_id: %d\n", (int) bt);
+		log_out(bt);
+		stage = login;
 		break;
 	}
 }
 
 int main(void) {
+	printf("START\n");
 	init_control();
 
-	stage = init;
+	stage = login;
 
 	while(1){
 		interruptHandler();

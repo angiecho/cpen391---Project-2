@@ -7,6 +7,8 @@
 #include "button.h"
 
 #define BLK_SIZE 16
+#define MAX_MULT 16
+#define NIL 0
 #define SOH 1
 #define STX 2
 #define ETX 3
@@ -15,13 +17,11 @@
 #define ACK 6
 #define BEL 7
 
-#define ACK_DURATION 5000000
-
 char* getMessage(unsigned* length, char* receiver, char* sender);
 char* getMessage2(unsigned* length, char* receiver, char* sender);
 //frees msg
-bool sendMessage(unsigned length, char receiver, char sender, char* msg);
-bool sendMessage2(unsigned length, char receiver, char sender, char* msg);
+bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
+bool sendMessage2(char receiver, char sender, char* msg, char* key, char* iv);
 
 void connection(void);
 
