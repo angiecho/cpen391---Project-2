@@ -98,9 +98,6 @@ public class Login extends AppCompatActivity {
                         if (socket.isConnected()) {
                             System.out.println("Connected to socket!");
                             ((MessagingApplication) getApplication()).setBluetoothInformation(device, socket);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                           // ((MessagingApplication) getApplication()).getOutputStream().write(65);
-                            //((MessagingApplication) getApplication()).getOutputStream().write(65);
 
                         }
                         else {
