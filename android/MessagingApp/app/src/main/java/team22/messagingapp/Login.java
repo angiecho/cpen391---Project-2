@@ -35,12 +35,6 @@ public class Login extends AppCompatActivity {
     private static final Integer STX = 2;
     private static final Integer ETX = 3;
 
-    public static final String KEY_ID = "_id";
-    public static final String KEY_USERNAME= "username";
-    public static final String KEY_PASSWORD = "password";
-    private static final String DATABASE_NAME = "usersdb";
-    private static final String DATABASE_TABLE = "users";
-
     private static SQLiteDatabase db;
     private byte[] readBuffer;
     private int readBufferPosition;
@@ -68,42 +62,10 @@ public class Login extends AppCompatActivity {
         db = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
        // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-        AddUser("caleb", "0003", 1);
-        AddUser("charles", "0001", 2);
-        AddUser("cho", "0002", 3);
+        Database.AddUser("caleb", "0003", 1, db);
+        Database.AddUser("charles", "0001", 2, db);
+        Database.AddUser("cho", "0002", 3, db);
         setContentView(R.layout.activity_login);
-    }
-
-    public long AddUser(String username, String password, Integer ID) {
-        ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_USERNAME, username);
-        initialValues.put(KEY_PASSWORD, password);
-        initialValues.put(KEY_ID, ID);
-        return db.insert(DATABASE_TABLE, null, initialValues);
-    }
-
-    public boolean checkLogin(String username, String password) throws SQLException {
-        String columns[] = {KEY_USERNAME, KEY_PASSWORD};
-        String args[] = {username, password};
-        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=? AND password=?", args, null, null, null, String.valueOf(3));
-        if (mCursor != null) {
-            if(mCursor.getCount() > 0)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Integer getUserID(String user){
-        String columns[] = {KEY_USERNAME, KEY_ID};
-        String args[] = {user};
-        Integer ID = -1;
-        Cursor mCursor = db.query(DATABASE_TABLE, columns, "username=?", args, null, null, null, String.valueOf(3));
-        if (mCursor.moveToFirst()) {
-             ID = mCursor.getInt(mCursor.getColumnIndexOrThrow(KEY_ID));
-        }
-        return ID;
     }
 
     public void login(View view){
@@ -113,7 +75,7 @@ public class Login extends AppCompatActivity {
         String userPIN = mPin.getText().toString();
         try{
             if(userID.length() > 0 && userPIN.length() >0) {
-                if(checkLogin(userID, userPIN))
+                if(Database.checkLogin(userID, userPIN, db))
                 {
                     if (notLoggedIn(userID)) {
                         Toast.makeText(Login.this,"Successfully Logged In", Toast.LENGTH_LONG).show();
@@ -129,6 +91,15 @@ public class Login extends AppCompatActivity {
                 }else{
                     Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
                 }
+            }
+            else if (userID.length() > 0){
+                Toast.makeText(Login.this, "You need to type in a password", Toast.LENGTH_LONG).show();
+            }
+            else if (userPIN.length() > 0){
+                Toast.makeText(Login.this, "You need to type in a username", Toast.LENGTH_LONG).show();
+            }
+            else {
+                Toast.makeText(Login.this, "You need to type in a username/password", Toast.LENGTH_LONG).show();
             }
 
         }catch(Exception e){
@@ -164,7 +135,6 @@ public class Login extends AppCompatActivity {
         for (int i = 2; i < byteArray.length; i++) {
             if (byteArray[i] == STX) {
                 System.out.println("I have mail");
-                //Call function here!
                 SystemClock.sleep(250);
                 getInbox(byteArray, i+1);
             }
@@ -263,7 +233,7 @@ public class Login extends AppCompatActivity {
         final int receiver_id = 0xf & sender_receiver;
         final int sender_id = sender_receiver >>> 4;
         String user = mUser.getText().toString();
-        boolean sent = (sender_id == Login.getUserID(user));
+        boolean sent = (sender_id == Database.getUserID(user, db));
 
         Database.insertMessageToDatabase(sender_id, receiver_id, sent, data, db);
 
@@ -280,7 +250,7 @@ public class Login extends AppCompatActivity {
         return new String(encodedBytes, FORMAT);
     }
     private void sendID(String user) {
-        Integer ID = Login.getUserID(user);
+        Integer ID = Database.getUserID(user, db);
         System.out.println("Logging in:" + ID + "\n");
         connectBT();
         if (outputStream != null) {

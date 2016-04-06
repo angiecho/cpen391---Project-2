@@ -1,5 +1,7 @@
 package team22.messagingapp;
 
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,11 +19,13 @@ public class Contacts extends AppCompatActivity {
     private static OutputStream outputStream;
     private static final Integer EOT = 4;
     private static String User;
+    private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
+        db = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         removeUser();   // Remove current user from contact list
     }
 
@@ -48,7 +52,7 @@ public class Contacts extends AppCompatActivity {
 //    }
 
     public void logout(View view) {
-        Integer ID = Login.getUserID(User);
+        Integer ID = Database.getUserID(User, db);
         System.out.println("Logging out:" + ID + "\n");
         connectBT();
         try {
