@@ -30,6 +30,9 @@ import java.util.Set;
 public class Login extends AppCompatActivity {
     private OutputStream outputStream;
     private InputStream inputStream;
+    private static final Integer SOH = 1;
+    private static final Integer STX = 2;
+    private static final Integer ETX = 3;
 
     public static final String KEY_ID = "_id";
     public static final String KEY_USERNAME= "username";
@@ -60,9 +63,9 @@ public class Login extends AppCompatActivity {
         db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
        // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-//        AddUser("caleb", "0003", 1);
-//        AddUser("charles", "0001", 2);
-//        AddUser("cho", "0002", 3);
+        //AddUser("caleb", "0003", 1);
+        //AddUser("charles", "0001", 2);
+        //AddUser("cho", "0002", 3);
         setContentView(R.layout.activity_login);
     }
 
@@ -118,8 +121,6 @@ public class Login extends AppCompatActivity {
 
                     mUser.setText("");
                     mPin.setText("");
-                    connectBT();
-
                 }else{
                     Toast.makeText(Login.this,"Invalid Username/Password", Toast.LENGTH_LONG).show();
                 }
@@ -135,12 +136,13 @@ public class Login extends AppCompatActivity {
         try {
             Integer streamSize = inputStream.available();
             if (streamSize > 0){
-                byte[]validID = new byte[streamSize];
-                inputStream.read(validID);
+                byte[]byteArray = new byte[streamSize];
+                inputStream.read(byteArray);
                 for(int i = 0; i < streamSize; i++){
-                    System.out.println(validID[i]);
-                    if (validID[i] == 1)
+                    if (byteArray[i] == SOH) {
+                        checkInbox(byteArray);
                         return true;
+                    }
                 }
             }
         }
@@ -149,6 +151,25 @@ public class Login extends AppCompatActivity {
             return false;
         }
         return false;
+    }
+
+    private void checkInbox(byte[] byteArray) {
+        for (int i = 2; i < byteArray.length; i++) {
+            if (byteArray[i] == STX) {
+                System.out.println("I have mail");
+                //Call function here!
+                getInbox();
+            }
+        }
+    }
+
+    private void getInbox(){
+        try {
+            int streamSize = inputStream.available();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     private void sendID(String user) {
