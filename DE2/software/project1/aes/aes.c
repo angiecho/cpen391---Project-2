@@ -20,6 +20,8 @@ void get_key(){
 	}
 	printf ("Key: %s\n", key);
 	putCharBluetooth(STX);
+	putCharBluetooth(STX);
+	putCharBluetooth(STX);
 }
 
 /* gen_iv will generate a 16 char IV based on the
@@ -41,6 +43,8 @@ void gen_iv(void){
 	}
 	printf("\n");
 	strcpy(IV,iv);
+	putCharBluetooth(ETX);
+	putCharBluetooth(ETX);
 	putCharBluetooth(ETX);
 }
 

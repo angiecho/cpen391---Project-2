@@ -9,28 +9,89 @@
     android:weightSum="1"
     android:id="@+id/parentLayoutPanel">
 
+<LinearLayout
+    android:layout_height="74dp"
+    android:layout_width="match_parent"
+    android:layout_marginBottom="4dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@color/primary_material_light"
+            android:elevation="4dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/chat_name"
+            android:textSize="28dp"
+            android:padding="20dp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textIsSelectable="false"
+            android:layout_weight="0.8"
+            android:layout_marginBottom="4dp" />
+        <TextView
+            android:layout_width="59dp"
+            android:layout_height="match_parent"
+            android:background="@color/primary_material_light"
+            android:elevation="4dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/start_search"
+            android:layout_gravity="center_horizontal"
+            android:textSize="34dp"
 
-    <TextView
+            android:padding="20dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textIsSelectable="false"
+            android:layout_weight="0.10"
+            android:layout_marginBottom="4dp" />
+    </LinearLayout>
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="74dp"
-        android:background="@color/primary_material_light"
-        android:elevation="4dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/chat_name"
-        android:layout_gravity="center_horizontal"
-        android:textSize="30dp"
-        android:layout_marginBottom="4dp"
-        android:padding="20dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:textIsSelectable="false" />
+        android:layout_height="40dp"
+        android:id="@+id/search_holder"
+        android:visibility="gone">
+        <EditText
+            android:id="@+id/search_message"
+            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:maxLength="2000"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="10"
+            android:layout_marginBottom="50dp"
+            android:layout_weight="0.7"
+            android:hint="@string/search_message" />
+        <Button
+            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_weight="0.1"
+            android:text="@string/previous"
+            android:clickable="false"
+            android:id="@+id/previous_button"
+            android:visibility="gone"/>
+        <Button
+            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_weight="0.1"
+            android:text="@string/next"
+            android:visibility="gone"
+            android:id="@+id/next_button"/>
+
+        <TextView
+            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_weight="0.1"
+            android:id="@+id/results"
+            android:visibility="gone"/>
+
+    </LinearLayout>
 
     <team22.messagingapp.MessageScrollView
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="0.8"
+
+        android:layout_gravity="bottom"
         android:id="@+id/scrollView">
         <LinearLayout
             android:layout_marginLeft="15dp"
