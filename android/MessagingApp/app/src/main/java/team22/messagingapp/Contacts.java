@@ -42,6 +42,11 @@ public class Contacts extends AppCompatActivity {
         startActivity(chatWindow);
     }
 
+//    @Override
+//    public void onBackPressed() {
+//        logout();
+//    }
+
     public void logout(View view) {
         Integer ID = Login.getUserID(User);
         System.out.println("Logging out:" + ID + "\n");

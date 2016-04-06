@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.ParcelUuid;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -129,20 +131,24 @@ public class Login extends AppCompatActivity {
     }
     private Boolean notLoggedIn(String user){
         sendID(user);
-        byte[]validID = new byte[1];
+        SystemClock.sleep(250);
         try {
-            inputStream.read(validID);
-            if (validID[0] == 1) {
-                System.out.println("Got back: " + validID[0]);
-                return true;
+            Integer streamSize = inputStream.available();
+            if (streamSize > 0){
+                byte[]validID = new byte[streamSize];
+                inputStream.read(validID);
+                for(int i = 0; i < streamSize; i++){
+                    System.out.println(validID[i]);
+                    if (validID[i] == 1)
+                        return true;
+                }
             }
-            else
-                return false;
         }
         catch(Exception e){
             e.printStackTrace();
             return false;
         }
+        return false;
     }
 
     private void sendID(String user) {
