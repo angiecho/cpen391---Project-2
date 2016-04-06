@@ -23,6 +23,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Set;
@@ -41,6 +42,10 @@ public class Login extends AppCompatActivity {
     private static final String DATABASE_TABLE = "users";
 
     private static SQLiteDatabase db;
+    private byte[] readBuffer;
+    private int readBufferPosition;
+    private static final int KEY_IV_SIZE = 16;
+    private static final String FORMAT = "US-ASCII";
 
     EditText mUser;
     EditText mPin;
@@ -60,12 +65,12 @@ public class Login extends AppCompatActivity {
         else{
             finish();
         }
-        db = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+        db = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
        // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-        //AddUser("caleb", "0003", 1);
-        //AddUser("charles", "0001", 2);
-        //AddUser("cho", "0002", 3);
+        AddUser("caleb", "0003", 1);
+        AddUser("charles", "0001", 2);
+        AddUser("cho", "0002", 3);
         setContentView(R.layout.activity_login);
     }
 
@@ -135,9 +140,11 @@ public class Login extends AppCompatActivity {
         SystemClock.sleep(250);
         try {
             Integer streamSize = inputStream.available();
+            System.out.println(streamSize);
             if (streamSize > 0){
                 byte[]byteArray = new byte[streamSize];
                 inputStream.read(byteArray);
+                System.out.println("Got an input stream back");
                 for(int i = 0; i < streamSize; i++){
                     if (byteArray[i] == SOH) {
                         checkInbox(byteArray);
@@ -158,20 +165,120 @@ public class Login extends AppCompatActivity {
             if (byteArray[i] == STX) {
                 System.out.println("I have mail");
                 //Call function here!
-                getInbox();
+                SystemClock.sleep(250);
+                getInbox(byteArray, i+1);
             }
         }
     }
 
-    private void getInbox(){
+    private void getInbox(byte[] byteArray, int index){
         try {
-            int streamSize = inputStream.available();
+            readBufferPosition = 0;
+            readBuffer = new byte[4096];
+            for (int i = 0; i < byteArray.length; i++){
+                System.out.print(byteArray[i] + " ");
+            }
+            byte[] newByteArray = new byte[byteArray.length - index];
+            System.arraycopy(byteArray, index, newByteArray, 0, newByteArray.length);
+            System.out.println("");
+
+            for (int i = 0; i < newByteArray.length; i ++){
+                System.out.print(newByteArray[i] + " ");
+            }
+
+            System.out.println("Here's my mail!");
+            for (byte bite : newByteArray) {
+                handleBite(bite);
+            }
+
         }catch(Exception e){
             e.printStackTrace();
         }
 
     }
 
+    private void handleBite(byte bite) throws UnsupportedEncodingException {
+        final byte delimiter = 0; //This is the ASCII code for a \0
+
+        if (bite == delimiter) {
+            handleEndOfMessage();
+        }else {
+            readBuffer[readBufferPosition++] = bite;
+        }
+
+    }
+    private void handleEndOfMessage() throws  UnsupportedEncodingException{
+        // need key, iv, header(1 byte), and message(1 >= bytes)
+        System.out.println("Got a new message " + readBufferPosition);
+        byte[] keyBytes = new byte[KEY_IV_SIZE];
+        byte[] ivBytes = new byte[KEY_IV_SIZE];
+        byte sender_receiver;
+        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)];
+
+        System.arraycopy(readBuffer, 0, keyBytes, 0, KEY_IV_SIZE);
+        System.arraycopy(readBuffer, KEY_IV_SIZE, ivBytes, 0, KEY_IV_SIZE);
+        sender_receiver = readBuffer[KEY_IV_SIZE*2];
+        System.arraycopy(readBuffer, KEY_IV_SIZE*2+1, encodedBytes, 0, encodedBytes.length);
+
+        String keyReceived = byteArrToString(keyBytes, KEY_IV_SIZE);
+        String ivReceived = byteArrToString(ivBytes, KEY_IV_SIZE);
+        System.out.println("Key received: " + keyReceived);
+        System.out.println("IV received: " + ivReceived);
+
+        AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
+
+        final int chunkSize = 16;
+
+        // we expect this to be padded
+        assert (encodedBytes.length % chunkSize == 0);
+        int numChunks = encodedBytes.length/chunkSize;
+        System.out.println("Received " + encodedBytes.length + " bytes");
+
+        byte[][] byteChunks = new byte[numChunks][16];
+        int curr = 0;
+
+        for(int currChunk = 0; currChunk < numChunks; currChunk++) {
+            int length = Math.min(chunkSize, encodedBytes.length - curr);
+            System.arraycopy(encodedBytes, curr, byteChunks[currChunk], 0, length);
+            curr += chunkSize;
+        }
+
+        String[] decodedByteChunks = new String[numChunks];
+
+        for (int j = 0; j < byteChunks.length; j++){
+            try {
+                decodedByteChunks[j] = AESEncryption.decrypt(byteChunks[j], keyReceived, ivReceived);
+                System.out.print("Decoded byte: " + decodedByteChunks[j]);
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for(String s : decodedByteChunks) {
+            builder.append(s);
+        }
+        final String data = builder.toString().trim();
+
+        final int receiver_id = 0xf & sender_receiver;
+        final int sender_id = sender_receiver >>> 4;
+        String user = mUser.getText().toString();
+        boolean sent = (sender_id == Login.getUserID(user));
+
+        Database.insertMessageToDatabase(sender_id, receiver_id, sent, data, db);
+
+        System.out.println("The message inserted is: " + data);
+
+        readBufferPosition = 0;
+    }
+
+
+    private String byteArrToString(byte[] bytes, int bytesLength)
+            throws UnsupportedEncodingException{
+        byte[] encodedBytes = new byte[bytesLength];
+        System.arraycopy(bytes, 0, encodedBytes, 0, encodedBytes.length);
+        return new String(encodedBytes, FORMAT);
+    }
     private void sendID(String user) {
         Integer ID = Login.getUserID(user);
         System.out.println("Logging in:" + ID + "\n");

@@ -23,8 +23,12 @@ public class Database {
         values.put(RECIPIENT, recipient_id);
         values.put(MESSAGE_TEXT, message);
         values.put(MESSAGE_DATE, dateFormat.format(date));
-
-        int id = (int) db.insert(DATABASE_NAME, null, values);
+        int id = -1;
+        try {
+            id = (int) db.insertOrThrow(DATABASE_NAME, null, values);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
         if (id > -1){
             System.out.println("Inserted message to database!");

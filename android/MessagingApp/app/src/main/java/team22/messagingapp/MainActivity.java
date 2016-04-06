@@ -490,7 +490,8 @@ public class MainActivity extends AppCompatActivity {
             int recipient_id = getCurrentReceiver();
             int messageHeader = 16*sender_id + recipient_id;
 
-            Date d = insertMessageToDatabase(sender_id, recipient_id, message);
+            //Date d = insertMessageToDatabase(sender_id, recipient_id, message);
+            Date d = new Date();
             insertSentMessageToView(message, false, d);
             scrollDown();
 
@@ -516,6 +517,7 @@ public class MainActivity extends AppCompatActivity {
             for (int start = 0; start < message.length(); start += 16) {
                 stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
             }
+            outputData((byte)stringChunks.size());
 
             for (int start = 0; start < stringChunks.size(); start++){
                 String paddedMessage = String.format("%1$16s", stringChunks.get(start));
@@ -539,6 +541,7 @@ public class MainActivity extends AppCompatActivity {
         outputStream.write(data);
         waitForAck = true;
         while(waitForAck);
+        System.out.println("Done waiting");
     }
 
     // Display received message, store it in the DB, and get a notification.
