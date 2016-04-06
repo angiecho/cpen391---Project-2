@@ -131,6 +131,8 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 	}
 	printf("\n");
 	putCharBluetooth(0);
+	putCharBluetooth(0);
+	putCharBluetooth(0);
 
 	return true;
 }

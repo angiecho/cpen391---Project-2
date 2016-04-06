@@ -208,18 +208,32 @@ public class MainActivity extends AppCompatActivity {
         final byte ivDelimiter = 3;
         final byte ackDelimiter = 6;
 
-        if (bite == delimiter) {
+        if (checkDelimiter(bite,delimiter)) {
             handleEndOfMessage();
-        } else if(bite == keyDelimiter) {
+        } else if(checkDelimiter(bite,keyDelimiter)) {
             getKey();
-        } else if(bite == ivDelimiter) {
+        } else if(checkDelimiter(bite,ivDelimiter)) {
             getIV();
-        } else if(bite == ackDelimiter) {
+        } else if(checkDelimiter(bite,ackDelimiter)) {
+            readBufferPosition = 0;
             waitForAck = false;
         } else {
             readBuffer[readBufferPosition++] = bite;
         }
 
+    }
+
+    private boolean checkDelimiter(byte bite, byte delimiter) {
+        if (bite != delimiter) {
+            return false;
+        }
+
+        if (readBufferPosition < 2) {
+            return false;
+        }
+
+        return (readBuffer[readBufferPosition-1] == delimiter
+                && readBuffer[readBufferPosition-2] == delimiter);
     }
 
     private void handleEndOfMessage() throws  UnsupportedEncodingException{
@@ -228,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         byte[] keyBytes = new byte[KEY_IV_SIZE];
         byte[] ivBytes = new byte[KEY_IV_SIZE];
         byte sender_receiver;
-        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)];
+        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)-2];
 
         System.arraycopy(readBuffer, 0, keyBytes, 0, KEY_IV_SIZE);
         System.arraycopy(readBuffer, KEY_IV_SIZE, ivBytes, 0, KEY_IV_SIZE);
@@ -299,20 +313,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void getIV() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        ivRequested = byteArrToString(readBuffer, readBufferPosition);
+        ivRequested = byteArrToString(readBuffer, readBufferPosition-2);
+        System.out.println("got iv\n");
         readBufferPosition = 0;
     }
 
     private void getKey() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
-        keyRequested = byteArrToString(readBuffer, readBufferPosition);
+        keyRequested = byteArrToString(readBuffer, readBufferPosition-2);
+        System.out.println("got key " + keyRequested);
         readBufferPosition = 0;
     }
 
     private String byteArrToString(byte[] bytes, int bytesLength)
                 throws UnsupportedEncodingException{
         byte[] encodedBytes = new byte[bytesLength];
-        System.arraycopy(bytes, 0, encodedBytes, 0, encodedBytes.length);
+        System.arraycopy(bytes, 0, encodedBytes, 0, bytesLength);
         return new String(encodedBytes, FORMAT);
     }
 

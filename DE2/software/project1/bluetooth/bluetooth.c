@@ -20,6 +20,8 @@ char getCharBluetooth(){
 	while (!(Bluetooth_Status & 0x1));
 	char data = Bluetooth_RxData;
 	putCharBluetooth(ACK);
+	putCharBluetooth(ACK);
+	putCharBluetooth(ACK);
 	return data;
 }
 
