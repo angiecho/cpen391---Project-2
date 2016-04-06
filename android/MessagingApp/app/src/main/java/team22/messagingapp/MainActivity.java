@@ -1,49 +1,37 @@
 package team22.messagingapp;
 
 import android.app.NotificationManager;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.opengl.Visibility;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.Layout;
-import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.TextWatcher;
-import android.text.method.LinkMovementMethod;
-import android.text.style.AlignmentSpan;
-import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.sqlite.*;
 import android.util.Log;
 
 import java.io.*;
-import java.text.*;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
-    private SQLiteDatabase messages;
+    private SQLiteDatabase database;
     private OutputStream outputStream;
     private InputStream inputStream;
     private BluetoothSocket socket;
@@ -56,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String RECIPIENT = "recipient";
     private static final String MESSAGE_TEXT = "message_text";
     private static final String MESSAGE_DATE = "message_date";
-    private static final String DATABASE_NAME = "messages";
+    private static final String MESSAGES_TABLE = "messages";
     private static final String FORMAT = "US-ASCII";
     private static final int BLACK = 0xffffffff;
     private static final int BLUE = 0xff000000;
@@ -73,6 +61,29 @@ public class MainActivity extends AppCompatActivity {
             if (!hasFocus) {
                 ((LinearLayout) findViewById(R.id.search_holder)).setVisibility(View.GONE);
                 ((EditText)v).setText("");
+            }
+        }
+    };
+
+    private MessageScrollView.onTopReachedListener onTopReachedListener = new MessageScrollView.onTopReachedListener() {
+        @Override
+        public void onTopReached() {
+            int x = loadMessages();
+            if (x != 0) {
+                final View view2 = findViewById(x);
+                if (view2 != null) {
+                    new Handler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
+                            int top = getRelativeTop(view2);
+                            view.scrollTo(0, top);
+                            //This needs to be done **after** because
+                            //Otherwise, it doesn't know where the new top is
+                            //because of the change in height
+                        }
+                    });
+                }
             }
         }
     };
@@ -95,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View v){
             LinearLayout search =  (LinearLayout) findViewById(R.id.search_holder);
-            System.out.println("HELLO");
             if (search.getVisibility() == View.GONE){
                 search.setVisibility(View.VISIBLE);
                 ((EditText)findViewById(R.id.search_message)).requestFocus();
@@ -111,8 +121,9 @@ public class MainActivity extends AppCompatActivity {
         public void beforeTextChanged(CharSequence s, int start, int count, int after){}
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (s.length() >= 3){
-                String parameter = fuzzifyString(s.toString());
-                ids = searchMessages(parameter);
+                String parameter = s.toString();
+                ArrayList<Message> messages = getAllMessages();
+                ids = findFuzzyMatches(messages, parameter);
                 findMatchMessages(ids);
             }
             else {
@@ -123,126 +134,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    Thread workerThread;
-    byte[] readBuffer;
-    int readBufferPosition;
-    volatile boolean stopWorker;
+    private Thread workerThread;
+    private byte[] readBuffer;
+    private int readBufferPosition;
+    private volatile boolean stopWorker;
     private Handler handler;
-
-    public class Message {
-        public String text;
-        public boolean sent;
-        public Date date;
-        public int id;
-
-        public Message(String text, boolean sent, String date, int id){
-            this.text = text;
-            this.sent = sent;
-            this.id = id;
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            try {
-                this.date = dateFormat.parse(date);
-            }catch(ParseException e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    //We'll handle this later
-    private String fuzzifyString(String string){
-        return string;
-    }
-
-    private ArrayList<Integer> searchMessages(String search){
-        int receiver_id = getCurrentReceiver();
-        int sender_id = getCurrentSender();
-        String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        ArrayList<Integer> ids = new ArrayList<>();
-        String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?) AND message_text LIKE ? COLLATE NOCASE";
-        String args[] = {String.valueOf(receiver_id), String.valueOf(receiver_id), String.valueOf(sender_id), String.valueOf(sender_id), "%" + search + "%"};
-
-        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", null);
-        if (cursor.moveToFirst()) {
-            do {
-                try {
-                    ids.add(cursor.getInt(cursor.getColumnIndex("id")));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            while (cursor.moveToNext());
-        }
-        cursor.close();
-        return ids;
-
-    }
-
-    public void doPrevious(){
-        if (id_index <= 0){
-            id_index = 0;
-
-        } else{
-            id_index--;
-            findViewById(R.id.next_button).setClickable(true);
-            findViewById(R.id.previous_button).setClickable(true);
-            if (id_index == 0){
-                findViewById(R.id.previous_button).setClickable(false);
-            }
-        }
-        matchMessages();
-    }
-
-    public void doNext(){
-        if (id_index > ids.size() - 1){
-            id_index = ids.size() - 1;
-
-        } else{
-            id_index++;
-            findViewById(R.id.next_button).setClickable(true);
-            findViewById(R.id.previous_button).setClickable(true);
-
-            if (id_index == ids.size() - 1){
-                findViewById(R.id.next_button).setClickable(false);
-            }
-
-        }
-        matchMessages();
-    }
-
-    private void matchMessages(){
-        TextView results = (TextView) findViewById(R.id.results);
-        String resultText = String.valueOf((id_index+1))  + "/" + String.valueOf(ids.size());
-        results.setText(resultText);
-        MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
-        TextView message = (TextView) view.findViewWithTag((ids.get(id_index)));
-        while (message == null){
-            loadMoreMessages();
-            message = (TextView) view.findViewWithTag((ids.get(id_index)));
-        }
-        if (message != null) {
-            int top = getRelativeTop(message);
-            System.out.println(top);
-            view.scrollTo(0, top);
-        }
-    }
-
-    private void findMatchMessages(ArrayList<Integer> ids){
-        findViewById(R.id.previous_button).setVisibility(View.GONE);
-        findViewById(R.id.next_button).setVisibility(View.GONE);
-        findViewById(R.id.results).setVisibility(View.GONE);
-        if (ids.size() > 1){
-            findViewById(R.id.previous_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.next_button).setVisibility(View.VISIBLE);
-        }
-        if (ids.size() > 0){
-            TextView resultsView = (TextView) findViewById(R.id.results);
-            resultsView.setVisibility(View.VISIBLE);
-            findViewById(R.id.next_button).setClickable(true);
-            findViewById(R.id.previous_button).setClickable(false);
-            id_index = 0;
-            matchMessages();
-        }
-    }
 
     // TODO: Store user's in database and retrieve user ID upon login
     // Returns the android user's ID.
@@ -304,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        //otherwise
         else {
             Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(100);
@@ -446,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
         final int receiver_id = 0xf & sender_receiver;
         final int sender_id = sender_receiver >>> 4;
 
-        final Message message = insertMessageToDatabase(sender_id, receiver_id, data);
+        final Message message = Database.insertMessageToDatabase(sender_id, receiver_id, false, data, database);
 
         readBufferPosition = 0;
         handler.post(new Runnable() {
@@ -487,32 +382,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        loadHistory();
+        loadMessages();
         final MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
         if (view != null) {
-            view.setOnTopReachedListener(
-                new MessageScrollView.onTopReachedListener() {
-                    @Override
-                    public void onTopReached() {
-                        int x = loadMoreMessages();
-                        if (x != 0){
-                            final View view2 = findViewById(x);
-                            if (view2 != null) {
-                                new Handler().post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        view.scrollTo(0, view2.getTop());
-                                        //This needs to be done **after** because
-                                        //Otherwise, it doesn't know where the new top is
-                                        //because of the change in height
-                                    }
-                                });
-                            }
-                        }
-                    }
-                }
-            );
+            view.setOnTopReachedListener(onTopReachedListener);
         }
+        listenMessages();
+        scrollDown();
     }
 
     @Override
@@ -539,24 +415,21 @@ public class MainActivity extends AppCompatActivity {
 
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append(" ");
-
         builder.setSpan(new ImageSpan(getApplicationContext(), R.drawable.search_white),
                 builder.length() - 1, builder.length(), 0);
 
 
         TextView chatName = (TextView) findViewById(R.id.chat_name);
         TextView searchButton = (TextView) findViewById(R.id.start_search);
-        chatName.setMovementMethod(LinkMovementMethod.getInstance());
-        chatName.setHighlightColor(255);
         chatName.setText(chatWith);
         searchButton.setText(builder);
 
 
         Log.v("Chat With:", chatWith);
 
-        messages = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
-        //messages.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
-        messages.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
+        database = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
+        //database.execSQL("DROP TABLE messages;"); //Drop table is here in case I want to clear the database
+        database.execSQL("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY AUTOINCREMENT, sender INTEGER, recipient INTEGER, message_text VARCHAR, message_date DATETIME);");
         /*socket = ((MessagingApplication) getApplication()).getSocket();
 
         if (!socket.isConnected()){
@@ -574,46 +447,106 @@ public class MainActivity extends AppCompatActivity {
         }*/
     }
 
-    public void loadHistory(){
-        //get id of contact accessed
-        System.out.println("Attempting to load message history...");
-        int recipient_id = getCurrentReceiver();
+    //ToDo: Implement this!
+    private ArrayList<Integer> findFuzzyMatches(ArrayList<Message> messages, String parameter){
+        ArrayList<Integer> matchingIds = new ArrayList<Integer>();
+        matchingIds.add(1);
 
+        return matchingIds;
+    }
+
+    private ArrayList<Message> getAllMessages(){
+        int receiver_id = getCurrentReceiver();
         int sender_id = getCurrentSender();
-
         String columns[] = {MESSAGE_TEXT, MESSAGE_DATE, SENDER, RECIPIENT, "id"};
-        String args[] = {String.valueOf(recipient_id), String.valueOf(recipient_id), String.valueOf(sender_id), String.valueOf(sender_id)};
-
+        ArrayList<Message> messagesAL = new ArrayList<>();
         String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
+        String args[] = {String.valueOf(receiver_id), String.valueOf(receiver_id), String.valueOf(sender_id), String.valueOf(sender_id)};;
 
-        //Limit of 15 is here because I don't want to load all the messages in the database
-        //since that is potentially... Slow.
-        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", "15");
+        Cursor cursor = database.query(MESSAGES_TABLE, columns, selectionQuery, args, null, null, "id desc", null);
         if (cursor.moveToFirst()) {
-            ArrayList<Message> pastMessages = new ArrayList<>();
             do {
                 try {
-                    int r_id = cursor.getInt(cursor.getColumnIndexOrThrow(SENDER));
-                    pastMessages.add(new Message(cursor.getString(cursor.getColumnIndex(MESSAGE_TEXT)), r_id == recipient_id, cursor.getString(cursor.getColumnIndex(MESSAGE_DATE)), cursor.getInt(cursor.getColumnIndex("id"))));
+                    String text = cursor.getString(cursor.getColumnIndex(MESSAGE_TEXT));
+                    boolean sent = cursor.getInt(cursor.getColumnIndex(SENDER)) == sender_id;
+                    String date = cursor.getString(cursor.getColumnIndex(MESSAGE_DATE));
+                    int id = cursor.getInt(cursor.getColumnIndex("id"));
+                    Message message = new Message(text, sent, date, id);
+                    messagesAL.add(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             while (cursor.moveToNext());
-
-            for (int j = pastMessages.size() - 1; j >= 0; j--) {
-                if (pastMessages.get(j).sent) {
-                    insertReceivedMessageToView(pastMessages.get(j), false);
-                } else {
-                    insertSentMessageToView(pastMessages.get(j), false);
-                }
-            }
         }
         cursor.close();
-        //listenMessages();
+        return messagesAL;
     }
 
-    public int loadMoreMessages(){
+    public void doPrevious(){
+        if (id_index <= 0){
+            id_index = 0;
+        } else{
+            id_index--;
+            findViewById(R.id.next_button).setClickable(true);
+            findViewById(R.id.previous_button).setClickable(true);
+            if (id_index == 0){
+                findViewById(R.id.previous_button).setClickable(false);
+            }
+        }
+        matchMessages();
+    }
+
+    public void doNext(){
+        if (id_index > ids.size() - 1){
+            id_index = ids.size() - 1;
+        } else{
+            id_index++;
+            findViewById(R.id.next_button).setClickable(true);
+            findViewById(R.id.previous_button).setClickable(true);
+
+            if (id_index == ids.size() - 1){
+                findViewById(R.id.next_button).setClickable(false);
+            }
+        }
+        matchMessages();
+    }
+
+    private void matchMessages(){
+        TextView results = (TextView) findViewById(R.id.results);
+        String resultText = String.valueOf((id_index+1))  + "/" + String.valueOf(ids.size());
+        results.setText(resultText);
+        MessageScrollView view = (MessageScrollView) findViewById(R.id.scrollView);
+        TextView message = (TextView) view.findViewWithTag((ids.get(id_index)));
+        while (message == null){
+            loadMessages();
+            message = (TextView) view.findViewWithTag((ids.get(id_index)));
+        }
+        if (message != null) {
+            int top = getRelativeTop(message);
+            view.scrollTo(0, top);
+        }
+    }
+
+    private void findMatchMessages(ArrayList<Integer> ids){
+        findViewById(R.id.previous_button).setVisibility(View.GONE);
+        findViewById(R.id.next_button).setVisibility(View.GONE);
+        findViewById(R.id.results).setVisibility(View.GONE);
+        if (ids.size() > 1){
+            findViewById(R.id.previous_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.next_button).setVisibility(View.VISIBLE);
+        }
+        if (ids.size() > 0){
+            TextView resultsView = (TextView) findViewById(R.id.results);
+            resultsView.setVisibility(View.VISIBLE);
+            findViewById(R.id.next_button).setClickable(true);
+            findViewById(R.id.previous_button).setClickable(false);
+            id_index = 0;
+            matchMessages();
+        }
+    }
+
+    public int loadMessages(){
         int recipient_id = getCurrentReceiver();
         int sender_id = getCurrentSender();
 
@@ -632,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
         String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
 
         //Show 15 more!
-        Cursor cursor = messages.query(DATABASE_NAME, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
+        Cursor cursor = database.query(MESSAGES_TABLE, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
         if (cursor.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
             do {
@@ -654,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        if (cursor.getCount() != messagesShown) {
+        if (cursor.getCount() != messagesShown && view != null) {
             cursor.close();
             return view.getId();
         }
@@ -677,7 +610,7 @@ public class MainActivity extends AppCompatActivity {
             int recipient_id = getCurrentReceiver();
             int messageHeader = 16*sender_id + recipient_id;
 
-            Message m1 = insertMessageToDatabase(sender_id, recipient_id, message);
+            Message m1 = Database.insertMessageToDatabase(sender_id, recipient_id, true, message, database);
             insertSentMessageToView(m1, false);
             scrollDown();
 
@@ -723,33 +656,12 @@ public class MainActivity extends AppCompatActivity {
     public void receiveMessage(View view){
         String message_text = getMessage();
         if (message_text != null) {
-            Message message = insertMessageToDatabase(getCurrentReceiver(), getCurrentSender(), message_text);
+            boolean sent = getCurrentSender() == getCurrentReceiver();
+            Message message = Database.insertMessageToDatabase(getCurrentReceiver(), getCurrentSender(), sent, message_text, database);
             insertReceivedMessageToView(message, false);
             String author = getSenderName(getCurrentReceiver());
             showNotification(message.text, author);
         }
-    }
-
-    // Store message and sender/receiver ID's, and returns the current date to the DB.
-    public Message insertMessageToDatabase(int sender_id, int recipient_id, String message) {
-        ContentValues values = new ContentValues();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date();
-
-        values.put(SENDER, sender_id);
-        values.put(RECIPIENT, recipient_id);
-        values.put(MESSAGE_TEXT, message);
-        values.put(MESSAGE_DATE, dateFormat.format(date));
-
-        int id = (int) messages.insert(DATABASE_NAME, null, values);
-
-        if (id > -1){
-            System.out.println("Inserted message to database!");
-        }
-        else {
-            System.out.println("Message did not get inserted to the database...");
-        }
-        return new Message(message, sender_id == getCurrentReceiver(), dateFormat.format(date), id);
     }
 
     // Display sent message and returns the id of the text view.
