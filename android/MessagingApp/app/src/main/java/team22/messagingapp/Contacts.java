@@ -21,12 +21,21 @@ public class Contacts extends AppCompatActivity {
     private static String User;
     private SQLiteDatabase db;
 
+    private View.OnClickListener logouter = new View.OnClickListener(){
+        @Override
+        public void onClick(View v){
+           logout();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
         db = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
         removeUser();   // Remove current user from contact list
+        findViewById(R.id.logout).setOnClickListener(logouter);
+
     }
 
     private void removeUser() {
@@ -46,12 +55,13 @@ public class Contacts extends AppCompatActivity {
         startActivity(chatWindow);
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        logout();
-//    }
+    @Override
+    public void onBackPressed() {
+        logout();
+        super.onBackPressed();
+    }
 
-    public void logout(View view) {
+    public void logout() {
         Integer ID = Database.getUserID(User, db);
         System.out.println("Logging out:" + ID + "\n");
         connectBT();

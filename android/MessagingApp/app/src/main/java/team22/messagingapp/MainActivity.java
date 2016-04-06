@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLACK = 0xffffffff;
     private static final int BLUE = 0xff000000;
     private static final int WIDTH = 300;
-    private static final int TEXT_SIZE = 50;
     private static final int ENQ = 5;
 
     private Thread workerThread;
