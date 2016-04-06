@@ -19,8 +19,8 @@
 char* getMessage(unsigned* length, char* receiver, char* sender);
 char* getMessage2(unsigned* length, char* receiver, char* sender);
 //frees msg
-bool sendMessage(char receiver, char sender, char* msg);
-bool sendMessage2(char receiver, char sender, char* msg);
+bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv);
+bool sendMessage2(char receiver, char sender, char* msg, char* key, char* iv);
 
 void connection(void);
 

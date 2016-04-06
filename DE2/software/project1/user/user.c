@@ -6,9 +6,9 @@
 void init_users(){
 	users = malloc(MAX_USERS*sizeof(User));
 
-	for(int i = 0; i < MAX_USERS; i++){
+	for(int i = 1; i <= MAX_USERS; i++){
 		users[i].id = i;
-		log_out(i);
+		users[i].logged_in = false;
 		users[i].mailbox = new_mailbox();
 		users[i].has_mail = false;
 	}
@@ -16,15 +16,15 @@ void init_users(){
 
 int log_in(int user_id){
 	if(user_id < 1 || user_id > MAX_USERS){
-		printf("R invalid ID\n");
+		printf("Reject invalid ID\n");
 		return REJECT;
 	}
-	else if(!users[user_id].logged_in){
-		printf("R because logged in\n");
+	else if(users[user_id].logged_in){
+		printf("Reject because logged in\n");
 		return REJECT;
 	}
 	else{
-		printf("A\n");
+		printf("Accept\n");
 		users[user_id].logged_in = true;
 		return ACCEPT;
 	}

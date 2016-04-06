@@ -2,20 +2,24 @@
 #include "user.h"
 #include <stdlib.h>
 #include "control.h"
+#include "bluetooth.h"
 
 Mailbox* new_mailbox(){
 	return (Mailbox*) malloc(sizeof(Mailbox));
 }
 
-void init_mailbox(char sender, char receiver, char* msg, Mailbox* mailbox){
+void init_mailbox(char sender, char receiver, char* msg, char* key, char* iv, Mailbox* mailbox){
 	mailbox->sender = sender;
 	mailbox->receiver = receiver;
 	mailbox->msg = msg;
+	mailbox->key = key;
+	mailbox->iv = iv;
 	mailbox->next = NULL;
 }
 
 void check_mailbox(int user_id){
 	if(users[user_id].has_mail){
+		putCharBluetooth(STX);
 		read_mail(users[user_id].mailbox);
 		clear_mail(users[user_id].mailbox);
 		if(users[user_id].mailbox == NULL){
@@ -25,9 +29,9 @@ void check_mailbox(int user_id){
 	}
 }
 
-void send_mail(char sender, char receiver, char* msg){
+void send_mail(char sender, char receiver, char* msg, char* key, char* iv){
 	if(!users[(int)receiver].has_mail){
-		init_mailbox(sender, receiver, msg, users[(int)receiver].mailbox);
+		init_mailbox(sender, receiver, msg, key, iv, users[(int)receiver].mailbox);
 		return;
 	}
 
@@ -37,11 +41,11 @@ void send_mail(char sender, char receiver, char* msg){
 	}
 	tail.next = new_mailbox();
 	tail = *(tail.next);
-	init_mailbox(sender, receiver, msg, &tail);
+	init_mailbox(sender, receiver, msg, key, iv, &tail);
 }
 
 void read_mail(Mailbox* mailbox){
-	sendMessage(mailbox->sender, mailbox->receiver, mailbox->msg);
+	sendMessage(mailbox->sender, mailbox->receiver, mailbox->msg, mailbox->key, mailbox->iv);
 }
 
 void clear_mail(Mailbox* mailbox){
