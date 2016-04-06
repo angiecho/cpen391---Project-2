@@ -29,6 +29,7 @@ volatile char* KEY;
 volatile char* IV;
 volatile int msg_index;
 volatile char bt = 0;
+volatile char BLK_MULT = 1;
 
 void get_sender_receiver(char ids){
 	receiver = ids & 0x0f;
@@ -67,6 +68,7 @@ void interruptHandler(void){
 			send_key(KEY);
 			gen_iv(IV);
 			send_iv(IV);
+			printf("KEY/IV sent\n");
 
 			stage = get_header;
 		}
@@ -84,11 +86,12 @@ void interruptHandler(void){
 		get_sender_receiver(ids);
 		printf("Receiver: %d\n", (int)receiver);
 		printf("Sender: %d\n", (int)sender);
+		BLK_MULT = getCharBluetooth();
 		stage = rx_message;
 		break;
 
 	case rx_message:
-		while(msg_index < BLK_SIZE){
+		while(msg_index < BLK_SIZE*BLK_MULT){
 			bt = getCharBluetooth();
 			printf("%d ", bt);
 			MSG[msg_index] = bt;
@@ -111,14 +114,14 @@ void interruptHandler(void){
 		break;
 
 	case tx_message:
-		sendMessage(sender, receiver, MSG, KEY, IV); //TODO switch this -> it just echoes message back
+		sendMessage(sender, receiver, MSG, KEY, IV, BLK_MULT); //TODO switch this -> it just echoes message back
 		//sendMessage(receiver, sender, MSG);
 		free(MSG);
 		stage = init;
 		break;
 
 	case mail:
-		send_mail(sender, receiver, MSG, KEY, IV);
+		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
 		users[(int) receiver].has_mail = true;
 		free(MSG);
 		stage = init;
@@ -128,15 +131,16 @@ void interruptHandler(void){
 		msg_index = 0;
 		KEY = malloc(BLK_SIZE);
 		IV = malloc(BLK_SIZE);
-		MSG = malloc(BLK_SIZE+1);
+		MSG = malloc(BLK_SIZE*MAX_MULT+1);
 		receiver = 0;
 		sender = 0;
 		stage = start;
 		break;
 
 	case login:
-		printf("Logging in with user_id: %d\n", (int) bt);
+		printf("Logging in with user_id: ");
 		bt = getCharBluetooth();
+		printf("%d\n", (int) bt);
 		if(log_in(bt)){
 			putCharBluetooth(SOH);
 			putCharBluetooth(SOH);
@@ -158,6 +162,7 @@ void interruptHandler(void){
 }
 
 int main(void) {
+	printf("START\n");
 	init_control();
 
 	stage = login;

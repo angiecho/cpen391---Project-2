@@ -107,16 +107,16 @@ char* getMessage2(unsigned* length, char* receiver, char* sender){
 	}
 }
 
-bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv){
+bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult){
 	printf("Sending: \n");
-	for (int i = 0; i<strlen(key); i++){
+	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
 
 	printf("\n");
 
-	for (int i = 0; i<strlen(iv); i++){
+	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
@@ -127,7 +127,7 @@ bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv){
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
 
-	for(int i = 0; i<BLK_SIZE; i++){
+	for(int i = 0; i<BLK_SIZE*blk_mult; i++){
 		printf("%d ", msg[i]);
 		putCharBluetooth(msg[i]);
 	}

@@ -14,17 +14,21 @@
 void send_key(char* key){
 	// strcpy(key, query_string); TODO: FOR DEMO, READ KEYBOARD INPUT INSTEAD OF FAKE DATA
 	for (int i = 0; i < BLK_SIZE; i++){
+		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
 	putCharBluetooth(STX);
+	printf("\n");
 }
 
 // send iv to android
 void send_iv(char* iv){
 	for (int i = 0; i < BLK_SIZE; i++){
+		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
 	putCharBluetooth(ETX);
+	printf("\n");
 }
 
 /* gen_iv will generate a 16 char IV based on the
@@ -37,8 +41,7 @@ void gen_iv(char* IV){
 	long lat, lon;
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
-	printf("IV: ");
-	for (int i = 0; i < strlen(iv); i++){
+	for (int i = 0; i < BLK_SIZE; i++){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
 	}
