@@ -123,6 +123,8 @@ void interruptHandler(void){
 	case mail:
 		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
 		users[(int) receiver].has_mail = true;
+		printf("Is the mail okay?\n");
+		view_message(receiver);
 		free(MSG);
 		stage = init;
 		break;

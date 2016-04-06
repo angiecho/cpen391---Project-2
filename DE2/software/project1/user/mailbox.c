@@ -18,6 +18,12 @@ void init_mailbox(char receiver, char sender, char* msg, char* key, char* iv, in
 	mailbox->next = NULL;
 }
 
+void view_message(int user_id){
+	for(int j = 0; j < BLK_SIZE*users[user_id].mailbox->blk_mult; j++){
+		printf("%d ", users[user_id].mailbox->msg[j]);
+	}
+}
+
 void check_mailbox(int user_id){
 	if(users[user_id].has_mail){
 		printf("We have mail\n");
@@ -50,9 +56,6 @@ void send_mail(char receiver, char sender, char* msg, char* key, char* iv, int b
 }
 
 void read_mail(Mailbox* mailbox){
-	for(int j = 0; j < BLK_SIZE*mailbox->blk_mult; j++){
-			printf("%d ", mailbox->msg[j]);
-		}
 	sendMessage(mailbox->receiver, mailbox->sender, mailbox->msg, mailbox->key, mailbox->iv, mailbox->blk_mult);
 }
 
