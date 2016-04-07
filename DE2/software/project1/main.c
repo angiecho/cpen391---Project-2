@@ -27,22 +27,6 @@ volatile int curr;
 
 volatile char BLK_MULT_list[2];
 
-void get_sender_receiver(char ids){
-	receiver[curr] = ids & 0x0f;
-	printf("R: %d\n", (int)receiver[curr]);
-	sender[curr] = (ids>>4) & 0x0f;
-	printf("S: %d\n", (int)sender[curr]);
-}
-
-bool confirm_logout(){
-	char bt1 = getCharBluetooth(curr);
-	char bt2 = getCharBluetooth(curr);
-	if(bt1 == EOT && bt2 == EOT){
-		return true;
-	}
-	return false;
-}
-
 void interruptHandler(void){
 	char ids;
 	char bt = 0;
@@ -92,7 +76,11 @@ void interruptHandler(void){
 
 	case get_header:
 		ids = getCharBluetooth(curr);
-		get_sender_receiver(ids);
+		receiver[curr] = ids & 0x0f;
+		printf("R: %d\n", (int)receiver[curr]);
+		sender[curr] = (ids>>4) & 0x0f;
+		printf("S: %d\n", (int)sender[curr]);
+
 		BLK_MULT = getCharBluetooth(curr);
 		stage = rx_message;
 		break;
