@@ -226,6 +226,7 @@ public class Login extends AppCompatActivity {
 
         StringBuilder builder = new StringBuilder();
         for(String s : decodedByteChunks) {
+            s = s.replace("~", "");
             builder.append(s);
         }
         final String data = builder.toString().trim();
