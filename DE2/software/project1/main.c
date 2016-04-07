@@ -29,14 +29,16 @@ volatile char BLK_MULT_list[2];
 
 void get_sender_receiver(char ids){
 	receiver[curr] = ids & 0x0f;
+	printf("R: %d\n", (int)receiver[curr]);
 	sender[curr] = (ids>>4) & 0x0f;
+	printf("S: %d\n", (int)sender[curr]);
 }
 
 bool confirm_logout(){
-	if(getCharBluetooth(curr) == EOT){
-		if(getCharBluetooth(curr) == EOT){
-			return true;
-		}
+	char bt1 = getCharBluetooth(curr);
+	char bt2 = getCharBluetooth(curr);
+	if(bt1 == EOT && bt2 == EOT){
+		return true;
 	}
 	return false;
 }
@@ -47,6 +49,7 @@ void interruptHandler(void){
 
 	while (!(Bluetooth_Status & 0x1) && (!(Bluetooth_RS232_Status & 0x1)));
 	int curr = (Bluetooth_Status & 0x1);
+
 
 	Stage stage = stages_list[curr];
 	int msg_index = msg_index_list[curr];
@@ -75,7 +78,11 @@ void interruptHandler(void){
 		}
 
 		else if(bt == EOT){
-			if(confirm_logout()){
+			char bt1 = getCharBluetooth(curr);
+			char bt2 = getCharBluetooth(curr);
+
+			if(bt1 == EOT && bt2 == EOT){
+				printf("LOG OUT: %d\n", (int) bt);
 				bt = getCharBluetooth(curr);
 				log_out(bt);
 				stage = login;
@@ -87,13 +94,10 @@ void interruptHandler(void){
 		ids = getCharBluetooth(curr);
 		get_sender_receiver(ids);
 		BLK_MULT = getCharBluetooth(curr);
-		printf("blk_mult header = %d\n", BLK_MULT);
 		stage = rx_message;
 		break;
 
 	case rx_message:
-		printf("rx :\n");
-		printf("blk_mult header= %d\n", BLK_MULT);
 		while(msg_index < BLK_SIZE*BLK_MULT){
 			bt = getCharBluetooth(curr);
 			printf("%d ", bt);
@@ -104,10 +108,9 @@ void interruptHandler(void){
 		MSG_list[curr][msg_index] = '\0';
 		printf("\n");
 
-		printf("ack stage\n");
-		if (!users[(int)receiver[curr]].logged_in){
+		if (!users[(int)receiver[curr]].logged_in){ //THIS IS SENDING TO ITSELF ATM
 			printf("Key send message: %s\n", KEY_list[curr]);
-			sendMessage(sender[curr],receiver[curr],  MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT, curr);
+			sendMessage(sender[curr], receiver[curr],  MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT, curr);
 			MSG_list[curr][0] = "\0";
 			stage = start;
 		}
@@ -119,7 +122,7 @@ void interruptHandler(void){
 		break;
 
 	case login:
-		printf("Log in: ");
+		printf("LOG IN: ");
 		bt = getCharBluetooth(curr);
 		printf("%d\n", (int) bt);
 		if(log_in(bt)){

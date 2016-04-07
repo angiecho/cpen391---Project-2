@@ -74,8 +74,11 @@ bool sendMessage(char receiver, char sender, char* msg,
 	//keys/ivs are always 16 bits, and placed at front of incoming message
 	printf("\n");
 
-	char sender_receiver = (sender << 4) | receiver;
+	printf("S: %d\n", (int) sender);
+	printf("R: %d\n", (int) receiver);
+	char sender_receiver = (sender << 4) + receiver;
 	putCharBluetooth(sender_receiver, curr);
+	printf("S/R: %d\n", (int) sender_receiver);
 
 	for(int i = 0; i<BLK_SIZE*blk_mult; i++){
 		printf("%d ", msg[i]);
