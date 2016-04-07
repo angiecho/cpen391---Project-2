@@ -17,9 +17,9 @@
 #define ACK 6
 #define BEL 7
 
-char* getMessage(unsigned* length, char* receiver, char* sender);
 //frees msg
-bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
+bool sendMessage(char receiver, char sender, char* msg,
+				char* key, char* iv, int blk_mult, int curr);
 
 void connection(void);
 

@@ -18,28 +18,28 @@ void print_bytes(char* byte_array){
 }
 
 // send key to android
-void send_key(char* key){
+void send_key(char* key, int curr){
 	// strcpy(key, query_string); TODO: FOR DEMO, READ KEYBOARD INPUT INSTEAD OF FAKE DATA
 	for (int i = 0; i < BLK_SIZE; i++){
 		printf("%c", key[i]);
-		putCharBluetooth(key[i]);
+		putCharBluetooth(key[i], curr);
 	}
 	printf("\n");
-	putCharBluetooth(STX);
-	putCharBluetooth(STX);
-	putCharBluetooth(STX);
+	putCharBluetooth(STX, curr);
+	putCharBluetooth(STX, curr);
+	putCharBluetooth(STX, curr);
 }
 
 // send iv to android
-void send_iv(char* iv){
+void send_iv(char* iv, int curr){
 	for (int i = 0; i < BLK_SIZE; i++){
 		printf("%c", iv[i]);
-		putCharBluetooth(iv[i]);
+		putCharBluetooth(iv[i], curr);
 	}
 	printf("\n");
-	putCharBluetooth(ETX);
-	putCharBluetooth(ETX);
-	putCharBluetooth(ETX);
+	putCharBluetooth(ETX, curr);
+	putCharBluetooth(ETX, curr);
+	putCharBluetooth(ETX, curr);
 }
 
 /* gen_iv will generate a 16 char IV based on the

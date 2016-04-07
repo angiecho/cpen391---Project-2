@@ -22,13 +22,15 @@ typedef enum {
 	logout
 } Stage;
 
-volatile Stage stage;
-volatile char sender, receiver;
-volatile char* MSG;
-volatile char* KEY;
-volatile char* IV;
-volatile int msg_index;
+volatile Stage stages_list[2];
+volatile char sender[2], receiver[2];
+volatile char* MSG[2];
+volatile char* KEY[2];
+volatile char* IV[2];
+volatile int msg_index[2];
+
 volatile char bt = 0;
+volatile int curr;
 volatile char BLK_MULT = 1;
 
 void get_sender_receiver(char ids){
@@ -37,8 +39,8 @@ void get_sender_receiver(char ids){
 }
 
 bool confirm_logout(){
-	if(getCharBluetooth() == EOT){
-		if(getCharBluetooth() == EOT){
+	if(getCharBluetooth(curr) == EOT){
+		if(getCharBluetooth(curr) == EOT){
 			return true;
 		}
 	}
@@ -51,7 +53,7 @@ void interruptHandler(void){
 	switch(stage){
 
 	case start:
-		bt = getCharBluetooth();
+		bt = getCharBluetooth(curr);
 		if (bt == ENQ){
 			//do_pop(); TODO: USE KEYBOARD FOR DEMO
 //			while(!key_sent);
@@ -62,31 +64,31 @@ void interruptHandler(void){
 //			key_sent = false;
 
 			KEY = "abcdefghijklmnop";
-			send_key(KEY);
+			send_key(KEY, curr);
 			gen_iv(IV);
-			send_iv(IV);
+			send_iv(IV, curr);
 
 			stage = get_header;
 		}
 
 		else if(bt == EOT){
 			if(confirm_logout()){
-				bt = getCharBluetooth();
+				bt = getCharBluetooth(curr);
 				stage = logout;
 			}
 		}
 		break;
 
 	case get_header:
-		ids = getCharBluetooth();
+		ids = getCharBluetooth(curr);
 		get_sender_receiver(ids);
-		BLK_MULT = getCharBluetooth();
+		BLK_MULT = getCharBluetooth(curr);
 		stage = rx_message;
 		break;
 
 	case rx_message:
 		while(msg_index < BLK_SIZE*BLK_MULT){
-			bt = getCharBluetooth();
+			bt = getCharBluetooth(curr);
 			printf("%d ", bt);
 			MSG[msg_index] = bt;
 			msg_index++;
@@ -108,7 +110,7 @@ void interruptHandler(void){
 		break;
 
 	case tx_message:
-		sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT);
+		sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT, curr);
 		MSG[0] = "\0";
 		stage = init;
 		break;
@@ -128,17 +130,17 @@ void interruptHandler(void){
 
 	case login:
 		printf("Log in: ");
-		bt = getCharBluetooth();
+		bt = getCharBluetooth(curr);
 		printf("%d\n", (int) bt);
 		if(log_in(bt)){
-			putCharBluetooth(SOH);
-			putCharBluetooth(SOH);
-			check_mailbox(bt);
+			putCharBluetooth(SOH, curr);
+			putCharBluetooth(SOH, curr);
+			check_mailbox(bt, curr);
 			stage = init;
 		}
 		else{
-			putCharBluetooth(NIL);
-			putCharBluetooth(NIL);
+			putCharBluetooth(NIL, curr);
+			putCharBluetooth(NIL, curr);
 		}
 		break;
 
