@@ -273,27 +273,25 @@ public class MainActivity extends AppCompatActivity {
         final byte keyDelimiter = 2;
         final byte ivDelimiter = 3;
         final byte ackDelimiter = 6;
-        if (bite == delimiter) {
-            handleEndOfMessage();
-        } else if (bite == keyDelimiter) {
-            getKey();
-
-        } else if (bite == ivDelimiter) {
-            getIV();
-        } else if (bite == ackDelimiter) {
-            readBufferPosition = 0;
-            waitForAck = false;
-
-
-//        if (checkDelimiter(bite,delimiter)) {
+//        if (bite == delimiter) {
 //            handleEndOfMessage();
-//        } else if(checkDelimiter(bite,keyDelimiter)) {
+//        } else if (bite == keyDelimiter) {
 //            getKey();
-//        } else if(checkDelimiter(bite,ivDelimiter)) {
+//
+//        } else if (bite == ivDelimiter) {
 //            getIV();
-//        } else if(checkDelimiter(bite,ackDelimiter)) {
+//        } else if (bite == ackDelimiter) {
 //            readBufferPosition = 0;
 //            waitForAck = false;
+        if (checkDelimiter(bite,delimiter)) {
+            handleEndOfMessage();
+        } else if(checkDelimiter(bite,keyDelimiter)) {
+            getKey();
+        } else if(checkDelimiter(bite,ivDelimiter)) {
+            getIV();
+        } else if(checkDelimiter(bite,ackDelimiter)) {
+            readBufferPosition = 0;
+            waitForAck = false;
         } else {
             readBuffer[readBufferPosition++] = bite;
         }
