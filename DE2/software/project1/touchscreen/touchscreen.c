@@ -40,8 +40,7 @@ void init_touch(void){
 	// send touchscreen controller an "enable touch" command
 
 	Touchscreen_Control = 0x15;
-	Touchscreen_Baud = 0x01;
-	//Touchscreen_Baud = 0x05;
+	Touchscreen_Baud = 0x05;
 	usleep(1000000);
 
 	putChar_touch(0x55);

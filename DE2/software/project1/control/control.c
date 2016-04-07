@@ -33,25 +33,28 @@ void kb_listen(){
 		while(butt == NULL );
 		printf("Button pressed: %c\n", butt->key);
 		butt->prs_p(*butt);
-		if(butt->id != BACK_BUTT.id && butt->id != ENTER_BUTT.id && butt->id != DEL_BUTT.id && butt->id != ROAD_BUTT.id){
+
+
+
+		if(butt->id != ENTER_BUTT.id && butt->id != DEL_BUTT.id){
 			butt->kb_p(butt->key);
 		}
 
-		// We are done with the keyboard upon BACK
-		else if(butt->id == BACK_BUTT.id){
-			butt->p();
-			POP_BUTT.prs_p(POP_BUTT);
-			break;
-		}
+//		// We are done with the keyboard upon BACK
+//		else if(butt->id == BACK_BUTT.id){
+//			butt->p();
+//			POP_BUTT.prs_p(POP_BUTT);
+//			break;
+//		}
 
 		// We are done with the keyboard upon valid search input
 		else if(butt->id == ENTER_BUTT.id){
-			if(butt->ent_p(*butt)){}
+			butt->ent_p(*butt);
 			if (key_sent == true)
 				break;
 		}
 
-		else if(butt->id == DEL_BUTT.id || butt->id == ROAD_BUTT.id){
+		else if(butt->id == DEL_BUTT.id){
 			butt->p();
 		}
 	}

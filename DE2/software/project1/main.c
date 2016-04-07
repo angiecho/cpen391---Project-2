@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "user.h"
 #include "mailbox.h"
+#include "search.h"
 
 typedef enum {
 	start,
@@ -150,14 +151,23 @@ void init_vars(int index){
 
 int main(void) {
 	init_control();
-	init_vars(LEFT_BT);
-	init_vars(RIGHT_BT);
-
-	printf("starting\n");
-
-	while(1){
-		interruptHandler();
-	}
+	//test_touch();
+	do_pop();
+	char* KEY = malloc(BLK_SIZE);
+			while(!key_sent);
+			strcpy(KEY, query_string);
+			for(int i = 0; i < BLK_SIZE; i++){
+				printf("%c", KEY[i]);
+			}
+	clear_screen(WHITE);
+//	init_vars(LEFT_BT);
+//	init_vars(RIGHT_BT);
+//
+//	printf("starting\n");
+//
+//	while(1){
+//		interruptHandler();
+//	}
 //	alt_irq_register(TO_EXTERNAL_BUS_BRIDGE_0_IRQ, NULL, (void *)interruptHandler);
 //	printf ("interrupt enabled\n");
 //

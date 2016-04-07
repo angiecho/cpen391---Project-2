@@ -24,7 +24,7 @@ int qs_length(){
 
 // Check if the query string has space to still add letters
 bool has_space(){
-	return(qs_length() <= MAX_CHAR);
+	return(qs_length() <= BLK_SIZE-1);
 }
 
 // adds a letter to the end of the query string

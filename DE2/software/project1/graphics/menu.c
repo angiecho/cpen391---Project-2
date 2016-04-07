@@ -53,10 +53,9 @@ void draw_text_box(Point topLeft, int width, int height, int borderWidth,
 //draw the info box on the RHS of the touchscreen
 void draw_information_box(char* text){
 	Point point8;
-
-	point8.x = MAP_WIDTH;
+	point8.x = ORIGIN;
 	point8.y = ORIGIN;
-	draw_text_box(point8, BOX_WIDTH, BOX_HEIGHT, 1, BLACK, WHITE, BLACK, text, SMALL);
+	draw_text_box(point8, BOX_WIDTH, BOX_HEIGHT, 1, WHITE, WHITE, BLACK, text, SMALL);
 
 }
 
@@ -247,7 +246,12 @@ void zoom_screen(){
 
 // draw the pop up keyboard on the LHS of the screen
 void pop_screen(){
-	draw_information_box("ENTER YOUR SEARCH!");
+	Point topLeft = {0,0};
+	Point topRight = {800,0};
+	Point botLeft = {0,480};
+	Point botRight = {800, 480};
+	draw_filled_rectangle(topLeft, topRight, botLeft, botRight, WHITE);
+	draw_information_box("ENTER YOUR Key!");
 
 	Point kb_p = {KB_LEFT, KB_TOP};
 	Point search_p = {ORIGIN, SEARCH_TOP};
