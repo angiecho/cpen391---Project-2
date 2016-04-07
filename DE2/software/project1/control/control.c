@@ -133,9 +133,12 @@ bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int
 	}
 	printf("\n");
 	putCharBluetooth(0);
+	putCharBluetooth(0);
+	putCharBluetooth(0);
 
 	return true;
 }
+
 
 bool sendMessage2(char receiver, char sender, char* msg, char* key, char* iv){
 	printf("Sending: ");

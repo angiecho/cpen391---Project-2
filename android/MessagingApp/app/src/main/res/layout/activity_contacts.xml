@@ -75,4 +75,17 @@
         android:paddingLeft="20dp"
         android:layout_marginBottom="4dp"
         android:textColor="#99000000" />
+
+    <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:id="@+id/logout"
+        android:layout_gravity="center_horizontal"
+        android:onClick="logout"
+        android:background="@null"
+        android:textColor="@color/primary_material_light"
+        android:layout_marginTop="80dp" />
+
 </LinearLayout>

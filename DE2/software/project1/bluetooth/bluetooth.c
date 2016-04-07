@@ -9,28 +9,38 @@
 void putCharBluetooth(char c){
 	while((Bluetooth_Status & 0x02) != 0x02);
 	Bluetooth_TxData = c & 0xFF;
+	//putCharBluetooth_RS232(c);
 }
 
-void putCharBluetooth2(char c){
-	while((Touchscreen_Status & 0x02) != 0x02);
-	Touchscreen_TxData = c & 0xFF;
+void putCharBluetooth_RS232(char c){
+	while((Bluetooth_RS232_Status & 0x02) != 0x02);
+	Bluetooth_RS232_TxData = c & 0xFF;
 }
 
 char getCharBluetooth(){
 	while (!(Bluetooth_Status & 0x1));
 	char data = Bluetooth_RxData;
 	putCharBluetooth(ACK);
+	putCharBluetooth(ACK);
+	putCharBluetooth(ACK);
 	return data;
+	//return getCharBluetooth_RS232();
 }
 
-char getCharBluetooth2(){
-	while (!(Touchscreen_Status & 0x1));
-	return Touchscreen_RxData;
+char getCharBluetooth_RS232(){
+	while (!(Bluetooth_RS232_Status & 0x1));
+	char data = Bluetooth_RS232_RxData;
+	putCharBluetooth_RS232(ACK);
+	putCharBluetooth_RS232(ACK);
+	putCharBluetooth_RS232(ACK);
+	return data;
 }
 
 void Init_Bluetooth(void){
 	Bluetooth_Control = 0x95;
 	Bluetooth_Baud = 0x01;
+	Bluetooth_RS232_Control = 0x95;
+	Bluetooth_RS232_Baud = 0x01;
 }
 
 void WaitForReadStat(){
