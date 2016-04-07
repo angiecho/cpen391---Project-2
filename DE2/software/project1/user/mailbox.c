@@ -34,13 +34,13 @@ void print_message(int user_id){
 	printf("\n");
 }
 
-void check_mailbox(int user_id){
+void check_mailbox(int user_id, int curr){
 	int mail_index = -1;
 	while(users[user_id].mail_count > 0){
 		printf("User %d has %d message(s)\n", user_id, users[user_id].mail_count);
-		putCharBluetooth(STX);
+		putCharBluetooth(STX, curr);
 		mail_index++;
-		read_mail(users[user_id].mailbox[mail_index]);
+		read_mail(users[user_id].mailbox[mail_index], curr);
 		users[user_id].mail_count--;
 	}
 	users[user_id].mail_count = 0;
@@ -57,8 +57,8 @@ void send_mail(char receiver, char sender, char* msg, char* key, char* iv, int b
 	printf("User %d has %d message(s)\n",(int)receiver,users[(int)receiver].mail_count);
 }
 
-void read_mail(Mailbox mailbox){
-	sendMessage(mailbox.receiver, mailbox.sender, mailbox.msg, mailbox.key, mailbox.iv, mailbox.blk_mult);
+void read_mail(Mailbox mailbox, int curr){
+	sendMessage(mailbox.receiver, mailbox.sender, mailbox.msg, mailbox.key, mailbox.iv, mailbox.blk_mult, curr);
 	//clear_mail(mailbox.receiver);
 }
 

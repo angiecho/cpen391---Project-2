@@ -15,9 +15,9 @@ typedef struct Mailbox{
 
 Mailbox* new_mailbox();
 void init_mailbox(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
-void check_mailbox(int user_id);
+void check_mailbox(int user_id, int curr);
 void send_mail(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
-void read_mail(Mailbox mailbox);
+void read_mail(Mailbox mailbox, int curr);
 void clear_mail(int user_id);
 void print_message(int user_id);
 

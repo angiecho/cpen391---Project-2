@@ -24,18 +24,17 @@ typedef enum {
 
 volatile Stage stages_list[2];
 volatile char sender[2], receiver[2];
-volatile char* MSG[2];
-volatile char* KEY[2];
-volatile char* IV[2];
-volatile int msg_index[2];
-
-volatile char bt = 0;
+volatile char* MSG_list[2];
+volatile char* KEY_list[2];
+volatile char* IV_list[2];
+volatile int msg_index_list[2];
 volatile int curr;
-volatile char BLK_MULT = 1;
+
+volatile char BLK_MULT_list[2];
 
 void get_sender_receiver(char ids){
-	receiver = ids & 0x0f;
-	sender = (ids>>4) & 0x0f;
+	receiver[curr] = ids & 0x0f;
+	sender[curr] = (ids>>4) & 0x0f;
 }
 
 bool confirm_logout(){
@@ -49,6 +48,17 @@ bool confirm_logout(){
 
 void interruptHandler(void){
 	char ids;
+	char bt = 0;
+
+	while (!(Bluetooth_Status & 0x1) && (!(Bluetooth_RS232_Status & 0x1)));
+	int curr = (Bluetooth_Status & 0x1);
+
+	Stage stage = stages_list[curr];
+	char* MSG = MSG_list[curr];
+	char* KEY = KEY_list[curr];
+	char* IV = IV_list[curr];
+	int msg_index = msg_index_list[curr];
+	char BLK_MULT = BLK_MULT_list[curr];
 
 	switch(stage){
 
@@ -123,8 +133,8 @@ void interruptHandler(void){
 
 	case init:
 		msg_index = 0;
-		receiver = 0;
-		sender = 0;
+		receiver[curr] = 0;
+		sender[curr] = 0;
 		stage = start;
 		break;
 
@@ -150,16 +160,29 @@ void interruptHandler(void){
 		stage = login;
 		break;
 	}
+
+	stages_list[curr] = stage;
+//	char* MSG = MSG_list[curr];
+//	char* KEY = KEY_list[curr];
+//	char* IV = IV_list[curr];
+	msg_index_list[curr] = msg_index;
+	BLK_MULT_list[curr] = BLK_MULT;
+}
+
+void init_vars(int index){
+	KEY_list[index] = malloc(BLK_SIZE);
+	IV_list[index] = malloc(BLK_SIZE);
+	MSG_list[index] = malloc(BLK_SIZE*MAX_MULT+1);
+	BLK_MULT_list[index] = 1;
+	stages_list[index] = login;
 }
 
 int main(void) {
-	printf("START\n");
 	init_control();
-	KEY = malloc(BLK_SIZE);
-	IV = malloc(BLK_SIZE);
-	MSG = malloc(BLK_SIZE*MAX_MULT+1);
+	init_vars(LEFT_BT);
+	init_vars(RIGHT_BT);
 
-	stage = login;
+	printf("starting\n");
 
 	while(1){
 		interruptHandler();

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <bluetooth.h>
 #include <touchscreen.h>
+#include <assert.h>
 
 #define ACK 6
 
