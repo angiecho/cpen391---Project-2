@@ -66,6 +66,21 @@ public class Database {
         return ID;
     }
 
+    public static String getUsername(int id, SQLiteDatabase db){
+        String columns[] = {KEY_USERNAME, KEY_ID};
+        String args[] = {String.valueOf(id)};
+        String username = "???";
+        Cursor mCursor = db.query(USER_TABLE, columns, "_id=?", args, null, null, null, null);
+        if (mCursor.moveToFirst()){
+            try {
+                username = mCursor.getString(mCursor.getColumnIndexOrThrow(KEY_USERNAME));
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        return username;
+    }
+
     public static boolean checkLogin(String username, String password, SQLiteDatabase db) throws SQLException {
         String columns[] = {KEY_USERNAME, KEY_PASSWORD};
         String args[] = {username, password};

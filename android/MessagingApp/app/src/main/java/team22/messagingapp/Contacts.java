@@ -14,13 +14,20 @@ import android.widget.Toast;
 import android.bluetooth.BluetoothSocket;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 public class Contacts extends AppCompatActivity {
     private static OutputStream outputStream;
-    private static final Integer EOT = 4;
+    private static InputStream inputStream;
+    private static final int EOT = 4;
     private static String User;
     private SQLiteDatabase db;
+    volatile boolean waitForAck;
+    private byte[] readBuffer;
+    private int readBufferPosition;
+
 
     private View.OnClickListener logouter = new View.OnClickListener(){
         @Override
@@ -51,8 +58,10 @@ public class Contacts extends AppCompatActivity {
     public void openChat(View view) {
         String chatWith = view.getTag().toString();
         Intent chatWindow = new Intent(this, MainActivity.class);
+        Bundle loginBundle = getIntent().getExtras();
+        String senderName = loginBundle.getString("username");
         chatWindow.putExtra("receiver", chatWith);
-        chatWindow.putExtra("senderName", getIntent().getExtras().getString("username"));
+        chatWindow.putExtra("senderName", senderName);
         startActivity(chatWindow);
     }
 
@@ -63,16 +72,17 @@ public class Contacts extends AppCompatActivity {
     }
 
     public void logout() {
-        Integer ID = Database.getUserID(User, db);
+        int ID = Database.getUserID(User, db);
         System.out.println("Logging out:" + ID + "\n");
         connectBT();
         SystemClock.sleep(250);
         try {
             for (int i = 0; i < 3; i++) {
                 SystemClock.sleep(250);
-                outputStream.write(EOT);
+                System.out.println("This is the " + i + "th iteration.");
+                outputData((byte) EOT);
             }
-            outputStream.write(ID);
+            outputData((byte)ID);
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,7 +108,57 @@ public class Contacts extends AppCompatActivity {
         }
         else {
             outputStream = ((MessagingApplication) getApplication()).getOutputStream();
-            System.out.println("Yay output stream!");
+            inputStream = ((MessagingApplication)getApplication()).getInputStream();
+            System.out.println("Yay streams!");
         }
+    }
+
+    private void outputData(byte data) throws IOException{
+        outputStream.write(data);
+        SystemClock.sleep(100);
+        waitForAck = true;
+        if(waitForAck){
+            int bytesAvailable = inputStream.available();
+            System.out.println("Bytes available: " + bytesAvailable);
+            while (bytesAvailable > 0) {
+                readBufferPosition = 0;
+                readBuffer = new byte[4096];
+                byte[] packetBytes = new byte[bytesAvailable];
+                inputStream.read(packetBytes);
+                for (byte bite : packetBytes) {
+                    handleBite(bite);
+                }
+                bytesAvailable = inputStream.available();
+            }
+        }
+        System.out.print("Ack");
+    }
+
+    private void handleBite(byte bite) throws UnsupportedEncodingException {
+
+        final byte ackDelimiter = 6;
+
+        System.out.println(bite);
+
+        if(checkDelimiter(bite,ackDelimiter)) {
+            System.out.println("I got noticed!");
+            readBufferPosition = 0;
+            waitForAck = false;
+        } else {
+            readBuffer[readBufferPosition++] = bite;
+        }
+
+    }
+    private boolean checkDelimiter(byte bite, byte delimiter) {
+        if (bite != delimiter) {
+            return false;
+        }
+
+        if (readBufferPosition < 2) {
+            return false;
+        }
+
+        return (readBuffer[readBufferPosition-1] == delimiter
+                && readBuffer[readBufferPosition-2] == delimiter);
     }
 }

@@ -147,31 +147,13 @@ public class MainActivity extends AppCompatActivity {
     public int getCurrentSender(){
         Bundle contactBundle = getIntent().getExtras();
         String string = contactBundle.getString("senderName");
-        if (string.toLowerCase().contentEquals("caleb")){
-            return 1;
-        }
-        else if (string.toLowerCase().contentEquals("charles")){
-            return 2;
-        }
-        else if (string.toLowerCase().contentEquals("cho")){
-            return 3;
-        }
-        return 1;
+        return Database.getUserID(string.toLowerCase(), database);
     }
 
     // TODO: Change according to above TODO
     // Returns the name mapped by the android user ID
     public String getSenderName(int id){
-        if (id == 1){
-            return "Caleb";
-        }
-        else if (id == 2){
-            return "Charles";
-        }
-        else if (id == 3){
-            return "Cho";
-        }
-        return "???";
+        return Database.getUsername(id, database);
     }
 
     // TODO Change according to above TODO
@@ -179,16 +161,8 @@ public class MainActivity extends AppCompatActivity {
     public int getCurrentReceiver(){
         Bundle contactBundle = getIntent().getExtras();
         String string = contactBundle.getString("receiver");
-        if (string.toLowerCase().contentEquals("caleb")){
-            return 1;
-        }
-        else if (string.toLowerCase().contentEquals("charles")) {
-            return 2;
-        }
-        else if (string.toLowerCase().contentEquals("cho")){
-            return 3;
-        }
-        return 1;
+        return Database.getUserID(string.toLowerCase(), database);
+
     }
 
     public void showNotification(String message, String author){
@@ -331,6 +305,8 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Key received: " + keyReceived);
         System.out.println("IV received: " + ivReceived);
 
+        System.out.println("Sender/Receiver received" + sender_receiver);
+
         AESEncryption.print_cipher(encodedBytes, encodedBytes.length);
 
         final int chunkSize = 16;
@@ -369,6 +345,9 @@ public class MainActivity extends AppCompatActivity {
 
         final int receiver_id = 0xf & sender_receiver;
         final int sender_id = sender_receiver >>> 4;
+
+        System.out.println("These are my IDs: Sender(" + receiver_id);
+        System.out.print(") Receiver(" + sender_id + ")");
 
         final Message m = Database.insertMessageToDatabase(sender_id, receiver_id, false, data, database);
 
@@ -705,14 +684,14 @@ public class MainActivity extends AppCompatActivity {
     // Helper fcn for sending message bytes to bluetooth.
     private void sendMessageBluetooth(String message, int messageHeader){
         try {
-            outputData((byte)ENQ); //request key, iv from DE2
+            outputData((byte) ENQ); //request key, iv from DE2
 
             System.out.println("Waiting for TS and GPS");
             while (keyRequested == null || ivRequested == null);
             System.out.println("Key requested: " + keyRequested);
             System.out.println("IV requested: " + ivRequested);
-
-            outputData((byte)messageHeader);
+            System.out.println("Sending message header: " + messageHeader);
+            outputData((byte) messageHeader);
 
             ArrayList<String> stringChunks = new ArrayList<>();
             for (int start = 0; start < message.length(); start += 16) {
