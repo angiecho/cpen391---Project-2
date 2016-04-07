@@ -60,31 +60,39 @@ void kb_listen(){
 bool sendMessage(char receiver, char sender, char* msg,
 					char* key, char* iv, int blk_mult, int curr){
 	printf("SENDING TO ANDROID: \n");
+	int other;
+	if(curr == LEFT_BT){
+		other = RIGHT_BT;
+	}
+	else{
+		other = LEFT_BT;
+	}
+
 	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", key[i]);
-		putCharBluetooth(key[i], curr);
+		putCharBluetooth(key[i], other);
 	}
 
 	printf("\n");
 
 	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", iv[i]);
-		putCharBluetooth(iv[i], curr);
+		putCharBluetooth(iv[i], other);
 	}
 	//keys/ivs are always 16 bits, and placed at front of incoming message
 	printf("\n");
 
 	char sender_receiver = (sender << 4) | receiver;
-	putCharBluetooth(sender_receiver, curr);
+	putCharBluetooth(sender_receiver, other);
 
 	for(int i = 0; i<BLK_SIZE*blk_mult; i++){
 		printf("%d ", msg[i]);
-		putCharBluetooth(msg[i], curr);
+		putCharBluetooth(msg[i], other);
 	}
 	printf("\n");
-	putCharBluetooth(0, curr);
-	putCharBluetooth(0, curr);
-	putCharBluetooth(0, curr);
+	putCharBluetooth(0, other);
+	putCharBluetooth(0, other);
+	putCharBluetooth(0, other);
 
 	return true;
 }

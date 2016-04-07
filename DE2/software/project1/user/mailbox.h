@@ -2,7 +2,7 @@
 #define MAILBOX_H_
 
 #include "user.h"
-#define MAX_MAILBOX 293
+#define MAX_MAILBOX 4096
 
 typedef struct Mailbox{
 	char* msg;

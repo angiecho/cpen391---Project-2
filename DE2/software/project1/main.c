@@ -66,8 +66,8 @@ void interruptHandler(void){
 			char bt2 = getCharBluetooth(curr);
 
 			if(bt1 == EOT && bt2 == EOT){
-				printf("LOG OUT: %d\n", (int) bt);
 				bt = getCharBluetooth(curr);
+				printf("LOG OUT: %d\n", (int) bt);
 				log_out(bt);
 				stage = login;
 			}
@@ -96,9 +96,9 @@ void interruptHandler(void){
 		MSG_list[curr][msg_index] = '\0';
 		printf("\n");
 
-		if (!users[(int)receiver[curr]].logged_in){ //THIS IS SENDING TO ITSELF ATM
+		if (users[(int)receiver[curr]].logged_in){
 			printf("Key send message: %s\n", KEY_list[curr]);
-			sendMessage(sender[curr], receiver[curr],  MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT, curr);
+			sendMessage(receiver[curr], sender[curr],  MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT, curr);
 			MSG_list[curr][0] = "\0";
 			stage = start;
 		}

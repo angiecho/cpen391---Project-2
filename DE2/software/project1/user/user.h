@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "mailbox.h"
 
-#define MAX_USERS 2
+#define MAX_USERS 3
 #define ACCEPT 1
 #define REJECT 0
 

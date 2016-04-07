@@ -58,8 +58,14 @@ void send_mail(char receiver, char sender, char* msg, char* key, char* iv, int b
 }
 
 void read_mail(Mailbox mailbox, int curr){
+	if(curr == LEFT_BT){
+		curr = RIGHT_BT;
+	}
+	else{
+		curr = LEFT_BT;
+	}
 	sendMessage(mailbox.receiver, mailbox.sender, mailbox.msg, mailbox.key, mailbox.iv, mailbox.blk_mult, curr);
-	//clear_mail(mailbox.receiver);
+	clear_mail(mailbox.receiver);
 }
 
 void clear_mail(int user_id){
