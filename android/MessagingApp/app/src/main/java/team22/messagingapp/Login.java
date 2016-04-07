@@ -170,12 +170,25 @@ public class Login extends AppCompatActivity {
     private void handleBite(byte bite) throws UnsupportedEncodingException {
         final byte delimiter = 0; //This is the ASCII code for a \0
 
-        if (bite == delimiter) {
+        if (checkDelimiter(bite, delimiter)) {
             handleEndOfMessage();
         }else {
             readBuffer[readBufferPosition++] = bite;
         }
 
+    }
+
+    private boolean checkDelimiter(byte bite, byte delimiter) {
+        if (bite != delimiter) {
+            return false;
+        }
+
+        if (readBufferPosition < 2) {
+            return false;
+        }
+
+        return (readBuffer[readBufferPosition-1] == delimiter
+                && readBuffer[readBufferPosition-2] == delimiter);
     }
     private void handleEndOfMessage() throws  UnsupportedEncodingException{
         // need key, iv, header(1 byte), and message(1 >= bytes)
@@ -183,7 +196,7 @@ public class Login extends AppCompatActivity {
         byte[] keyBytes = new byte[KEY_IV_SIZE];
         byte[] ivBytes = new byte[KEY_IV_SIZE];
         byte sender_receiver;
-        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)];
+        byte[] encodedBytes = new byte[readBufferPosition-(KEY_IV_SIZE*2+1)-2];
 
         System.arraycopy(readBuffer, 0, keyBytes, 0, KEY_IV_SIZE);
         System.arraycopy(readBuffer, KEY_IV_SIZE, ivBytes, 0, KEY_IV_SIZE);

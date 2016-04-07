@@ -2,6 +2,7 @@ package team22.messagingapp;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -65,14 +66,18 @@ public class Contacts extends AppCompatActivity {
         Integer ID = Database.getUserID(User, db);
         System.out.println("Logging out:" + ID + "\n");
         connectBT();
+        SystemClock.sleep(250);
         try {
             for (int i = 0; i < 3; i++) {
+                SystemClock.sleep(250);
                 outputStream.write(EOT);
             }
             outputStream.write(ID);
+            outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         Intent loginScreen = new Intent(this, Login.class);
         startActivity(loginScreen);
     }
@@ -93,6 +98,7 @@ public class Contacts extends AppCompatActivity {
         }
         else {
             outputStream = ((MessagingApplication) getApplication()).getOutputStream();
+            System.out.println("Yay output stream!");
         }
     }
 }
