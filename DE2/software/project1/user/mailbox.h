@@ -2,7 +2,7 @@
 #define MAILBOX_H_
 
 #include "user.h"
-#define MAILBOX_SIZE 293
+#define MAX_MAILBOX 293
 
 typedef struct Mailbox{
 	char* msg;
@@ -14,7 +14,7 @@ typedef struct Mailbox{
 } Mailbox;
 
 Mailbox* new_mailbox();
-void init_mailbox(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult, Mailbox* mailbox);
+void init_mailbox(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
 void check_mailbox(int user_id);
 void send_mail(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult);
 void read_mail(Mailbox mailbox);

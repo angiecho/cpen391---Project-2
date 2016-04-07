@@ -7,7 +7,7 @@
 #include "button.h"
 
 #define BLK_SIZE 16
-#define MAX_MULT 16
+#define MAX_MULT 64
 #define NIL 0
 #define SOH 1
 #define STX 2

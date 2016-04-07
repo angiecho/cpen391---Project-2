@@ -83,7 +83,7 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 }
 
 bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult){
-	printf("Sending: \n");
+	printf("SENDING TO ANDROID: \n");
 	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
