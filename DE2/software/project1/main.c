@@ -70,9 +70,13 @@ void interruptHandler(void){
 		break;
 
 	case acknowledge:
-		putCharBluetooth(ACK, curr);	// CHANGE from curr to the opposite
+		int rcv;
+		if (curr == 0)
+			rcv = RIGHT_BT;
+		else rcv = LEFT_BT;
+			putCharBluetooth(ACK, rcv);
 		usleep(ACK_DURATION);
-		bt = getCharBluetooth(curr);	// CHANGE from curr to the opposite
+		bt = getCharBluetooth(rcv);
 		if(bt == ACK){
 			sendMessage(msg_index[curr], sender[curr], receiver[curr], msg[curr], curr);
 		}
