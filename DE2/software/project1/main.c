@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include "user.h"
 #include "mailbox.h"
+#include "search.h"
+#include "Colours.h"
 
 typedef enum {
 	start,
@@ -45,18 +47,8 @@ void interruptHandler(void){
 		msg_index = 0;
 		bt = getCharBluetooth(curr);
 		if (bt == ENQ){
-			//do_pop(); TODO: USE KEYBOARD FOR DEMO
-//			while(!key_sent);
-//			strcpy(KEY, query_string);
-//			gen_iv(IV);
-//			send_key(KEY);
-//			send_key(IV);
-//			key_sent = false;
-
-			KEY_list[curr] = "abcdefghijklmnop";
-			send_key(KEY_list[curr], curr);
-			gen_iv(IV_list[curr]);
-			send_iv(IV_list[curr], curr);
+			send_key(KEY_list[curr],curr);
+			send_key(IV_list[curr],curr);
 
 			stage = get_header;
 		}
@@ -146,13 +138,30 @@ int main(void) {
 
 	printf("starting\n");
 
+	clear_screen(WHITE);
+	do_pop();
+	while(!key_sent);
+
+	printf("KEYBOARD KEY: ");
+	for(int i = 0; i < BLK_SIZE; i++){
+		printf("%c",query_string[i]);
+	}
+	printf("\n");
+
+	strcpy(KEY_list[LEFT_BT], query_string);
+	strcpy(KEY_list[RIGHT_BT], query_string);
+	gen_iv(IV_list[LEFT_BT]);
+	gen_iv(IV_list[RIGHT_BT]);
+
+	printf("GPS IV:	");
+	for(int i = 0; i < BLK_SIZE; i++){
+		printf("%c", IV_list[LEFT_BT][i]);
+	}
+	printf("\n");
+
 	while(1){
 		interruptHandler();
 	}
-//	alt_irq_register(TO_EXTERNAL_BUS_BRIDGE_0_IRQ, NULL, (void *)interruptHandler);
-//	printf ("interrupt enabled\n");
-//
-//	while(1);
 
 	printf("\nDONE\n");
 	return 0;

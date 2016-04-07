@@ -23,17 +23,27 @@ void init_control(){
 	init_users();
 }
 void kb_listen(){
+	char *keylen = malloc(sizeof(char)*KB_KEYS-1);
+	char kblen[3];
+
 	while(1){
 		Button* butt;
 		do{
 			Point p_i = GetPress();
 			printf("Pressed Coordinates: (%i, %i)\n", p_i.x, p_i.y);
 			butt = get_kb_button(p_i);
+
+			itoa(qs_length(),kblen);
+			strcpy(keylen,"You have entered: \n");
+			strcat(keylen,kblen);
+			strcat(keylen, " out of 16 Characters");
+			draw_information_box(keylen);
+
 		}
 		while(butt == NULL );
 		printf("Button pressed: %c\n", butt->key);
 		butt->prs_p(*butt);
-		if(butt->id != BACK_BUTT.id && butt->id != ENTER_BUTT.id && butt->id != DEL_BUTT.id && butt->id != ROAD_BUTT.id){
+		if(butt->id != ENTER_BUTT.id && butt->id != DEL_BUTT.id){
 			butt->kb_p(butt->key);
 		}
 
@@ -46,12 +56,13 @@ void kb_listen(){
 
 		// We are done with the keyboard upon valid search input
 		else if(butt->id == ENTER_BUTT.id){
-			if(butt->ent_p(*butt)){}
-			if (key_sent == true)
+			butt->ent_p(*butt);
+			if (key_sent){
 				break;
+			}
 		}
 
-		else if(butt->id == DEL_BUTT.id || butt->id == ROAD_BUTT.id){
+		else if(butt->id == DEL_BUTT.id){
 			butt->p();
 		}
 	}

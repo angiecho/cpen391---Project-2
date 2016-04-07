@@ -83,17 +83,7 @@ void init_kb_button(char key, int id){
 		SPACE_BUTT.text = "SPACE";
 		return;
 	}
-	else if(id == BACK_BUTT.id){
-		i = id - 21;
-		j = 2;
-		keyboard[id].left = (KB_LEFT+KEY_SIZE) + KEY_SIZE*i;
-		keyboard[id].right = (KB_LEFT+KEY_SIZE*2) + KEY_SIZE*i;
-		keyboard[id].top = KB_TOP + KEY_SIZE*j;
-		keyboard[id].bottom = (KB_TOP + KEY_SIZE) + KEY_SIZE*j;
-		BACK_BUTT.p = do_back;
-		BACK_BUTT.text = "BACK";
-		return;
-	}
+
 	keyboard[id].left = KB_LEFT + KEY_SIZE*i;
 	keyboard[id].right = (KB_LEFT+KEY_SIZE) + KEY_SIZE*i;
 	keyboard[id].top = KB_TOP + KEY_SIZE*j;
@@ -104,10 +94,10 @@ void init_kb_button(char key, int id){
 
 
 void init_keyboard(){
-	keyboard = malloc(sizeof(Button)*N_KEYS);
+	keyboard = malloc(sizeof(Button)*(KB_KEYS-1));
 
 	// KB buttons
-	for(int i = 0; i < KB_KEYS; i++){
+	for(int i = 0; i < KB_KEYS-1; i++){
 		init_kb_button(KEYS[i], i);
 	}
 
