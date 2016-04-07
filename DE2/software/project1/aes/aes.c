@@ -26,6 +26,8 @@ void send_key(char* key){
 	}
 	printf("\n");
 	putCharBluetooth(STX);
+	putCharBluetooth(STX);
+	putCharBluetooth(STX);
 }
 
 // send iv to android
@@ -35,6 +37,8 @@ void send_iv(char* iv){
 		putCharBluetooth(iv[i]);
 	}
 	printf("\n");
+	putCharBluetooth(ETX);
+	putCharBluetooth(ETX);
 	putCharBluetooth(ETX);
 }
 

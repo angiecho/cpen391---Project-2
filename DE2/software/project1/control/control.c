@@ -82,31 +82,6 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 	}
 }
 
-char* getMessage2(unsigned* length, char* receiver, char* sender){
-	char sender_receiver = getCharBluetooth2();
-	*receiver = sender_receiver & 0x0f;
-	*sender = (sender_receiver>>4) & 0x0f;
-
-	unsigned message_length = (unsigned)getCharBluetooth2();
-
-	//TODO should signal message is continuing instead
-	if(message_length != 0){
-
-		*length = message_length;
-		char* msg = malloc(message_length+1);
-
-		for (int i = 0; i < message_length; i++) {
-			msg[i] = getCharBluetooth2();
-		}
-
-		msg[message_length] = '\0';
-		return msg;
-	} else {
-		//assert(0);
-		return "";
-	}
-}
-
 bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult){
 	printf("Sending: \n");
 	for (int i = 0; i<BLK_SIZE; i++){
@@ -134,35 +109,6 @@ bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int
 	putCharBluetooth(0);
 	putCharBluetooth(0);
 	putCharBluetooth(0);
-
-	return true;
-}
-
-
-bool sendMessage2(char receiver, char sender, char* msg, char* key, char* iv){
-	printf("Sending: ");
-	for (int i = 0; i<strlen(key); i++){
-		printf("%c", key[i]);
-		putCharBluetooth2(key[i]);
-	}
-	printf("\n");
-
-	for (int i = 0; i<strlen(iv); i++){
-		printf("%c", iv[i]);
-		putCharBluetooth2(iv[i]);
-	}
-	printf("\n");
-
-	char sender_receiver = (sender << 4) | receiver;
-	putCharBluetooth2(sender_receiver);
-	//putCharBluetooth((char)length);
-
-	for(int i = 0; i<BLK_SIZE; i++){
-		printf("%d ", msg[i]);
-		putCharBluetooth2(msg[i]);
-	}
-	printf("\n");
-	putCharBluetooth2(0);
 
 	return true;
 }
