@@ -289,7 +289,7 @@ void do_del(){
 
 /* On valid search, find the path to the selected entry from current location. Re-draw the map.
 	On invalid search, returns and keep listening for keyboard inputs */
-void do_enter(){
+void do_enter(int curr){
 	int key_len = qs_length();
 	if (key_len != 16){
 		printf("Please enter a 16 character key.\n");
@@ -297,8 +297,8 @@ void do_enter(){
 		key_sent = false;
 	}
 	else {
-		get_key();
-		gen_iv();
+		get_key(curr);
+		gen_iv(curr);
 		key_sent = true;
 	}
 }

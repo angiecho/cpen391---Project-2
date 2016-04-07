@@ -67,7 +67,7 @@ char* get_butt_text(Button b);
 void do_key(char key);
 void do_del();
 void do_back();
-void do_enter();
+void do_enter(int curr);
 void do_info();
 void do_dir();
 void do_zoom();

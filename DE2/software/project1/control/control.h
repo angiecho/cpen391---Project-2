@@ -17,12 +17,8 @@
 
 #define ACK_DURATION 5000000
 
-char* getMessage(unsigned* length, char* receiver, char* sender);
-char* getMessage2(unsigned* length, char* receiver, char* sender);
 //frees msg
-bool sendMessage(unsigned length, char receiver, char sender, char* msg);
-bool sendMessage2(unsigned length, char receiver, char sender, char* msg);
-
+bool sendMessage(unsigned length, char receiver, char sender, char* msg, int curr);
 void connection(void);
 
 void init_globals();

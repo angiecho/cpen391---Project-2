@@ -22,7 +22,7 @@ void init_contacts(){
 
 void assign_contacts(){
    for(int i = 0; i < N_CONTACTS; i++){
-   		assignBluetooth(contact_names[i], passwords[i]);
+   		//assignBluetooth(contact_names[i], passwords[i]);
    }
 }
 

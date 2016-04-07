@@ -8,26 +8,28 @@
 #include "bluetooth.h"
 #include "aes.h"
 #include "menu.h"
+#include "assert.h"
 #include <stdbool.h>
 
 /* get_key will receive a 16 byte key from user
  * input on the touchscreen.
  */
-void get_key(){
+void get_key(int curr){
+	assert(curr == LEFT_BT || curr == RIGHT_BT);
 	// strcpy(key, query_string); TODO: FOR DEMO, READ KEYBOARD INPUT INSTEAD OF FAKE DATA
 	for (int i = 0; i < 16; i++){
-		putCharBluetooth(key[i]);
+		putCharBluetooth(key[curr][i], curr);
 	}
-	printf ("Key: %s\n", key);
-	putCharBluetooth(STX);
-	putCharBluetooth(STX);
-	putCharBluetooth(STX);
+	printf ("Key: %s\n", key[curr]);
+	for (int i = 0; i < 3; i++){
+		putCharBluetooth(STX, curr);
+	}
 }
 
 /* gen_iv will generate a 16 char IV based on the
  * GPS coordinates for longitude and latitude.
  */
-void gen_iv(void){
+void gen_iv(int curr){
 	// TODO: FOR DEMO, READ GPS DATA INSTEAD OF FAKE DATA
 	char iv[17];
 	iv[16] = '\0';
@@ -39,13 +41,13 @@ void gen_iv(void){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
 		printf("%c", iv[i]);
-		putCharBluetooth(iv[i]);
+		putCharBluetooth(iv[i], curr);
 	}
 	printf("\n");
-	strcpy(IV,iv);
-	putCharBluetooth(ETX);
-	putCharBluetooth(ETX);
-	putCharBluetooth(ETX);
+	strcpy(IV[curr],iv);
+	putCharBluetooth(ETX, curr);
+	putCharBluetooth(ETX, curr);
+	putCharBluetooth(ETX, curr);
 }
 
 /* getASCII will use an integer value to generate an ASCII value

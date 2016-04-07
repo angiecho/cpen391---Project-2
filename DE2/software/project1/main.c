@@ -12,96 +12,91 @@ typedef enum {
 	start,
 	rx_message,
 	acknowledge,
-	tx_message,
-	init
 } Stage;
 
-volatile Stage stage;
-//volatile unsigned length;
-volatile char sender, receiver;
-volatile char* msg;
-volatile int msg_index;
-volatile char bt = 0;
+volatile Stage stage_list[2];
+volatile char sender[2], receiver[2];
+volatile char* msg[2];
+volatile int msg_index[2];
 
-void get_sender_receiver(char ids){
-	receiver = ids & 0x0f;
-	sender = (ids>>4) & 0x0f;
+void init_vars(int index);
+
+void get_sender_receiver(char ids, int curr){
+	receiver[curr] = ids & 0x0f;
+	sender[curr] = (ids>>4) & 0x0f;
 }
 
 void interruptHandler(void){
 	char ids;
+	char bt;
+
+	while (!(Bluetooth_Status & 0x1) && (!(Bluetooth_RS232_Status & 0x1)));
+	int curr = (Bluetooth_Status & 0x1);
+	Stage stage = stage_list[curr];
 
 	switch(stage){
 
 	case start:
-		printf("*start*\n");
-		bt = getCharBluetooth();
+		printf("*start* %d\n", curr);
+		bt = getCharBluetooth(curr);
+		msg_index[curr] = 0;
 		printf("ENQ: %d\n", (int)bt);
 		if (bt == ENQ){
 			printf ("got ENQ\n");
 			//do_pop(); TODO: COMMENT OUT THE 3 LINES BELOW WHEN USING KEYBOARD
-			key = "abcdefghijklmnop";
-			get_key();
-			gen_iv();
-			stage = rx_message;
+			key[curr] = "abcdefghijklmnop";
+			get_key(curr);
+			gen_iv(curr);
+			stage_list[curr] = rx_message;
 		}
 		break;
 
 	case rx_message:
-		ids = getCharBluetooth();
+		ids = getCharBluetooth(curr);
 		printf("msg:\n");
-		while(msg_index < 16){
-			bt = getCharBluetooth();
+		while(msg_index[curr] < 16){
+			bt = getCharBluetooth(curr);
 			printf("%d ", bt);
-			msg[msg_index] = bt;
-			msg_index++;
+			msg[curr][msg_index[curr]] = bt;
+			msg_index[curr]++;
 		}
-
-		msg[msg_index] = '\0';
+		msg[curr][msg_index[curr]] = '\0';
 		printf("\n");
-		get_sender_receiver(ids);
-		printf("Receiver: %d\n", (int)receiver);
-		printf("Sender: %d\n", (int)sender);
-		stage = tx_message;
+		get_sender_receiver(ids, curr);
+		printf("Receiver: %d\n", (int)receiver[curr]);
+		printf("Sender: %d\n", (int)sender[curr]);
+		sendMessage(msg_index[curr], sender[curr], receiver[curr], msg[curr], curr);
+		stage_list[curr] = start;
 		//stage = acknowledge; TODO: CHANGE ABOVE LINE TO THIS AFTER
 		break;
 
 	case acknowledge:
-		putCharBluetooth(ACK);
+		putCharBluetooth(ACK, curr);
 		usleep(ACK_DURATION);
-		bt = getCharBluetooth();
+		bt = getCharBluetooth(curr);
 		if(bt == ACK){
-			stage = tx_message;
+			sendMessage(msg_index[curr], sender[curr], receiver[curr], msg[curr], curr);
 		}
 		else{
-			stage = init; // TODO: CHANGE THIS TO STORE THE MESSAGE IN THE DATABASE AND NOTIFY THE RECEIVER UPON LOGIN
+			// TODO: CHANGE THIS TO STORE THE MESSAGE IN THE DATABASE AND NOTIFY THE RECEIVER UPON LOGIN
 		}
-		break;
-
-	case tx_message:
-		//TODO switch this -> it just echoes message back
-		sendMessage(msg_index, sender, receiver, msg);
-		//sendMessage(msg_index, receiver, sender, msg);
-		free(msg);
-		stage = init;
-		break;
-
-	case init:
-		msg_index = 0;
-		key = malloc(BLK_SIZE);
-		IV = malloc(BLK_SIZE);
-		msg = malloc(BLK_SIZE+1);
-		receiver = 0;
-		sender = 0;
-		stage = start;
+		stage_list[curr] = start;
 		break;
 	}
 }
 
+void init_vars(int index) {
+	stage_list[index] = start;
+	msg_index[index] = 0;
+	msg[index] = malloc(BLK_SIZE+1);
+	receiver[index] = 0;
+	sender[index] = 0;
+}
+
 int main(void) {
 	init_control();
-
-	stage = init;
+	init_vars(LEFT_BT);
+	init_vars(RIGHT_BT);
 
 	while(1){
 		interruptHandler();
