@@ -29,6 +29,7 @@ import android.util.Log;
 
 import java.io.*;
 import java.util.*;
+import java.lang.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -479,12 +480,15 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Integer> matchingIds = new ArrayList<Integer>();
 
         for (Message message : messages) {
-            int dist = getLevenshteinDistance(message.text, parameter);
-            int length = Math.max(message.text.length(), parameter.length());
-            double score = 1.0 - (double)dist / length;
+            for (String str : message.text.split("\\s+")) {
+                int dist = getLevenshteinDistance(str.toLowerCase(), parameter.toLowerCase());
+                int length = Math.max(str.length(), parameter.length());
+                double score = 1.0 - (double) dist / length;
 
-            if (score > fuzzyness) {
-                matchingIds.add(message.id);
+                if (score > fuzzyness) {
+                    matchingIds.add(message.id);
+                    break;
+                }
             }
         }
 
