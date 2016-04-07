@@ -723,8 +723,9 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(stringChunks.size() + " chunks to send.");
 
             for (int start = 0; start < stringChunks.size(); start++){
+                String paddedMessage = ("~~~~~~~~~~~~~~~~" + stringChunks.get(start)).substring(stringChunks.get(start).length());
                 //String paddedMessage = (stringChunks.get(start)).substring(stringChunks.get(start).length());
-                String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                //String paddedMessage = String.format("%1$16s", stringChunks.get(start));
                 byte[] cipher = AESEncryption.encrypt(paddedMessage, keyRequested, ivRequested);
                 AESEncryption.print_cipher(cipher, cipher.length);
                 for (byte bite : cipher) {
