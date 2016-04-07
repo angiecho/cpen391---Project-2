@@ -14,8 +14,7 @@ typedef enum {
 	start,
 	get_header,
 	rx_message,
-	login,
-	logout
+	login
 } Stage;
 
 volatile Stage stages_list[2];
@@ -78,7 +77,8 @@ void interruptHandler(void){
 		else if(bt == EOT){
 			if(confirm_logout()){
 				bt = getCharBluetooth(curr);
-				stage = logout;
+				log_out(bt);
+				stage = login;
 			}
 		}
 		break;
@@ -87,10 +87,13 @@ void interruptHandler(void){
 		ids = getCharBluetooth(curr);
 		get_sender_receiver(ids);
 		BLK_MULT = getCharBluetooth(curr);
+		printf("blk_mult header = %d\n", BLK_MULT);
 		stage = rx_message;
 		break;
 
 	case rx_message:
+		printf("rx :\n");
+		printf("blk_mult header= %d\n", BLK_MULT);
 		while(msg_index < BLK_SIZE*BLK_MULT){
 			bt = getCharBluetooth(curr);
 			printf("%d ", bt);
@@ -129,12 +132,6 @@ void interruptHandler(void){
 			putCharBluetooth(NIL, curr);
 			putCharBluetooth(NIL, curr);
 		}
-		break;
-
-	case logout:
-		printf("Log out: %d\n", (int) bt);
-		log_out(bt);
-		stage = login;
 		break;
 	}
 
