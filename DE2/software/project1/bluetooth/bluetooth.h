@@ -16,39 +16,22 @@
 #define Bluetooth_RS232_RxData  (*(volatile unsigned char *)(0x84000202))
 #define Bluetooth_RS232_Baud    (*(volatile unsigned char *)(0x84000204))
 
-
-
 #define Bluetooth_Baud    		(*(volatile unsigned char *)(0x84000224))
+
+#define LEFT_BT 0
+#define RIGHT_BT 1
 
 /**************************************************************************
 ***
 **  Initialise bluetooth
 *****************************************************************************/
-void putCharBluetooth(char c);
-char getCharBluetooth();
+void putCharBluetooth(char c, int curr);
+char getCharBluetooth(int curr);
 void Init_Bluetooth(void);
 void WaitForReadStat();
 
 void putCharBluetooth_RS232(char c);
 char getCharBluetooth_RS232();
 
-/*****************************************************************************
-**   Switch modes
-*****************************************************************************/
-void commandMode(void);
-void dataMode(void);
-void slaveMode(void);
-void endCommand();
-void setName();
-
-/*****************************************************************************
-**   Set name/security pin
-*****************************************************************************/
-void changeName(char name[]);
-void changePassword(char pw[]);
-void assignBluetooth(char* name, char* pw);
-void sendTestData(char* word);
-
-bool getCommand(void);
 
 #endif /* BLUETOOTH_H_ */
