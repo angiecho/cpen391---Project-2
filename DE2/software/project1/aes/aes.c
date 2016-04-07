@@ -10,6 +10,13 @@
 #include "menu.h"
 #include <stdbool.h>
 
+void print_bytes(char* byte_array){
+	for(int i = 0; i < BLK_SIZE; i++){
+		printf("%c" ,byte_array[i]);
+	}
+	printf("\n");
+}
+
 // send key to android
 void send_key(char* key){
 	// strcpy(key, query_string); TODO: FOR DEMO, READ KEYBOARD INPUT INSTEAD OF FAKE DATA
@@ -17,8 +24,8 @@ void send_key(char* key){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
-	putCharBluetooth(STX);
 	printf("\n");
+	putCharBluetooth(STX);
 }
 
 // send iv to android
@@ -27,8 +34,8 @@ void send_iv(char* iv){
 		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
-	putCharBluetooth(ETX);
 	printf("\n");
+	putCharBluetooth(ETX);
 }
 
 /* gen_iv will generate a 16 char IV based on the

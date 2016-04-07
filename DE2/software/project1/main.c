@@ -51,11 +51,8 @@ void interruptHandler(void){
 	switch(stage){
 
 	case start:
-		printf("*start*\n");
-
 		bt = getCharBluetooth();
 		if (bt == ENQ){
-			printf ("ENQ\n");
 			//do_pop(); TODO: USE KEYBOARD FOR DEMO
 //			while(!key_sent);
 //			strcpy(KEY, query_string);
@@ -68,7 +65,6 @@ void interruptHandler(void){
 			send_key(KEY);
 			gen_iv(IV);
 			send_iv(IV);
-			printf("KEY/IV sent\n");
 
 			stage = get_header;
 		}
@@ -84,9 +80,10 @@ void interruptHandler(void){
 	case get_header:
 		ids = getCharBluetooth();
 		get_sender_receiver(ids);
-		printf("Receiver: %d\n", (int)receiver);
-		printf("Sender: %d\n", (int)sender);
 		BLK_MULT = getCharBluetooth();
+//		printf("Receiver: %d\n", (int)receiver);
+//		printf("Sender: %d\n", (int)sender);
+//		printf("BLK_MULT: %d\n", BLK_MULT);
 		stage = rx_message;
 		break;
 
@@ -115,32 +112,28 @@ void interruptHandler(void){
 
 	case tx_message:
 		sendMessage(sender, receiver, MSG, KEY, IV, BLK_MULT); //TODO switch this -> it just echoes message back
-		//sendMessage(receiver, sender, MSG);
-		free(MSG);
+		//sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT);
+		MSG[0] = "\0";
+		//memset(MSG, 0, BLK_SIZE*BLK_MULT);
 		stage = init;
 		break;
 
 	case mail:
 		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
-		users[(int) receiver].has_mail = true;
-		printf("Is the mail okay?\n");
-		view_message(receiver);
-		free(MSG);
+		MSG[0] = "\0";
+		//memset(MSG, 0, BLK_SIZE*BLK_MULT);
 		stage = init;
 		break;
 
 	case init:
 		msg_index = 0;
-		KEY = malloc(BLK_SIZE);
-		IV = malloc(BLK_SIZE);
-		MSG = malloc(BLK_SIZE*MAX_MULT+1);
 		receiver = 0;
 		sender = 0;
 		stage = start;
 		break;
 
 	case login:
-		printf("Logging in with user_id: ");
+		printf("Log in: ");
 		bt = getCharBluetooth();
 		printf("%d\n", (int) bt);
 		if(log_in(bt)){
@@ -156,7 +149,7 @@ void interruptHandler(void){
 		break;
 
 	case logout:
-		printf("Logging out with user_id: %d\n", (int) bt);
+		printf("Log out: %d\n", (int) bt);
 		log_out(bt);
 		stage = login;
 		break;
@@ -166,6 +159,9 @@ void interruptHandler(void){
 int main(void) {
 	printf("START\n");
 	init_control();
+	KEY = malloc(BLK_SIZE);
+	IV = malloc(BLK_SIZE);
+	MSG = malloc(BLK_SIZE*MAX_MULT+1);
 
 	stage = login;
 

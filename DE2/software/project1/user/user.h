@@ -11,8 +11,8 @@
 typedef struct User{
 	int id;
 	bool logged_in;
-	bool has_mail;
 	struct Mailbox* mailbox;
+	int mail_count;
 } User;
 
 
