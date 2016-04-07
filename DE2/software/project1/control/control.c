@@ -120,8 +120,7 @@ bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int
 		printf("%c", iv[i]);
 		putCharBluetooth(iv[i]);
 	}
-	//keys/ivs are always 16 bits, and placed at front of incoming message,
-	//so we do not require the ETX/STX delimiters here
+	//keys/ivs are always 16 bits, and placed at front of incoming message
 	printf("\n");
 
 	char sender_receiver = (sender << 4) | receiver;

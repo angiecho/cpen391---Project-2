@@ -81,9 +81,6 @@ void interruptHandler(void){
 		ids = getCharBluetooth();
 		get_sender_receiver(ids);
 		BLK_MULT = getCharBluetooth();
-//		printf("Receiver: %d\n", (int)receiver);
-//		printf("Sender: %d\n", (int)sender);
-//		printf("BLK_MULT: %d\n", BLK_MULT);
 		stage = rx_message;
 		break;
 
@@ -111,17 +108,14 @@ void interruptHandler(void){
 		break;
 
 	case tx_message:
-		sendMessage(sender, receiver, MSG, KEY, IV, BLK_MULT); //TODO switch this -> it just echoes message back
-		//sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT);
+		sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT);
 		MSG[0] = "\0";
-		//memset(MSG, 0, BLK_SIZE*BLK_MULT);
 		stage = init;
 		break;
 
 	case mail:
 		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
 		MSG[0] = "\0";
-		//memset(MSG, 0, BLK_SIZE*BLK_MULT);
 		stage = init;
 		break;
 
