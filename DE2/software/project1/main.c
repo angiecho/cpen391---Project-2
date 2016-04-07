@@ -14,10 +14,6 @@ typedef enum {
 	start,
 	get_header,
 	rx_message,
-	acknowledge,
-	tx_message,
-	mail,
-	init,
 	login,
 	logout
 } Stage;
@@ -54,15 +50,13 @@ void interruptHandler(void){
 	int curr = (Bluetooth_Status & 0x1);
 
 	Stage stage = stages_list[curr];
-	char* MSG = MSG_list[curr];
-	char* KEY = KEY_list[curr];
-	char* IV = IV_list[curr];
 	int msg_index = msg_index_list[curr];
 	char BLK_MULT = BLK_MULT_list[curr];
 
 	switch(stage){
 
 	case start:
+		msg_index = 0;
 		bt = getCharBluetooth(curr);
 		if (bt == ENQ){
 			//do_pop(); TODO: USE KEYBOARD FOR DEMO
@@ -73,10 +67,10 @@ void interruptHandler(void){
 //			send_key(IV);
 //			key_sent = false;
 
-			KEY = "abcdefghijklmnop";
-			send_key(KEY, curr);
-			gen_iv(IV);
-			send_iv(IV, curr);
+			KEY_list[curr] = "abcdefghijklmnop";
+			send_key(KEY_list[curr], curr);
+			gen_iv(IV_list[curr]);
+			send_iv(IV_list[curr], curr);
 
 			stage = get_header;
 		}
@@ -100,42 +94,25 @@ void interruptHandler(void){
 		while(msg_index < BLK_SIZE*BLK_MULT){
 			bt = getCharBluetooth(curr);
 			printf("%d ", bt);
-			MSG[msg_index] = bt;
+			MSG_list[curr][msg_index] = bt;
 			msg_index++;
 		}
 
-		MSG[msg_index] = '\0';
+		MSG_list[curr][msg_index] = '\0';
 		printf("\n");
 
-		stage = acknowledge;
-		break;
-
-	case acknowledge:
-		if (users[(int)receiver].logged_in){
-			stage = tx_message;
+		printf("ack stage\n");
+		if (!users[(int)receiver[curr]].logged_in){
+			printf("Key send message: %s\n", KEY_list[curr]);
+			sendMessage(sender[curr],receiver[curr],  MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT, curr);
+			MSG_list[curr][0] = "\0";
+			stage = start;
 		}
 		else{
-			stage = mail;
+			send_mail(receiver[curr], sender[curr], MSG_list[curr], KEY_list[curr], IV_list[curr], BLK_MULT);
+			MSG_list[curr][0] = "\0";
+			stage = start;
 		}
-		break;
-
-	case tx_message:
-		sendMessage(receiver, sender, MSG, KEY, IV, BLK_MULT, curr);
-		MSG[0] = "\0";
-		stage = init;
-		break;
-
-	case mail:
-		send_mail(receiver, sender, MSG, KEY, IV, BLK_MULT);
-		MSG[0] = "\0";
-		stage = init;
-		break;
-
-	case init:
-		msg_index = 0;
-		receiver[curr] = 0;
-		sender[curr] = 0;
-		stage = start;
 		break;
 
 	case login:
@@ -146,7 +123,7 @@ void interruptHandler(void){
 			putCharBluetooth(SOH, curr);
 			putCharBluetooth(SOH, curr);
 			check_mailbox(bt, curr);
-			stage = init;
+			stage = start;
 		}
 		else{
 			putCharBluetooth(NIL, curr);
@@ -162,9 +139,6 @@ void interruptHandler(void){
 	}
 
 	stages_list[curr] = stage;
-//	char* MSG = MSG_list[curr];
-//	char* KEY = KEY_list[curr];
-//	char* IV = IV_list[curr];
 	msg_index_list[curr] = msg_index;
 	BLK_MULT_list[curr] = BLK_MULT;
 }
