@@ -48,7 +48,7 @@ void interruptHandler(void){
 		bt = getCharBluetooth(curr);
 		if (bt == ENQ){
 			send_key(KEY_list[curr],curr);
-			send_key(IV_list[curr],curr);
+			send_iv(IV_list[curr],curr);
 
 			stage = get_header;
 		}
@@ -153,7 +153,7 @@ int main(void) {
 	gen_iv(IV_list[LEFT_BT]);
 	gen_iv(IV_list[RIGHT_BT]);
 
-	printf("GPS IV:	");
+	printf("GPS IV: ");
 	for(int i = 0; i < BLK_SIZE; i++){
 		printf("%c", IV_list[LEFT_BT][i]);
 	}
