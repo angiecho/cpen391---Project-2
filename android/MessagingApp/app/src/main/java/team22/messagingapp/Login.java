@@ -60,11 +60,11 @@ public class Login extends AppCompatActivity {
             finish();
         }
         db = openOrCreateDatabase("Messages", Context.MODE_PRIVATE, null);
-       // db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
+//        db.execSQL("DROP TABLE users;"); //Drop table is here in case I want to clear the database
         db.execSQL("CREATE TABLE IF NOT EXISTS users(username VARCHAR PRIMARY KEY, password VARCHAR, _id INTEGER);");
-        Database.AddUser("caleb", "0003", 1, db);
-        Database.AddUser("charles", "0001", 2, db);
-        Database.AddUser("cho", "0002", 3, db);
+//        Database.AddUser("caleb", "0003", 1, db);
+//        Database.AddUser("cho", "0001", 2, db);
+//        Database.AddUser("charles", "0002", 3, db);
         setContentView(R.layout.activity_login);
     }
 

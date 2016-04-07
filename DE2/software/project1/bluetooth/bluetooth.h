@@ -30,6 +30,9 @@ char getCharBluetooth(int curr);
 void Init_Bluetooth(void);
 void WaitForReadStat();
 
+char getCharBluetooth_RIGHT();
+void putCharBluetooth_RIGHT(char c);
+
 void putCharBluetooth_RS232(char c);
 char getCharBluetooth_RS232();
 
