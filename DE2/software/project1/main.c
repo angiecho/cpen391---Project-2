@@ -29,11 +29,10 @@ void get_sender_receiver(char ids, int curr){
 void interruptHandler(void){
 	char ids;
 	char bt;
-
+	printf("Gonna Wait\n");
 	while (!(Bluetooth_Status & 0x1) && (!(Bluetooth_RS232_Status & 0x1)));
 	int curr = (Bluetooth_Status & 0x1);
 	Stage stage = stage_list[curr];
-
 	switch(stage){
 
 	case start:
@@ -71,9 +70,9 @@ void interruptHandler(void){
 		break;
 
 	case acknowledge:
-		putCharBluetooth(ACK, curr);
+		putCharBluetooth(ACK, curr);	// CHANGE from curr to the opposite
 		usleep(ACK_DURATION);
-		bt = getCharBluetooth(curr);
+		bt = getCharBluetooth(curr);	// CHANGE from curr to the opposite
 		if(bt == ACK){
 			sendMessage(msg_index[curr], sender[curr], receiver[curr], msg[curr], curr);
 		}

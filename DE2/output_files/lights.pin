@@ -727,8 +727,8 @@ SRAM_ADDR[15]                : Y10       : output : 3.3-V LVTTL       :         
 SRam_DQ[7]                   : Y11       : bidir  : 3.3-V LVTTL       :         : 8         : Y              
 GND*                         : Y12       :        :                   :         : 8         :                
 LEDR[9]                      : Y13       : output : 3.3-V LVTTL       :         : 7         : Y              
-2BluetoothRX                 : Y14       : input  : 3.3-V LVTTL       :         : 7         : N              
-2BluetoothTX                 : Y15       : output : 3.3-V LVTTL       :         : 7         : N              
+2BluetoothTX                 : Y14       : output : 3.3-V LVTTL       :         : 7         : N              
+2BluetoothRX                 : Y15       : input  : 3.3-V LVTTL       :         : 7         : N              
 GND*                         : Y16       :        :                   :         : 7         :                
 GND                          : Y17       : gnd    :                   :         :           :                
 LEDG[7]                      : Y18       : output : 3.3-V LVTTL       :         : 7         : Y              
