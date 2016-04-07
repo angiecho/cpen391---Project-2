@@ -297,8 +297,6 @@ void do_enter(){
 		key_sent = false;
 	}
 	else {
-		get_key();
-		gen_iv();
 		key_sent = true;
 	}
 }

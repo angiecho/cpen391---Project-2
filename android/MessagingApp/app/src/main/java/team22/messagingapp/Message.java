@@ -1,14 +1,5 @@
 package team22.messagingapp;
 
-import android.app.NotificationManager;
-import android.content.Context;
-import android.media.AudioManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.Vibrator;
-import android.support.v4.app.NotificationCompat;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,7 +23,5 @@ public class Message {
             e.printStackTrace();
         }
     }
-
-
 
 }

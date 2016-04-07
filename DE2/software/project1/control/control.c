@@ -12,6 +12,7 @@
 #include "bluetooth.h"
 #include "aes.h"
 #include <stdbool.h>
+#include "user.h"
 
 // Initialise components and popup the keyboard
 void init_control(){
@@ -19,6 +20,7 @@ void init_control(){
 	Init_Bluetooth();
 	init_touch();
 	init_keyboard();
+	init_users();
 }
 void kb_listen(){
 	while(1){
@@ -80,27 +82,26 @@ char* getMessage(unsigned* length, char* receiver, char* sender){
 	}
 }
 
-bool sendMessage(unsigned length, char receiver, char sender, char* msg){
-	printf("Sending: \n");
-	for (int i = 0; i<strlen(key); i++){
+bool sendMessage(char receiver, char sender, char* msg, char* key, char* iv, int blk_mult){
+	printf("SENDING TO ANDROID: \n");
+	for (int i = 0; i<BLK_SIZE; i++){
 		printf("%c", key[i]);
 		putCharBluetooth(key[i]);
 	}
 
 	printf("\n");
 
-	for (int i = 0; i<strlen(IV); i++){
-		printf("%c", IV[i]);
-		putCharBluetooth(IV[i]);
+	for (int i = 0; i<BLK_SIZE; i++){
+		printf("%c", iv[i]);
+		putCharBluetooth(iv[i]);
 	}
-	//keys/ivs are always 16 bits, and placed at front of incoming message,
-	//so we do not require the ETX/STX delimiters here
+	//keys/ivs are always 16 bits, and placed at front of incoming message
 	printf("\n");
 
 	char sender_receiver = (sender << 4) | receiver;
 	putCharBluetooth(sender_receiver);
 
-	for(int i = 0; i<length; i++){
+	for(int i = 0; i<BLK_SIZE*blk_mult; i++){
 		printf("%d ", msg[i]);
 		putCharBluetooth(msg[i]);
 	}
@@ -111,4 +112,3 @@ bool sendMessage(unsigned length, char receiver, char sender, char* msg){
 
 	return true;
 }
-

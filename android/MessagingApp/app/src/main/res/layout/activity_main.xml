@@ -5,5 +5,5 @@
     android:layout_height="match_parent"
 
     tools:context="team22.messagingapp.MainActivity">
-    <include layout="@layout/content_my"/>
+    <include layout="@layout/content_my" />
 </RelativeLayout>

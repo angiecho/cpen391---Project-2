@@ -31,6 +31,7 @@ import java.io.*;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
+
     private SQLiteDatabase database;
     private OutputStream outputStream;
     private InputStream inputStream;
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private static volatile String ivRequested;
     private static final int KEY_IV_SIZE = 16;
 
-    private static final String SENDER = "sender";
+    public static final String SENDER = "sender";
     private static final String RECIPIENT = "recipient";
     private static final String MESSAGE_TEXT = "message_text";
     private static final String MESSAGE_DATE = "message_date";
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int BLACK = 0xffffffff;
     private static final int BLUE = 0xff000000;
     private static final int WIDTH = 300;
-    private static final int TEXT_SIZE = 50;
     private static final int ENQ = 5;
 
     private Thread workerThread;
@@ -273,7 +273,16 @@ public class MainActivity extends AppCompatActivity {
         final byte keyDelimiter = 2;
         final byte ivDelimiter = 3;
         final byte ackDelimiter = 6;
-
+//        if (bite == delimiter) {
+//            handleEndOfMessage();
+//        } else if (bite == keyDelimiter) {
+//            getKey();
+//
+//        } else if (bite == ivDelimiter) {
+//            getIV();
+//        } else if (bite == ackDelimiter) {
+//            readBufferPosition = 0;
+//            waitForAck = false;
         if (checkDelimiter(bite,delimiter)) {
             handleEndOfMessage();
         } else if(checkDelimiter(bite,keyDelimiter)) {
@@ -301,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
         return (readBuffer[readBufferPosition-1] == delimiter
                 && readBuffer[readBufferPosition-2] == delimiter);
     }
+
 
     private void handleEndOfMessage() throws  UnsupportedEncodingException{
         // need key, iv, header(1 byte), and message(1 >= bytes)
@@ -351,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
 
         StringBuilder builder = new StringBuilder();
         for(String s : decodedByteChunks) {
+            s = s.replace("~", "");
             builder.append(s);
         }
         final String data = builder.toString().trim();
@@ -358,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
         final int receiver_id = 0xf & sender_receiver;
         final int sender_id = sender_receiver >>> 4;
 
-        final Message message = Database.insertMessageToDatabase(sender_id, receiver_id, false, data, database);
+        final Message m = Database.insertMessageToDatabase(sender_id, receiver_id, false, data, database);
 
         readBufferPosition = 0;
         handler.post(new Runnable() {
@@ -366,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
                 //insert check if it's the same user we're getting stuff from
 
                 if (sender_id == getCurrentReceiver()) {
-                    insertReceivedMessageToView(message, false);
+                    insertReceivedMessageToView(m, false);
                 } else {
                     //check if volume
                     String author = getSenderName(sender_id);
@@ -380,24 +391,20 @@ public class MainActivity extends AppCompatActivity {
     private void getIV() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
         ivRequested = byteArrToString(readBuffer, readBufferPosition-2);
-        System.out.println("got iv\n");
         readBufferPosition = 0;
     }
 
     private void getKey() throws UnsupportedEncodingException{
         assert (readBufferPosition > 0);
         keyRequested = byteArrToString(readBuffer, readBufferPosition-2);
-        System.out.println("got key " + keyRequested);
         readBufferPosition = 0;
     }
 
-    private String byteArrToString(byte[] bytes, int bytesLength)
-            throws UnsupportedEncodingException{
+    private String byteArrToString(byte[] bytes, int bytesLength) throws UnsupportedEncodingException{
         byte[] encodedBytes = new byte[bytesLength];
         System.arraycopy(bytes, 0, encodedBytes, 0, bytesLength);
         return new String(encodedBytes, FORMAT);
     }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -409,6 +416,7 @@ public class MainActivity extends AppCompatActivity {
         listenMessages();
         scrollDown();
     }
+
 
     @Override
     protected void onStop() {
@@ -634,7 +642,7 @@ public class MainActivity extends AppCompatActivity {
 
         String selectionQuery = "(recipient =? OR sender =?) AND (recipient =? OR sender =?)";
 
-        //Show 15 more!
+        //Show 15 more than before!
         Cursor cursor = database.query(MESSAGES_TABLE, columns, selectionQuery, args, null, null, "id desc", String.valueOf(messagesToShowCount));
         if (cursor.moveToFirst()) {
             ArrayList<Message> pastMessages = new ArrayList<>();
@@ -678,7 +686,7 @@ public class MainActivity extends AppCompatActivity {
         if (message != null && !message.trim().isEmpty()){
             int sender_id = getCurrentSender();
             int recipient_id = getCurrentReceiver();
-            int messageHeader = 16*sender_id + recipient_id;
+            int messageHeader = (sender_id<<4) + recipient_id;
 
             Message m1 = Database.insertMessageToDatabase(sender_id, recipient_id, true, message, database);
             insertSentMessageToView(m1, false);
@@ -706,14 +714,19 @@ public class MainActivity extends AppCompatActivity {
             for (int start = 0; start < message.length(); start += 16) {
                 stringChunks.add(message.substring(start, Math.min(message.length(), start + 16)));
             }
+            outputData((byte)stringChunks.size());
+
+            System.out.println(stringChunks.size() + " chunks to send.");
 
             for (int start = 0; start < stringChunks.size(); start++){
-                String paddedMessage = String.format("%1$16s", stringChunks.get(start));
+                String paddedMessage = ("~~~~~~~~~~~~~~~~" + stringChunks.get(start)).substring(stringChunks.get(start).length());
+                //String paddedMessage = String.format("%1$16s", stringChunks.get(start));
                 byte[] cipher = AESEncryption.encrypt(paddedMessage, keyRequested, ivRequested);
                 AESEncryption.print_cipher(cipher, cipher.length);
                 for (byte bite : cipher) {
                     outputData(bite);
                 }
+
             }
 
             outputStream.flush();
@@ -729,10 +742,12 @@ public class MainActivity extends AppCompatActivity {
         outputStream.write(data);
         waitForAck = true;
         while(waitForAck);
+        System.out.print("Ack");
     }
 
     // Display received message, store it in the DB, and get a notification.
     public void receiveMessage(View view){
+
         String message_text = getMessage();
         if (message_text != null) {
             boolean sent = getCurrentSender() == getCurrentReceiver();
@@ -845,5 +860,4 @@ public class MainActivity extends AppCompatActivity {
         else
             return myView.getTop() + getRelativeTop((View) myView.getParent());
     }
-
 }
