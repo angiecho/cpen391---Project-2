@@ -10,6 +10,7 @@
 #include "user.h"
 #include "mailbox.h"
 #include "search.h"
+#include "Colours.h"
 
 typedef enum {
 	start,

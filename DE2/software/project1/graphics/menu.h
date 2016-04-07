@@ -63,7 +63,7 @@
 #define ARR_BUTT_HEIGHT 130
 #define SBUTT_WIDTH 100
 #define SBUTT_HEIGHT 50
-#define BOX_WIDTH 200
+#define BOX_WIDTH 600
 #define BOX_HEIGHT 200
 #define MAP_WIDTH 600
 #define SEARCH_TOP 200

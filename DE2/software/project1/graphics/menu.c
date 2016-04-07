@@ -55,7 +55,7 @@ void draw_information_box(char* text){
 	Point point8;
 	point8.x = ORIGIN;
 	point8.y = ORIGIN;
-	draw_text_box(point8, BOX_WIDTH, BOX_HEIGHT, 1, WHITE, WHITE, BLACK, text, SMALL);
+	draw_text_box(point8, BOX_WIDTH, BOX_HEIGHT, 1, WHITE, WHITE, BLACK, text, MEDIUM);
 
 }
 
@@ -251,7 +251,7 @@ void pop_screen(){
 	Point botLeft = {0,480};
 	Point botRight = {800, 480};
 	draw_filled_rectangle(topLeft, topRight, botLeft, botRight, WHITE);
-	draw_information_box("ENTER YOUR Key!");
+	draw_information_box("ENTER YOUR 16 CHARACTER KEY!");
 
 	Point kb_p = {KB_LEFT, KB_TOP};
 	Point search_p = {ORIGIN, SEARCH_TOP};
