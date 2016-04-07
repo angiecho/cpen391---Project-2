@@ -35,7 +35,7 @@ void gen_iv(void){
 	read_gps(&lat, &lon);
 	long long latXlon = lat * lon * 2;
 	printf("IV: ");
-	for (int i = 0; i < strlen(iv); i++){
+	for (int i = 0; i < 16; i++){
 		long long temp = latXlon / (10^i);
 		iv[i] = getASCII(temp);
 		printf("%c", iv[i]);
